@@ -13,4 +13,4 @@ unique, counts = np.unique(mb, return_counts=True)
 ##Breakdown of muliplicities
 with open("mult_summary", "w") as ff:
     for uu, cc in zip(unique, counts):
-        ff.write(f"# Multiplicity {uu} count: {cc}\n")
+        ff.write(f"Multiplicity {uu} count: {cc}\n")

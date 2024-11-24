@@ -19,7 +19,7 @@ each star particle's halo.
 
 (3) Move these output files to a separate directory called "halo_masses."
 
-(4) Use python3 run_batch.py START END FT to identify multiples multiples in the simulation.
+(4) Use python3 run_batch.py START END FT to identify multiples in the simulation.
 START is the starting snapshot, END is the ending snapshot, and FT is the desired ft.
 To analyze all of the snapshots, use python3 run_batch.py 0 -1 FT.
 This will run the script find_multiples_new2.py, and output pickle files for all of the snapshots containing information about the multiples
@@ -80,7 +80,7 @@ Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de4
 Also tested demo with: NumPy (1.26.0), SciPy (1.13.1), pytreegrav (1.1.4), h5py (3.12.1), numba (0.60.0)
 
 
-#Installation and Demo
+# Installation and Demo
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
 Code Ocean takes approximately 20 seconds. 
 
@@ -89,13 +89,13 @@ smaller, 2x10^3 solar mass cloud.
 
 The total runtime for for the demo is 3 minutes on 10 core Lenovo E15 laptop and 4 minutes on Code Ocean
 
-The demo will produce the output files described in #starforge_mult_search above, as well as a file called ``mult_summary'' with
+The demo will produce the output files described in #starforge_mult_search above, as well as a file called 'mult_summary' with
 the multiple statistics in the demo data. The contents should be as below:
 
-# Multiplicity 1 count: 111
-# Multiplicity 2 count: 17
-# Multiplicity 3 count: 2
-# Multiplicity 4 count: 6
+Multiplicity 1 count: 111\
+Multiplicity 2 count: 17\
+Multiplicity 3 count: 2\
+Multiplicity 4 count: 6
 
 
 
