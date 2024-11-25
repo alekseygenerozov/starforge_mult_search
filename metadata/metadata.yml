@@ -1,5 +1,5 @@
 metadata_version: 1
-name: Starforge_mult_search_demo
+name: Stellar Binaries are Bound from Birth
 description: |-
   This capsule includes the scripts used to identify gas halos and multiples for the article "Stellar Binaries are Bound from Birth" (abstract below). We provide a smaller demo dataset with this capsule, from a StarForge simulation of a smaller cloud with 2x10^3 Msun. While sharing the full end-to-end analysis from the paper is impractical, this capsule will make our halo and multiple identification algorithms reproducible.
 
