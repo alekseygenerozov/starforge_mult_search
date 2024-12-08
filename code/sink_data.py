@@ -78,7 +78,7 @@ def main():
     parser = argparse.ArgumentParser(description="Parse starforge snapshot, and get multiple data.")
     parser.add_argument("snap", help="Name of snapshot to read")
     parser.add_argument("--snap_base", default="snapshot", help="First part of snapshot name")
-    parser.add_argument("--tag", default="M2e4", help="Extension for saving.")
+    parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
     args = parser.parse_args()
 
     snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
