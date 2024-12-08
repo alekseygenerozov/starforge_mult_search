@@ -16,6 +16,5 @@ end = int(sys.argv[2])
 if end < 0:
 	end = len(snaps) - 1
 for ii in range(start, end + 1, 1):
-        snap = f"{snap_base}_{ii}.hdf5"
-        cmd = f"python3 sink_data.py {snap}"
+        cmd = f"python3 sink_data.py {ii}  --snap_base {snap_base}"
         bash_command(cmd)

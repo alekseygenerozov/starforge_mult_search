@@ -77,10 +77,13 @@ def load_data(file, res_limit=0.0):
 def main():
     parser = argparse.ArgumentParser(description="Parse starforge snapshot, and get multiple data.")
     parser.add_argument("snap", help="Name of snapshot to read")
+    parser.add_argument("--snap_base", default="snapshot", help="First part of snapshot name")
     parser.add_argument("--tag", default="M2e4", help="Extension for saving.")
     args = parser.parse_args()
-    name_tag = args.tag
-    snapshot_num = args.snap[-8:-5].replace("_","") # File number
+
+    snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
+    name_tag = args.name_tag
+    snapshot_num = snapshot_file[-8:-5].replace("_", "")
 
     den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin\
         = load_data(args.snap)
