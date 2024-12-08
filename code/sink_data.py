@@ -85,8 +85,11 @@ def main():
     name_tag = args.name_tag
     snapshot_num = snapshot_file[-8:-5].replace("_", "")
 
-    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin\
-        = load_data(args.snap)
+    try:
+        den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin\
+            = load_data(snapshot_file)
+    except KeyError:
+        return
 
     nsinks = len(partpos)
     partids.shape = (nsinks, -1)
