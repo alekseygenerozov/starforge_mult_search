@@ -21,7 +21,7 @@ LOOKUP_M = 5
 LOOKUP_SMA = 6
 LOOKUP_ECC = 7
 ##TO FIX(!!)
-snap_interval = 2.47e4
+# snap_interval = 2.47e4
 
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
 sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))

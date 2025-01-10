@@ -21,7 +21,7 @@ LOOKUP_M = 5
 LOOKUP_SMA = 6
 LOOKUP_ECC = 7
 ##TO FIX(!!)
-snap_interval = 2.47e4
+# snap_interval = 2.47e4
 
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
 sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
@@ -121,7 +121,7 @@ def get_bound_snaps(sys1_info, sys2_info):
 
     return bound_snaps1, bound_snaps2
 
-def get_quasi(bin_ids, lookup_dict, fst):
+def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
     """
     Quasi-persistent filter for binaries.
     """
@@ -144,6 +144,7 @@ def get_quasi(bin_ids, lookup_dict, fst):
         sys_lookup_sel0 = sys1_info[sys1_info[:,0] < fst_idx]
         sys_lookup_sel1 = sys2_info[sys2_info[:,0] < fst_idx]
         mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3] == 1) and np.all(sys_lookup_sel1[:, 3] == 1))
+        age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
         bound_snaps1, bound_snaps2 = get_bound_snaps(sys1_info, sys2_info)
         tmp_final_bound_snap = bound_snaps2[:, LOOKUP_SNAP][-1]
@@ -231,6 +232,7 @@ def main():
     r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
     r2 = sys.argv[3]
     base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
@@ -256,7 +258,7 @@ def main():
 
     ####This will be part 2???
     ##Quasi-persistent filter
-    bound_time_data = get_quasi(bin_ids, lookup_dict, fst)
+    bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval)
     # np.savez(save_path + "/quasi", quasi_filter)
 
     ##Multiplcity filter 1
@@ -284,7 +286,8 @@ def main():
              bound_time=bound_time_data["bound_time"],
              bound_time_norm=bound_time_data["bound_time_norm"],
              delta_snap=bound_time_data["age_diff"],
-             mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b)
+             mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b,
+             snap_interval=snap_interval)
 #######################################################################################################################################################################
 #######################################################################################################################################################################
 
