@@ -23,5 +23,5 @@ end = int(sys.argv[2])
 if end < 0:
 	end = len(snaps) - 1
 
-with multiprocessing.Pool(56) as pool:
-    pool.map(run_find_bins, [(ii, snap_base, tides_factor) for ii in range(start, end + 1)])
+with multiprocessing.Pool(10) as pool:
+    pool.starmap(run_find_bins, [(ii, snap_base, sys.argv[3]) for ii in range(start, end + 1)])
