@@ -3,20 +3,19 @@ import numpy as np
 import sys
 ##Code uses functionality in find_multiples_new2
 # sys.path.append("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge")
-from starforge_mult_search.code import find_multiples_new2
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
+import find_multiples_new2
+from find_multiples_new2 import cluster, system
 import pytreegrav
 # import progressbar
 import argparse
 import h5py
 import multiprocessing
 import functools
-from starforge_mult_search.code import starforge_constants as sfc
+import starforge_constants as sfc
 import time
 import subprocess
 
-# import myglobals
-from starforge_mult_search.code import myglobals
+import myglobals
 myglobals.gas_data = []
 
 def bash_command(cmd, **kwargs):

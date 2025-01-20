@@ -5,8 +5,7 @@ from itertools import combinations
 import pickle
 import pytreegrav
 import argparse
-# import starforge_constants as sfc
-from starforge_mult_search.code import starforge_constants as sfc
+import starforge_constants as sfc
 # import tqdm
 
 
