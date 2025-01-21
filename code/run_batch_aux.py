@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 def bash_command(cmd, **kwargs):
     '''Run command from the bash shell'''
