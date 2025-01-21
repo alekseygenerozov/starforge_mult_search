@@ -3,6 +3,7 @@ import subprocess
 import glob
 
 import multiprocessing
+from run_batch_aux import bash_command, get_cadence
 
 def bash_command(cmd, **kwargs):
         '''Run command from the bash shell'''
@@ -22,5 +23,6 @@ end = int(sys.argv[2])
 if end < 0:
 	end = len(snaps) - 1
 
+cadence = get_cadence()
 with multiprocessing.Pool(10) as pool:
-    pool.starmap(run_sink, [(ii, snap_base) for ii in range(start, end + 1)])
+    pool.starmap(run_sink, [(ii, snap_base) for ii in range(start, end + 1, cadence)])
