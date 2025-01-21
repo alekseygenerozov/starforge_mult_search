@@ -279,7 +279,7 @@ def main():
     base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
     r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
     r2 = sys.argv[3]
-    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    base_sink = base + "/sinkprop/M2e4_snapshot_"
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
