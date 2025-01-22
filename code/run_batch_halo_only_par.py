@@ -18,7 +18,7 @@ cadence = get_cadence()
 start = int(sys.argv[1])
 end = int(sys.argv[2])
 if end < 0:
-	end = (len(snaps) - 1) * candence
+	end = (len(snaps) - 1) * cadence
 for ii in range(start, end + 1, cadence):
 	print(f"python3 halo_masses_single_double_par.py --non_pair --tides_factor {sys.argv[3]} --snap_base {snap_base}  {ii}")
 	bash_command(f"python3 halo_masses_single_double_par.py --non_pair --tides_factor {sys.argv[3]} --snap_base {snap_base}  {ii}")

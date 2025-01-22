@@ -22,6 +22,6 @@ cadence = get_cadence()
 start = int(sys.argv[1])
 end = int(sys.argv[2])
 if end < 0:
-	end = (len(snaps) - 1) * candence
+	end = (len(snaps) - 1) * cadence
 with multiprocessing.Pool(10) as pool:
     pool.starmap(run_find_bins, [(ii, snap_base, sys.argv[3]) for ii in range(start, end + 1, cadence)])
