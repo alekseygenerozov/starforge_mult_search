@@ -639,7 +639,7 @@ def main():
     snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
     sma_order = args.sma_order
     name_tag = args.name_tag
-    snapshot_num = snapshot_file[-8:-5].replace("_","") # File number
+    snapshot_num = f'{int(args.snap):03d}'
 
     # den, x, m, h, u, b, v, t, fmol, fneu, partpos, partmasses, partvels, partids, tage_myr, unit_base = load_data(snapshot_file, res_limit=1e-3)
     # cl = cluster(partpos, partvels, partmasses, partids)

@@ -2,7 +2,7 @@ import sys
 import subprocess
 import glob
 
-from run_batch_aux import bash_command, get_cadence
+from starforge_mult_search.code.run_batch_aux import bash_command, get_cadence
 
 # def bash_command(cmd, **kwargs):
 # 	'''Run command from the bash shell'''
