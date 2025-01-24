@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 ##See if we can do the filtering in a cleaner/simpler way np.in1d can be a little uninituitive in some cases
 import sys
 import pickle
+import h5py
+import tqdm
 
 from starforge_mult_search.code import find_multiples_new2, halo_masses_single_double_par
 from starforge_mult_search.code.find_multiples_new2 import cluster,system
 
 # from find_multiples_new2 import cluster, system
-import h5py
 sys.path.append("/home/aleksey/code/python")
 from bash_command import bash_command as bc
 import cgs_const as cgs
@@ -87,6 +88,7 @@ def get_unique_binaries(r1, r2, start_snap, end_snap):
     for ss in range(start_snap, end_snap + 1):
         try:
             with open(r1 + "{0:03d}".format(ss) + r2, "rb") as ff:
+                print(r1 + "{0:03d}".format(ss) + r2)
                 cl_a = pickle.load(ff)
         except FileNotFoundError:
             print("Not found", ss)
@@ -271,6 +273,42 @@ def get_paths(base_sink, save_path, lookup, start_snap, end_snap):
 
     return path_lookup
 
+def get_acc(r1, r2, start_snap, end_snap):
+    ts_all = []
+    ids_all = []
+    accs_all = []
+
+    for ss in tqdm.tqdm(range(start_snap, end_snap + 1)):
+        with open(f"{r1}{ss:03d}{r2}", "rb") as ff:
+            cl = pickle.load(ff)
+        tmp_ids = np.concatenate([ss.ids for ss in cl.systems])
+        tmp_ts = [ss] * len(tmp_ids)
+        tmp_accels = np.concatenate([ss.sub_accel for ss in cl.systems])
+
+        ts_all.append(tmp_ts)
+        ids_all.append(tmp_ids)
+        accs_all.append(tmp_accels)
+
+    ids_all = np.concatenate(ids_all)
+    ids_all.shape = (-1, 1)
+    ts_all = np.concatenate(ts_all)
+    ts_all.shape = (-1, 1)
+    accs_all = np.vstack(accs_all)
+    accs_all = np.hstack((ts_all, ids_all, accs_all))
+
+    ncols = accs_all.shape[1]
+    utags = np.unique(accs_all[:, 1])
+    utags_str = utags.astype(int).astype(str)
+    acc_lookup = {}
+    for ii, uu in enumerate(utags):
+        tmp_sel = accs_all[accs_all[:, 1] == uu]
+        tmp_path1 = np.ones((end_snap + 1, ncols)) * np.inf
+        tmp_path1[tmp_sel[:, 0].astype(int)] = tmp_sel
+
+        acc_lookup[utags_str[ii]] = tmp_path1
+
+    return acc_lookup
+
 def main():
     cloud_tag = sys.argv[1]
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
@@ -279,7 +317,9 @@ def main():
     base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
     r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
     r2 = sys.argv[3]
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
+    # base_sink = base + "/sinkprop/M2e4_snapshot_"
+    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    print(base_sink)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
@@ -291,7 +331,7 @@ def main():
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
-    ####################################################################################################
+    # ####################################################################################################
     bc.bash_command(f"mkdir -p {save_path}")
     with open(save_path + "/mult_data_path", "w") as ff:
         ff.write(r1 + "\n")
@@ -320,6 +360,10 @@ def main():
     ##Particle paths...
     start_snap = int(min(lookup[:, LOOKUP_SNAP]))
     path_lookup = get_paths(base_sink, save_path, lookup, start_snap, end_snap)
+
+    acc_lookup = get_acc(r1, r2, start_snap, end_snap)
+    with open(save_path + "/acc_lookup.p", "wb") as ff:
+        pickle.dump(acc_lookup, ff)
     #################################################################################
 #######################################################################################################################################################################
 #######################################################################################################################################################################
