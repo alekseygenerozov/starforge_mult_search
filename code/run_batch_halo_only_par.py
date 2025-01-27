@@ -20,5 +20,6 @@ end = int(sys.argv[2])
 if end < 0:
 	end = (len(snaps) - 1) * cadence
 for ii in range(start, end + 1, cadence):
-	print(f"python3 halo_masses_single_double_par.py --non_pair --tides_factor {sys.argv[3]} --snap_base {snap_base}  {ii}")
-	bash_command(f"python3 halo_masses_single_double_par.py --non_pair --tides_factor {sys.argv[3]} --snap_base {snap_base}  {ii}")
+	my_cmd = f"python3 starforge_mult_search/code/halo_masses_single_double_par.py --non_pair --tides_factor {sys.argv[3]} --snap_base {snap_base}  {ii}"
+	print(my_cmd)
+	bash_command(my_cmd)

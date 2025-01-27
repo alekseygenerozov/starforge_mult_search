@@ -11,7 +11,7 @@ def bash_command(cmd, **kwargs):
         return process.communicate()[0]
 
 def run_sink(ii, snap_base):
-        cmd = f"python3 sink_data.py {ii}  --snap_base {snap_base}"
+        cmd = f"python3 starforge_mult_search/code/sink_data.py {ii}  --snap_base {snap_base}"
         bash_command(cmd)
 
 with open("data_loc", "r") as ff:
