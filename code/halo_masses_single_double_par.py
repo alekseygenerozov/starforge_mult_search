@@ -195,8 +195,6 @@ def main():
     name_tag = args.name_tag
 
     snap_file = args.snap_base + '_{0:03d}.hdf5'.format(int(snap_idx))
-    snapshot_num = snap_file[-8:-5].replace("_", "")  # File number
-
     try:
         den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base =\
     find_multiples_new2.load_data(snap_file, res_limit=1e-3)

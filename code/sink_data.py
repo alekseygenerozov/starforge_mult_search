@@ -83,7 +83,7 @@ def main():
 
     snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
     name_tag = args.name_tag
-    snapshot_num = snapshot_file[-8:-5].replace("_", "")
+    snapshot_num = f'{int(args.snap):03d}'
 
     try:
         den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin\
