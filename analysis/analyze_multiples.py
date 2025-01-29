@@ -55,7 +55,7 @@ def get_energy_from_sink_table(tmp_dat, row_idx):
 
     return pe1 + ke1
 
-def get_unique_binaries(r1, r2, start_snap, end_snap):
+def get_unique_binaries(r1, r2, start_snap, end_snap, cadence):
     """
     Get the unique binaries from a series of snapshots...
 
@@ -85,7 +85,7 @@ def get_unique_binaries(r1, r2, start_snap, end_snap):
     times_all = []
     nsys = []
 
-    for ss in range(start_snap, end_snap + 1):
+    for ss in range(start_snap, end_snap + 1, cadence):
         try:
             with open(r1 + "{0:03d}".format(ss) + r2, "rb") as ff:
                 print(r1 + "{0:03d}".format(ss) + r2)
@@ -116,7 +116,7 @@ def get_unique_binaries(r1, r2, start_snap, end_snap):
                                   mass_i1, mass_i2, sep_i)), np.concatenate(bin_ids_all), np.concatenate(times_all),\
         nsys
 
-def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap):
+def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
     """
     Get the a lookup table for parent system/orbit of each star
 
@@ -130,7 +130,7 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap):
     :rtype: np.ndarray
     """
     lookup = []
-    for ss in range(start_snap, end_snap + 1):
+    for ss in range(start_snap, end_snap + 1, cadence):
         try:
             with open(r1 + "{0:03d}".format(ss) + r2, "rb") as ff:
                 cl = pickle.load(ff)
@@ -164,12 +164,12 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap):
 
     return np.array(lookup)
 
-def get_first_snap_idx(base_sink, start_snap, end_snap):
+def get_first_snap_idx(base_sink, start_snap, end_snap, cadence):
     """
     Get lookup table of the first snapshot index used
     """
     tmp_snap_idx = []
-    for ss in range(start_snap, end_snap + 1):
+    for ss in range(start_snap, end_snap + 1, cadence):
         tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
         tmp_idx = tmp_sink[:, 0].astype(int)
         tmp_snap = [ss for ii in range(len(tmp_idx))]
@@ -207,14 +207,14 @@ def get_fst(first_snapshot_idx, uids):
 
     return fst_idx
 
-def get_paths(base_sink, save_path, lookup, start_snap, end_snap):
+def get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence):
     sinks_all = []
     spins_all = []
     ts = []
     tags = []
     accels = []
     nsinks = np.zeros(end_snap + 1)
-    for ss in range(start_snap, end_snap + 1):
+    for ss in range(start_snap, end_snap + 1, cadence):
         tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
         sinks_all.append(tmp_sink)
         tmp_spin = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.spin".format(ss)))
@@ -273,12 +273,12 @@ def get_paths(base_sink, save_path, lookup, start_snap, end_snap):
 
     return path_lookup
 
-def get_acc(r1, r2, start_snap, end_snap):
+def get_acc(r1, r2, start_snap, end_snap, cadence):
     ts_all = []
     ids_all = []
     accs_all = []
 
-    for ss in tqdm.tqdm(range(start_snap, end_snap + 1)):
+    for ss in tqdm.tqdm(range(start_snap, end_snap + 1, cadence)):
         with open(f"{r1}{ss:03d}{r2}", "rb") as ff:
             cl = pickle.load(ff)
         tmp_ids = np.concatenate([ss.ids for ss in cl.systems])
@@ -314,11 +314,11 @@ def main():
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
-    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
+    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/v1.2/{0}/{1}/".format(cloud_tag0, sim_tag)
+    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/v1.2/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
     r2 = sys.argv[3]
-    # base_sink = base + "/sinkprop/M2e4_snapshot_"
-    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    base_sink = base + "/sinkprop/M2e4_snapshot_"
+    # base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
     print(base_sink)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
@@ -340,7 +340,7 @@ def main():
         ff.write(save_path + "\n")
 
     ##Getting list of unique binaries
-    bin_ids, ic, bin_ids_all, times_all, nsys = get_unique_binaries(r1, r2, start_snap, end_snap)
+    bin_ids, ic, bin_ids_all, times_all, nsys = get_unique_binaries(r1, r2, start_snap, end_snap, cadence)
     np.savez(save_path + "/unique_bin_ids", bin_ids, ic)
 
     ##List of fst for these binaries
@@ -349,7 +349,7 @@ def main():
     np.savez(save_path + "/fst", fst)
 
     ##System lookup table
-    lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap)
+    lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
     lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
     np.savez(save_path + "/system_lookup_table", lookup)
     lookup_dict = {}
@@ -359,9 +359,9 @@ def main():
         pickle.dump(lookup_dict, ff)
     ##Particle paths...
     start_snap = int(min(lookup[:, LOOKUP_SNAP]))
-    path_lookup = get_paths(base_sink, save_path, lookup, start_snap, end_snap)
+    path_lookup = get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence)
 
-    acc_lookup = get_acc(r1, r2, start_snap, end_snap)
+    acc_lookup = get_acc(r1, r2, start_snap, end_snap, cadence)
     with open(save_path + "/acc_lookup.p", "wb") as ff:
         pickle.dump(acc_lookup, ff)
     #################################################################################
