@@ -323,6 +323,8 @@ def main():
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
+    cadence = np.diff(np.sort(snaps))[0]
+    print(cadence)
 
     ##Get snapshot numbers automatically
     start_snap_sink = min(snaps)
@@ -330,7 +332,7 @@ def main():
     end_snap = max(snaps)
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
-    save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
+    save_path = f"v1.2/{cloud_tag0}/{sim_tag}/{aa}"
     # ####################################################################################################
     bc.bash_command(f"mkdir -p {save_path}")
     with open(save_path + "/mult_data_path", "w") as ff:
@@ -344,7 +346,7 @@ def main():
     np.savez(save_path + "/unique_bin_ids", bin_ids, ic)
 
     ##List of fst for these binaries
-    first_snap_idx = get_first_snap_idx(base_sink, start_snap_sink, end_snap)
+    first_snap_idx = get_first_snap_idx(base_sink, start_snap_sink, end_snap, cadence)
     fst = get_fst(first_snap_idx, bin_ids)
     np.savez(save_path + "/fst", fst)
 
