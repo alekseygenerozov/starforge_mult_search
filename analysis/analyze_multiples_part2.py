@@ -228,11 +228,11 @@ def main():
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/v1.2/{0}/{1}/".format(cloud_tag0, sim_tag)
-    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/v1.2/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
+    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
+    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
     r2 = sys.argv[3]
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
-    # base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    # base_sink = base + "/sinkprop/M2e4_snapshot_"
+    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
     snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
@@ -244,7 +244,7 @@ def main():
     end_snap = max(snaps)
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
-    save_path = f"v1.2/{cloud_tag0}/{sim_tag}/{aa}"
+    save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
     ####################################################################################################
     #################################################################################
 
