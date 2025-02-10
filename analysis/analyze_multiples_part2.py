@@ -245,12 +245,13 @@ def main():
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
+    analysis_suff = ""
     ####################################################################################################
     #################################################################################
 
-    bin_ids = np.load(save_path + "/unique_bin_ids.npz", allow_pickle=True)["arr_0"]
-    ic = np.load(save_path + "/unique_bin_ids.npz")["arr_1"]
-    fst = np.load(save_path + "/fst.npz")["arr_0"]
+    bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
+    ic = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz")["arr_1"]
+    fst = np.load(save_path + f"/fst{analysis_suff}.npz")["arr_0"]
 
     with open(save_path + f"/lookup_dict.p", "rb") as ff:
         lookup_dict = pickle.load(ff)
@@ -275,7 +276,7 @@ def main():
 
     ##Energies/Angles...
     en_data = get_energy(bin_ids, fst, lookup_dict, path_lookup)
-    np.savez(save_path + "/dat_coll.npz", bin_ids=bin_ids, fst=fst,
+    np.savez(save_path + f"/dat_coll{analysis_suff}.npz", bin_ids=bin_ids, fst=fst,
              ens=en_data["ens"], ens_gas=en_data["ens_gas"],
              same_sys_at_fst=en_data["same_sys_at_fst"], bin_at_fst=en_data["bin_at_fst"],
              vangs=en_data["vangs"], vangs_prim=en_data["vangs_prim"],

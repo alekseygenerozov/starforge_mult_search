@@ -14,6 +14,7 @@ from starforge_mult_search.code.find_multiples_new2 import cluster,system
 sys.path.append("/home/aleksey/code/python")
 from bash_command import bash_command as bc
 import cgs_const as cgs
+import pandas as pd
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -366,7 +367,30 @@ def main():
     acc_lookup = get_acc(r1, r2, start_snap, end_snap, cadence)
     with open(save_path + "/acc_lookup.p", "wb") as ff:
         pickle.dump(acc_lookup, ff)
+
+
     #################################################################################
+    ##Getting binaries that have *only* been in multiples...
+    lookup_pd = pd.DataFrame(lookup, columns=("time", "pid", "sid", "mult", "ms+mhalo", "x",
+                                              "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
+
+    ##Should get all the binaries ever -- including those in higher order multiples...
+    sys_group = lookup_pd.groupby(["time", "sid", "sma"]).filter(lambda x: (x['mult'].min() >= 2) and (len(x) == 2))
+    tfirst_bin_in_mult = sys_group["time"].to_numpy()
+    bin_in_mult = sys_group['pid'].to_numpy().astype(int)
+    bin_in_mult.shape = (-1, 2)
+    bin_in_mult_str = [str(np.sort(row)) for row in bin_in_mult]
+    tmp, tmp_uidx = np.unique(bin_in_mult_str, return_index=True)
+    bin_in_mult = bin_in_mult[tmp_uidx]
+    tfirst_bin_in_mult = tfirst_bin_in_mult[tmp_uidx]
+    bin_in_mult = np.array([set(row) for row in bin_in_mult])
+    # bin_in_mult = bin_in_mult[~np.isin(bin_in_mult, bin_ids)]
+
+    np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
+    fst = get_fst(first_snap_idx, bin_in_mult)
+    np.savez(save_path + "/fst_mult", fst)
+
+
 #######################################################################################################################################################################
 #######################################################################################################################################################################
 
