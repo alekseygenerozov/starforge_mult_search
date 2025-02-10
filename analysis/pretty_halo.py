@@ -11,7 +11,7 @@ from meshoid import Meshoid
 
 import cgs_const as cgs
 
-sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
+# sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
 # from analyze_multiples import snap_lookup
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
@@ -180,7 +180,7 @@ with open(base + "/data_loc", "r") as ff:
 r2 = f"_TidesTrue_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 
-snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
+snap_file = snap_base + f"snapshot_{snap_idx:03d}.hdf5"
 den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = \
 find_multiples_new2.load_data(snap_file, res_limit=1e-3)
 ##WOULD HAVE BEEN BETTER TO PUT THIS FUNCTIONALITY IN LOAD DATA!!!
