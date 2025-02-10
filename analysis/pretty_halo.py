@@ -9,7 +9,6 @@ import h5py
 
 from meshoid import Meshoid
 
-from labelLine import labelLines
 import cgs_const as cgs
 
 sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
