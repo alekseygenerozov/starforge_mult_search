@@ -677,16 +677,20 @@ def main():
                 if (halo_idx.shape == (1, 2)) or len(halo_idx)==0:
                     continue
                 halo_mask[halo_idx] = False
-
-    accel_gas = pytreegrav.AccelTarget(partpos, xuniq[halo_mask], muniq[halo_mask],
-                                           softening_target=partsink, softening_source=huniq[halo_mask],
-                                           theta=0.5, G=sfc.GN, method='tree')
+    ##To save time -- don't bother calculating if we are not including tides(!!!)
+    accel_gas = np.ones(len(partpos)) * np.inf
+    if inc_tides:
+        accel_gas = pytreegrav.AccelTarget(partpos, xuniq[halo_mask], muniq[halo_mask],
+                                               softening_target=partsink, softening_source=huniq[halo_mask],
+                                               theta=0.5, G=sfc.GN, method='tree')
     # print("Old accel:", start_time - time.time())
     print("New acceleration method.")
     start_time = time.time()
 
     print("New accel 2:", time.time() - start_time)
-    accel_stars = pytreegrav.Accel(partpos, partmasses, partsink, theta=0.5, G=sfc.GN, method='bruteforce')
+    accel_stars = np.ones(len(partpos)) * np.inf
+    if inc_tides:
+        accel_stars = pytreegrav.Accel(partpos, partmasses, partsink, theta=0.5, G=sfc.GN, method='bruteforce')
     cl = cluster(partpos, partvels, partmasses, partsink, partids, accel_stars + accel_gas,
                  sma_order=sma_order, mult_max=args.mult_max, Ngrid1D=args.ngrid, tides=inc_tides,
                  tides_factor=args.tides_factor, compress=args.compress)
