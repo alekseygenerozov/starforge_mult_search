@@ -96,7 +96,7 @@ def add_to_blob(blob,  idx):
 
     return blob
 
-def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, compress=False, tides_factor=8):
+def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, compress=False, tides_factor=8, tides=True):
     """
     Get to gas mass bound to a system. This is meant to be applied to a *single star.*
 
@@ -130,7 +130,8 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
 
         ##Use velocity relative to the cumulative center-of-mass
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob['com_vel'])
-        ##Performance but unexpected decreases bound gas
+        ##Performance shortcut-- logic is softening will only make things more unbound.
+        ## But can get unexpected (small?) decreases in the bound gas
         if tmp_vrel > np.sqrt((2. * sfc.GN * (blob['com_masses'] + muniq1[idx])) / d[idx]):
             continue
 
@@ -148,7 +149,7 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
         tmp_sys2 = find_multiples_new2.system(blob['cumul_pos'], blob['cumul_vel'], blob['cumul_masses'],
                                                 blob['cumul_soft'], 0, blob['com_accel'], 0, pos_to_spos=True)
         tide_crit, at1 = find_multiples_new2.check_tides_sys(tmp_sys1, tmp_sys2, compress=compress, tides_factor=tides_factor)
-
+        tide_crit = (tide_crit) or (not tides)
         if (pe1 + ke1 < 0) and (tide_crit):
             if non_pair:
                 blob = add_to_blob(blob, idx)
@@ -185,7 +186,7 @@ def main():
     parser.add_argument("--tides_factor", type=float, default=8.0, help="Prefactor for check of tidal criterion (8.0)")
     parser.add_argument("--cutoff", type=float, default=0.5, help="Outer cutoff to look for bound gas (0.5 pc)")
     parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
-
+    parser.add_argument("--ntides", action="store_true", help="Turn off tides")
 
     args = parser.parse_args()
 
@@ -193,6 +194,7 @@ def main():
     cutoff = args.cutoff
     non_pair = args.non_pair
     name_tag = args.name_tag
+    inc_tides = not args.ntides
 
     snap_file = args.snap_base + '_{0:03d}.hdf5'.format(int(snap_idx))
     try:
@@ -249,7 +251,8 @@ def main():
     myglobals.gas_data = (xuniq, vuniq, muniq, huniq, uuniq, accel_gas)
     part_data = (partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr)
     f_to_iter = functools.partial(get_mass_bound_manager, part_data,
-                                  cutoff=cutoff, non_pair=non_pair, compress=args.compress, tides_factor=args.tides_factor)
+                                  cutoff=cutoff, non_pair=non_pair, compress=args.compress, tides_factor=args.tides_factor,
+                                  tides=inc_tides)
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()
     with multiprocessing.Pool(10) as pool:
