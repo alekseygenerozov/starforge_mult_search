@@ -174,13 +174,17 @@ ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
 
 d_cut = rmax
-base = f"/work2/09543/aleksey2/frontera/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
-with open(base + "/data_loc", "r") as ff:
-	snap_base = ff.read().strip()
+# base = f"/work2/09543/aleksey2/frontera/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
+base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
+
+# with open(base + "/data_loc", "r") as ff:
+# 	snap_base = ff.read().strip()
 r2 = f"_TidesTrue_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 
-snap_file = snap_base + f"_{snap_idx:03d}.hdf5"
+# snap_file = base + f"_{snap_idx:03d}.hdf5"
+snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
+
 den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = \
 find_multiples_new2.load_data(snap_file, res_limit=1e-3)
 ##WOULD HAVE BEEN BETTER TO PUT THIS FUNCTIONALITY IN LOAD DATA!!!
@@ -223,7 +227,8 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-sc1 = ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k")#, edgecolors="k", facecolors="none")
+# sc1 = ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k")#, edgecolors="k", facecolors="none")
+sc1 = ax.quiver(tmp_pos_center[0], tmp_pos_center[1], tmp_pos_center[3], tmp_pos_center[4])#, edgecolors="k", facecolors="none")
 ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")#, edgecolors="k", facecolors="none")
 # plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 if plimit > 0:
@@ -250,8 +255,8 @@ ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
 ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
 
 p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.scatter(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, color=col1, alpha=0.15)
-ax.scatter(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, color=col2, alpha=0.15)
+ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3], tmp_halo_pos_center[:,4], color=col1, alpha=0.15)
+ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3], tmp_halo_pos2_center[:,4], color=col2, alpha=0.15)
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 #####################################################################################################
 with open(base + aa + "/path_lookup.p", "rb") as ff:
