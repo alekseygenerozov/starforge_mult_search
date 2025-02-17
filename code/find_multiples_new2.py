@@ -503,8 +503,9 @@ class cluster(object):
                 self._orbit_adjust_add(ii, ID_NEW)
                 self._orbit_adjust_delete(ii, ID1, ID2)
                 ##Store tidal acceleration (proper setter)
-                self.systems[-1].add_a_tides(at1)
-                self.systems[-1].add_a_tides(at2)
+                if self.tides:
+                    self.systems[-1].add_a_tides(at1)
+                    self.systems[-1].add_a_tides(at2)
 
                 return
 
