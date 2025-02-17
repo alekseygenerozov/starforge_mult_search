@@ -681,7 +681,7 @@ def main():
                     continue
                 halo_mask[halo_idx] = False
     ##To save time -- don't bother calculating if we are not including tides(!!!)
-    accel_gas = np.ones(len(partpos)) * np.inf
+    accel_gas = np.ones((len(partpos), 3)) * np.inf
     if inc_tides:
         accel_gas = pytreegrav.AccelTarget(partpos, xuniq[halo_mask], muniq[halo_mask],
                                                softening_target=partsink, softening_source=huniq[halo_mask],
@@ -691,7 +691,7 @@ def main():
     start_time = time.time()
 
     print("New accel 2:", time.time() - start_time)
-    accel_stars = np.ones(len(partpos)) * np.inf
+    accel_stars = np.ones((len(partpos), 3)) * np.inf
     if inc_tides:
         accel_stars = pytreegrav.Accel(partpos, partmasses, partsink, theta=0.5, G=sfc.GN, method='bruteforce')
     cl = cluster(partpos, partvels, partmasses, partsink, partids, accel_stars + accel_gas,
