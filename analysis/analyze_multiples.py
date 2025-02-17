@@ -375,16 +375,18 @@ def main():
                                               "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
 
     ##Should get all the binaries ever -- including those in higher order multiples...
-    sys_group = lookup_pd.groupby(["time", "sid", "sma"]).filter(lambda x: (x['mult'].min() >= 2) and (len(x) == 2))
-    tfirst_bin_in_mult = sys_group["time"].to_numpy()
-    bin_in_mult = sys_group['pid'].to_numpy().astype(int)
-    bin_in_mult.shape = (-1, 2)
+    sys_group = lookup_pd.groupby(["time", "sid", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
+    sys_group = sys_group.to_list()
+    ##Can try assert here to be sure that the array is sorted in time
+    sys_group = np.array(sys_group)
+    tfirst_bin_in_mult = sys_group[:,0]
+    bin_in_mult = sys_group[:, [1, 2]].astype(int)
     bin_in_mult_str = [str(np.sort(row)) for row in bin_in_mult]
     tmp, tmp_uidx = np.unique(bin_in_mult_str, return_index=True)
+
     bin_in_mult = bin_in_mult[tmp_uidx]
     tfirst_bin_in_mult = tfirst_bin_in_mult[tmp_uidx]
     bin_in_mult = np.array([set(row) for row in bin_in_mult])
-    # bin_in_mult = bin_in_mult[~np.isin(bin_in_mult, bin_ids)]
 
     np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
     fst = get_fst(first_snap_idx, bin_in_mult)

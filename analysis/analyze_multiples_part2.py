@@ -146,6 +146,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
         mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3] == 1) and np.all(sys_lookup_sel1[:, 3] == 1))
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
+        ##Clean up the filtering here(!!)
         bound_snaps1, bound_snaps2 = get_bound_snaps(sys1_info, sys2_info)
         tmp_final_bound_snap = bound_snaps2[:, LOOKUP_SNAP][-1]
         final_bound_snaps[ii] = tmp_final_bound_snap
@@ -245,7 +246,7 @@ def main():
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
-    analysis_suff = ""
+    analysis_suff = "_mult"
     ####################################################################################################
     #################################################################################
 
@@ -265,6 +266,7 @@ def main():
 
     ##Multiplcity filter 1
     # np.savez(save_path + "/mults_filt")
+    ##Clean up the filtering here(!!)
     mults_filt = get_mult_filt(bin_ids, lookup_dict, ic)
 
     ##Binary fates
