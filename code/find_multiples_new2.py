@@ -486,12 +486,15 @@ class cluster(object):
 
             mult_total = self.systems[idx1].multiplicity + self.systems[idx2].multiplicity
             ###Tidal criterion:  (Symmetrized)
-            tidal_crit_1, at1 = check_tides_sys(self.systems[idx1], self.systems[idx2],
-                                                tides_factor=self.tides_factor, compress=self.compress)
-            tidal_crit_2, at2 = check_tides_sys(self.systems[idx2], self.systems[idx1],
-                                                tides_factor=self.tides_factor, compress=self.compress)
-            tidal_crit = tidal_crit_1 and tidal_crit_2
-            tidal_crit = (tidal_crit) or (not self.tides)
+            if self.tides:
+                tidal_crit_1, at1 = check_tides_sys(self.systems[idx1], self.systems[idx2],
+                                                    tides_factor=self.tides_factor, compress=self.compress)
+                tidal_crit_2, at2 = check_tides_sys(self.systems[idx2], self.systems[idx1],
+                                                    tides_factor=self.tides_factor, compress=self.compress)
+                tidal_crit = tidal_crit_1 and tidal_crit_2
+            else:
+                tidal_crit = True
+            # tidal_crit = (tidal_crit) or (not self.tides)
             ##Check that binary is bound, multiplicity is less than four, and that the binary is tidally stable. Tides can be turned off by setting self.tides to False.
             if row[0] > 0 and (mult_total <= self.mult_max) and tidal_crit:
                 print("adding {0} {1} {2}".format(mult_total, self.systems[idx1].ids, self.systems[idx2].ids))
