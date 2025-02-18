@@ -119,7 +119,8 @@ def get_bound_snaps(sys1_info, sys2_info):
     bound_snaps1 = sys1_info[bound_filt]
     bound_snaps2 = sys2_info[bound_filt]
 
-    return bound_snaps1, bound_snaps2
+    return bound_snaps1, bound_snaps2, sys1_info[:, LOOKUP_SNAP]
+
 
 def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
     """
@@ -132,6 +133,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
     final_bound_snaps_norm = np.zeros(len(bin_ids))
     mults_filt_corr = np.zeros(len(bin_ids))
     age_diff = np.zeros(len(bin_ids))
+    same_sys_final_norm = np.zeros(len(bin_ids))
 
     for ii, uid in enumerate(bin_ids):
         bin_list = list(uid)
@@ -147,11 +149,15 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
         ##Clean up the filtering here(!!)
-        bound_snaps1, bound_snaps2 = get_bound_snaps(sys1_info, sys2_info)
+        bound_snaps1, bound_snaps2, same_sys_snap = get_bound_snaps(sys1_info, sys2_info)
+        ##Get total number of snapshots!
+        nsnaps = bound_snaps1[0, -1]
         tmp_final_bound_snap = bound_snaps2[:, LOOKUP_SNAP][-1]
         final_bound_snaps[ii] = tmp_final_bound_snap
-        final_bound_snaps_norm[ii] = tmp_final_bound_snap / bound_snaps1[0, -1]
+        final_bound_snaps_norm[ii] = tmp_final_bound_snap / nsnaps
         init_bound_snaps[ii] = bound_snaps1[:, LOOKUP_SNAP][0]
+        same_sys_final_norm[ii] = same_sys_snap[-1] / nsnaps
+        # breakpoint()
 
         bound_time_pers = (bound_snaps1[:, LOOKUP_SMA] * cgs.pc / cgs.au) ** 1.5 / (bound_snaps1[:, LOOKUP_MTOT] + bound_snaps2[:, LOOKUP_MTOT]) ** .5
         bound_time[ii] = len(bound_snaps1)
@@ -159,7 +165,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
 
     return {"quasi_filter": (bound_time_norm >= 1) & (bound_time > 1), "final_bound_snaps": final_bound_snaps,"final_bound_snaps_norm": final_bound_snaps_norm,
             "bound_time":bound_time, "bound_time_norm":bound_time_norm, "init_bound_snaps":init_bound_snaps, "mults_filt_corr": mults_filt_corr,
-            "age_diff": age_diff}
+            "age_diff": age_diff, "same_sys_final_norm": same_sys_final_norm}
 
 def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     ens = np.ones(len(bin_ids)) * np.inf
@@ -168,6 +174,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     bin_at_fst = np.ones(len(bin_ids)) * np.inf
     vangs = np.ones(len(bin_ids)) * np.inf
     vangs_prim = np.ones(len(bin_ids)) * np.inf
+    mfinal_primary = np.ones(len(bin_ids)) * np.inf
 
     for ii, uid in enumerate(bin_ids):
         fst_idx = fst[ii]
@@ -196,8 +203,10 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         h1 = path1[fst_idx, hcol]
         h2 = path2[fst_idx, hcol]
 
-        # tmp_orb_gas = find_multiples_new2.get_orbit(pos1, pos2, vel1, vel2, mtot1, mtot2, h1=h1, h2=h2)
-        # tmp_orb = find_multiples_new2.get_orbit(pos1, pos2, vel1, vel2, m1, m2, h1=h1, h2=h2)
+        m1end = path1[-1, mcol]
+        m2end = path2[-1, mcol]
+        mfinal_primary[ii] = max(m1end, m2end)
+
         tmp_en_gas = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, mtot1, mtot2, h1=h1, h2=h2)
         tmp_en = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, m1, m2, h1=h1, h2=h2)
         ens_gas[ii] = tmp_en_gas[0] / tmp_en_gas[1]
@@ -206,7 +215,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         vangs_prim[ii] = np.dot(vel1 - vel2, pos1 - pos2) / np.linalg.norm(vel1 - vel2) / np.linalg.norm(pos1 - pos2)
 
     return {"ens": ens, "ens_gas":ens_gas, "same_sys_at_fst":same_sys_at_fst, "bin_at_fst": bin_at_fst,
-            "vangs": vangs, "vangs_prim": vangs_prim}
+            "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary}
 
 def get_exchange_filter(bin_ids, bound_time_data):
     quasi_filter = bound_time_data["quasi_filter"]
@@ -282,6 +291,7 @@ def main():
              ens=en_data["ens"], ens_gas=en_data["ens_gas"],
              same_sys_at_fst=en_data["same_sys_at_fst"], bin_at_fst=en_data["bin_at_fst"],
              vangs=en_data["vangs"], vangs_prim=en_data["vangs_prim"],
+             mfinal_primary=en_data["mfinal_primary"],
              quasi_filter=bound_time_data["quasi_filter"],
              final_bound_snaps_norm=bound_time_data["final_bound_snaps_norm"],
              final_bound_snaps=bound_time_data["final_bound_snaps"],
@@ -290,6 +300,7 @@ def main():
              bound_time=bound_time_data["bound_time"],
              bound_time_norm=bound_time_data["bound_time_norm"],
              delta_snap=bound_time_data["age_diff"],
+             same_sys_final_norm=bound_time_data["same_sys_final_norm"],
              mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b,
              snap_interval=snap_interval)
 #######################################################################################################################################################################
