@@ -276,7 +276,7 @@ def main():
     ##Multiplcity filter 1
     # np.savez(save_path + "/mults_filt")
     ##Clean up the filtering here(!!)
-    mults_filt = get_mult_filt(bin_ids, lookup_dict, ic)
+    mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"])
 
     ##Binary fates
     fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]

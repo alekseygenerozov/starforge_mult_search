@@ -251,12 +251,11 @@ xmin *= conv
 xmax *= conv
 ymin *= conv
 ymax *= conv
-ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
-ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
+
 
 p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3], tmp_halo_pos_center[:,4], color=col1, alpha=0.15)
-ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3], tmp_halo_pos2_center[:,4], color=col2, alpha=0.15)
+ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3], tmp_halo_pos_center[:,4], color=col1, alpha=0.4)
+ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3], tmp_halo_pos2_center[:,4], color="#A52A2A", alpha=0.4)
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 #####################################################################################################
 with open(base + aa + "/path_lookup.p", "rb") as ff:
@@ -285,8 +284,11 @@ if ins > 0:
     x1, x2, y1, y2 = -ins, ins, -ins, ins
     # Create an inset of the zoomed region
     # axins = zoomed_inset_axes(ax, zoom=4, loc='upper right', borderpad=2)
+    axins = ax.inset_axes([0.7, 0.1, 0.2, 0.2])
+    axins.tick_params(axis="x", which="major", labelsize=16, rotation=45)
+    axins.tick_params(axis="y", which="major", labelsize=16)
     width, height = "30%", "30%"  # specify the width and height of the inset in relative terms
-    axins = inset_axes(ax, width=width, height=height, loc=ins_loc, borderpad=2, bbox_transform = ax.transAxes)
+    # axins = inset_axes(ax, width=width, height=height, loc=ins_loc, borderpad=2, bbox_transform = ax.transAxes)
     axins.set_aspect('equal')
     # Update the view to reflect the new units
     # ax.autoscale_view()
@@ -298,7 +300,8 @@ if ins > 0:
     axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2)
     # mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5", linewidth=2)
 
-
+ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
+ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
 ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
            (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
@@ -312,7 +315,7 @@ ax.scatter(start_pt[0], start_pt[1], c="k", marker="X")
 #          color='k', head_width=1000, head_length=500,
 #          length_includes_head=True, linewidth=1.5)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->'))
+             arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
 # ax.scatter(tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv, c="k", marker="X")
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
@@ -326,11 +329,12 @@ ax.scatter(start_pt[0], start_pt[1], c="k", marker="X")
 #          color='k', head_width=1000, head_length=500,
 #          length_includes_head=True, linewidth=1.5)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->'))
+             arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
 
 # plt.tight_layout()
 # fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 # from matplotlib.transforms import Bbox
 # bbox = Bbox.from_bounds(0, 0, 8.5, 8)
 fig.savefig(f"prettyb_{snap_idx:03d}." + savetype)
+
 
