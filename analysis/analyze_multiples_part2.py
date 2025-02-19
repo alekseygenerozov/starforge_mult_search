@@ -84,15 +84,15 @@ def get_mult_filt(bin_ids, lookup_dict, ic):
     :return: Array of booleans. True=Multiple stars had previously been in multiple
     :rtype: np.ndarray
     """
-    t_first = ic[:, 0]
+    t_first = ic[:, 0].astype(int)
     mults_filt = np.zeros(len(bin_ids)).astype(bool)
     for ii, row in enumerate(bin_ids):
         row_list = list(row)
         sys_lookup_sel0 = lookup_dict[(row_list[0])]
-        sys_lookup_sel0 = sys_lookup_sel0[(sys_lookup_sel0[:,0] < t_first[ii])]
+        sys_lookup_sel0 = sys_lookup_sel0[(sys_lookup_sel0[:,0].astype(int) < t_first[ii])]
         sys_lookup_sel1 = lookup_dict[(row_list[1])]
-        sys_lookup_sel1 = sys_lookup_sel1[(sys_lookup_sel1[:,0] < t_first[ii])]
-        mults_filt[ii] = (np.all(sys_lookup_sel0[:, 3] == 1) and np.all(sys_lookup_sel1[:, 3] == 1))
+        sys_lookup_sel1 = sys_lookup_sel1[(sys_lookup_sel1[:,0].astype(int) < t_first[ii])]
+        mults_filt[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
 
     return mults_filt
 
@@ -142,10 +142,10 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
         sys2_info = lookup_dict[bin_list[1]]
         # fst_idx = max(sys1_info[0,0], sys2_info[0, 0])
         # assert fst_idx==fst[ii]
-        fst_idx = fst[ii]
-        sys_lookup_sel0 = sys1_info[sys1_info[:,0] < fst_idx]
-        sys_lookup_sel1 = sys2_info[sys2_info[:,0] < fst_idx]
-        mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3] == 1) and np.all(sys_lookup_sel1[:, 3] == 1))
+        fst_idx = int(fst[ii])
+        sys_lookup_sel0 = sys1_info[sys1_info[:,0].astype(int) < fst_idx]
+        sys_lookup_sel1 = sys2_info[sys2_info[:,0].astype(int) < fst_idx]
+        mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
         ##Clean up the filtering here(!!)
@@ -276,7 +276,7 @@ def main():
     ##Multiplcity filter 1
     # np.savez(save_path + "/mults_filt")
     ##Clean up the filtering here(!!)
-    mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"])
+    mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
 
     ##Binary fates
     fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]
