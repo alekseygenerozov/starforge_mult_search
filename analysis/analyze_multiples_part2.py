@@ -214,10 +214,11 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         h1 = path1[fst_idx, hcol]
         h2 = path2[fst_idx, hcol]
 
-        m1end = path1[-1, mcol]
-        m2end = path2[-1, mcol]
+        mfilt = np.where((~np.isinf(path1[:, mcol])) & (~np.isinf(path2[:, mcol])))
+        m1end = path1[mfilt][-1, mcol]
+        m2end = path2[mfilt][-1, mcol]
         mfinal_primary[ii] = max(m1end, m2end)
-        mfinal_pair = m1end + m2end
+        mfinal_pair[ii] = m1end + m2end
 
         tmp_en_gas = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, mtot1, mtot2, h1=h1, h2=h2)
         tmp_en = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, m1, m2, h1=h1, h2=h2)
