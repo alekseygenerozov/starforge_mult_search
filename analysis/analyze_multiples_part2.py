@@ -115,6 +115,7 @@ def get_bound_snaps(sys1_info, sys2_info):
     same_sys_filt2 = np.in1d(sys2_tag, sys1_tag)
     sys1_info = sys1_info[same_sys_filt1]
     sys2_info = sys2_info[same_sys_filt2]
+    ##Be more careful with floating point comparsion here.
     bound_filt = sys1_info[:, LOOKUP_SMA] == sys2_info[:, LOOKUP_SMA]
     bound_snaps1 = sys1_info[bound_filt]
     bound_snaps2 = sys2_info[bound_filt]
@@ -122,7 +123,7 @@ def get_bound_snaps(sys1_info, sys2_info):
     return bound_snaps1, bound_snaps2, sys1_info[:, LOOKUP_SNAP]
 
 
-def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
+def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     """
     Quasi-persistent filter for binaries.
     """
@@ -134,6 +135,8 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
     mults_filt_corr = np.zeros(len(bin_ids))
     age_diff = np.zeros(len(bin_ids))
     same_sys_final_norm = np.zeros(len(bin_ids))
+    final_pair_mass_lbin = np.zeros(len(bin_ids))
+    final_pair_mass_lsys = np.zeros(len(bin_ids))
 
     for ii, uid in enumerate(bin_ids):
         bin_list = list(uid)
@@ -157,7 +160,13 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
         final_bound_snaps_norm[ii] = tmp_final_bound_snap / nsnaps
         init_bound_snaps[ii] = bound_snaps1[:, LOOKUP_SNAP][0]
         same_sys_final_norm[ii] = same_sys_snap[-1] / nsnaps
-        # breakpoint()
+
+        path1 = path_lookup[f"{bin_list[0]}"]
+        path2 = path_lookup[f"{bin_list[1]}"]
+        fpm = path1[path1[:, 0] == tmp_final_bound_snap][0, mcol] + path2[path2[:, 0] == tmp_final_bound_snap][0, mcol]
+        final_pair_mass_lbin[ii] = fpm
+        fpm = path1[path1[:, 0] == same_sys_snap[-1]][0, mcol] + path2[path2[:, 0] == same_sys_snap[-1]][0, mcol]
+        final_pair_mass_lsys[ii] = fpm
 
         bound_time_pers = (bound_snaps1[:, LOOKUP_SMA] * cgs.pc / cgs.au) ** 1.5 / (bound_snaps1[:, LOOKUP_MTOT] + bound_snaps2[:, LOOKUP_MTOT]) ** .5
         bound_time[ii] = len(bound_snaps1)
@@ -165,7 +174,8 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval):
 
     return {"quasi_filter": (bound_time_norm >= 1) & (bound_time > 1), "final_bound_snaps": final_bound_snaps,"final_bound_snaps_norm": final_bound_snaps_norm,
             "bound_time":bound_time, "bound_time_norm":bound_time_norm, "init_bound_snaps":init_bound_snaps, "mults_filt_corr": mults_filt_corr,
-            "age_diff": age_diff, "same_sys_final_norm": same_sys_final_norm}
+            "age_diff": age_diff, "same_sys_final_norm": same_sys_final_norm, "final_pair_mass_lbin": final_pair_mass_lbin,
+            "final_pair_mass_lsys": final_pair_mass_lsys}
 
 def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     ens = np.ones(len(bin_ids)) * np.inf
@@ -175,6 +185,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     vangs = np.ones(len(bin_ids)) * np.inf
     vangs_prim = np.ones(len(bin_ids)) * np.inf
     mfinal_primary = np.ones(len(bin_ids)) * np.inf
+    mfinal_pair = np.ones(len(bin_ids)) * np.inf
 
     for ii, uid in enumerate(bin_ids):
         fst_idx = fst[ii]
@@ -206,6 +217,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         m1end = path1[-1, mcol]
         m2end = path2[-1, mcol]
         mfinal_primary[ii] = max(m1end, m2end)
+        mfinal_pair = m1end + m2end
 
         tmp_en_gas = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, mtot1, mtot2, h1=h1, h2=h2)
         tmp_en = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, m1, m2, h1=h1, h2=h2)
@@ -215,7 +227,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         vangs_prim[ii] = np.dot(vel1 - vel2, pos1 - pos2) / np.linalg.norm(vel1 - vel2) / np.linalg.norm(pos1 - pos2)
 
     return {"ens": ens, "ens_gas":ens_gas, "same_sys_at_fst":same_sys_at_fst, "bin_at_fst": bin_at_fst,
-            "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary}
+            "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary, "mfinal_pair": mfinal_pair}
 
 def get_exchange_filter(bin_ids, bound_time_data):
     quasi_filter = bound_time_data["quasi_filter"]
@@ -270,7 +282,7 @@ def main():
 
     ####This will be part 2???
     ##Quasi-persistent filter
-    bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval)
+    bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup)
     # np.savez(save_path + "/quasi", quasi_filter)
 
     ##Multiplcity filter 1
@@ -292,6 +304,7 @@ def main():
              same_sys_at_fst=en_data["same_sys_at_fst"], bin_at_fst=en_data["bin_at_fst"],
              vangs=en_data["vangs"], vangs_prim=en_data["vangs_prim"],
              mfinal_primary=en_data["mfinal_primary"],
+             mfinal_pair=en_data["mfinal_pair"],
              quasi_filter=bound_time_data["quasi_filter"],
              final_bound_snaps_norm=bound_time_data["final_bound_snaps_norm"],
              final_bound_snaps=bound_time_data["final_bound_snaps"],
@@ -301,6 +314,8 @@ def main():
              bound_time_norm=bound_time_data["bound_time_norm"],
              delta_snap=bound_time_data["age_diff"],
              same_sys_final_norm=bound_time_data["same_sys_final_norm"],
+             final_pair_mass_lbin=bound_time_data["final_pair_mass_lbin"],
+             final_pair_mass_lsys=bound_time_data["final_pair_mass_lsys"],
              mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b,
              snap_interval=snap_interval)
 #######################################################################################################################################################################

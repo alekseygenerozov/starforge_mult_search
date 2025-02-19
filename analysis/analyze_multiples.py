@@ -375,7 +375,7 @@ def main():
                                               "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
 
     ##Should get all the binaries ever -- including those in higher order multiples...
-    ##Any issue with floating precision here??
+    ##Be more careful with floating point issues here...
     sys_group = lookup_pd.groupby(["time", "sid", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
     sys_group = sys_group.to_list()
     ##Can try assert here to be sure that the array is sorted in time
