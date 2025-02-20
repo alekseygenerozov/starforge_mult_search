@@ -153,14 +153,17 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
                     sma1 = -1
                     ecc1 = -1
                     q1 = -1
-                ##Using mass to identify particles -- In principle may not give a unique match...
-                ##Perhaps use assert to check this assumption(!!!)
+                ##Previously using mass to id particles.
+                ##This does not always give a unique match...
+                ##Each will have to appear *at least* once in the orbits--the first time it appears it
+                ##will be as a single star.
                 else:
-                    sel1 = np.isclose(m1, tmp_orb[:, 10:12])
+                    sel1 = np.isclose(elem1, tmp_orb[:, 12:14])
                     sel1 = np.array([row[0] or row[1] for row in sel1])
-                    sma1 = tmp_orb[sel1][0][0]
-                    ecc1 = tmp_orb[sel1][0][1]
-                    q1 = m1 / (np.sum(tmp_orb[sel1][:,10:12]) - m1)
+                    tmp_orb = tmp_orb[sel1][0]
+                    sma1 = tmp_orb[0]
+                    ecc1 = tmp_orb[1]
+                    q1 = m1 / (np.sum(tmp_orb[10:12]) - m1)
                 lookup.append([ss, elem1, ii, len(ids_a[ii]), m1, w1_row[-1], sma1, ecc1, q1, mprim, mprim_id, star_order])
 
     return np.array(lookup)
@@ -232,7 +235,6 @@ def get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence):
     sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
     spins_all = np.vstack(spins_all)
     spins_all = np.hstack((ts, spins_all))
-
     tags = ["{0}_{1}".format(sinks_all[ii, 1], sinks_all[ii, 0]) for ii in range(len(ts))]
     sinks_all = sinks_all[np.argsort(tags)]
     spins_all = spins_all[np.argsort(tags)]

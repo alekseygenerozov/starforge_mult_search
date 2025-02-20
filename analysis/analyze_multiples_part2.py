@@ -117,6 +117,12 @@ def get_bound_snaps(sys1_info, sys2_info):
     sys2_info = sys2_info[same_sys_filt2]
     ##Be more careful with floating point comparsion here.
     bound_filt = sys1_info[:, LOOKUP_SMA] == sys2_info[:, LOOKUP_SMA]
+    ##Doesn't not work(!)  -- Have one quadruple system with very similar smas...
+    # bound_filt_sanity_ck = np.isclose(sys1_info[:, LOOKUP_SMA], sys2_info[:, LOOKUP_SMA])
+    # # try:
+    # #     assert np.all(bound_filt_sanity_ck==bound_filt)
+    # # except AssertionError:
+    # #     breakpoint()
     bound_snaps1 = sys1_info[bound_filt]
     bound_snaps2 = sys2_info[bound_filt]
 
@@ -137,6 +143,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     same_sys_final_norm = np.zeros(len(bin_ids))
     final_pair_mass_lbin = np.zeros(len(bin_ids))
     final_pair_mass_lsys = np.zeros(len(bin_ids))
+    bound_time_pers = []
 
     for ii, uid in enumerate(bin_ids):
         bin_list = list(uid)
@@ -168,14 +175,16 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         fpm = path1[path1[:, 0] == same_sys_snap[-1]][0, mcol] + path2[path2[:, 0] == same_sys_snap[-1]][0, mcol]
         final_pair_mass_lsys[ii] = fpm
 
-        bound_time_pers = (bound_snaps1[:, LOOKUP_SMA] * cgs.pc / cgs.au) ** 1.5 / (bound_snaps1[:, LOOKUP_MTOT] + bound_snaps2[:, LOOKUP_MTOT]) ** .5
+        tmp_bound_time_pers = (bound_snaps1[:, LOOKUP_SMA] * cgs.pc / cgs.au) ** 1.5 / (bound_snaps1[:, LOOKUP_MTOT] + bound_snaps2[:, LOOKUP_MTOT]) ** .5
+        bound_time_pers.append(tmp_bound_time_pers)
         bound_time[ii] = len(bound_snaps1)
-        bound_time_norm[ii] = np.sum(snap_interval / bound_time_pers)
+        ##Double-check how this sum is affected.
+        bound_time_norm[ii] = np.sum(snap_interval / tmp_bound_time_pers)
 
     return {"quasi_filter": (bound_time_norm >= 1) & (bound_time > 1), "final_bound_snaps": final_bound_snaps,"final_bound_snaps_norm": final_bound_snaps_norm,
             "bound_time":bound_time, "bound_time_norm":bound_time_norm, "init_bound_snaps":init_bound_snaps, "mults_filt_corr": mults_filt_corr,
             "age_diff": age_diff, "same_sys_final_norm": same_sys_final_norm, "final_pair_mass_lbin": final_pair_mass_lbin,
-            "final_pair_mass_lsys": final_pair_mass_lsys}
+            "final_pair_mass_lsys": final_pair_mass_lsys, "bound_time_pers": bound_time_pers}
 
 def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     ens = np.ones(len(bin_ids)) * np.inf

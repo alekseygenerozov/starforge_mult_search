@@ -93,3 +93,21 @@ def get_min_dist_binary(path_lookup, tmp_row):
     path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
 
     return path_diff_all
+
+
+def make_binned_data(absc, ords, bins):
+    """
+    Binning of (boolean) ords according to absc and bins
+    """
+    binned_num = np.zeros(len(bins) - 1)
+    binned_den = np.zeros(len(bins) - 1)
+    binned_numu = np.zeros(len(bins) - 1)
+    for bidx in range(1, len(bins)):
+        tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
+        tmp_ords = ords[tmp_filt]
+
+        binned_num[bidx - 1] = len(tmp_ords[tmp_ords > 0])
+        binned_numu[bidx - 1] = len(tmp_ords[tmp_ords > 0]) ** .5
+        binned_den[bidx - 1] = len(tmp_ords)
+
+    return binned_num, binned_numu, binned_den
