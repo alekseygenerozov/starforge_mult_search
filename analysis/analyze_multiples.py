@@ -317,11 +317,12 @@ def main():
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
-    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
+    # v_str = "v1.2"
+    v_str = ""
+    base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
+    r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
     r2 = sys.argv[3]
-    # base_sink = base + "/sinkprop/M2e4_snapshot_"
-    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    base_sink = base + "/sinkprop/M2e4_snapshot_"
     print(base_sink)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
@@ -335,7 +336,7 @@ def main():
     end_snap = max(snaps)
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
-    save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
+    save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     # ####################################################################################################
     bc.bash_command(f"mkdir -p {save_path}")
     with open(save_path + "/mult_data_path", "w") as ff:
@@ -346,12 +347,12 @@ def main():
 
     ##Getting list of unique binaries--TO DO: ALSO GET THOSE THAT WERE PART OF HIGHER ORDER MULTIPLES.
     bin_ids, ic, bin_ids_all, times_all, nsys = get_unique_binaries(r1, r2, start_snap, end_snap, cadence)
-    np.savez(save_path + "/unique_bin_ids", bin_ids, ic)
+    # np.savez(save_path + "/unique_bin_ids", bin_ids, ic)
 
     ##List of fst for these binaries
     first_snap_idx = get_first_snap_idx(base_sink, start_snap_sink, end_snap, cadence)
     fst = get_fst(first_snap_idx, bin_ids)
-    np.savez(save_path + "/fst", fst)
+    # np.savez(save_path + "/fst", fst)
 
     ##System lookup table
     lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
@@ -370,14 +371,14 @@ def main():
     with open(save_path + "/acc_lookup.p", "wb") as ff:
         pickle.dump(acc_lookup, ff)
 
-
-    #################################################################################
+    #
+    # #################################################################################
     ##Getting binaries that have *only* been in multiples...
     lookup_pd = pd.DataFrame(lookup, columns=("time", "pid", "sid", "mult", "ms+mhalo", "x",
                                               "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
 
     ##Should get all the binaries ever -- including those in higher order multiples...
-    ##Be more careful with floating point issues here...
+    ##Semi-major axes are from same underlying data so don't have to worry about floating point issues...
     sys_group = lookup_pd.groupby(["time", "sid", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
     sys_group = sys_group.to_list()
     ##Can try assert here to be sure that the array is sorted in time

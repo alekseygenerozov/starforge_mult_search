@@ -14,6 +14,7 @@ sys.path.append("/home/aleksey/code/python")
 from bash_command import bash_command as bc
 import cgs_const as cgs
 
+
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
 LOOKUP_MTOT = 4
@@ -115,7 +116,7 @@ def get_bound_snaps(sys1_info, sys2_info):
     same_sys_filt2 = np.in1d(sys2_tag, sys1_tag)
     sys1_info = sys1_info[same_sys_filt1]
     sys2_info = sys2_info[same_sys_filt2]
-    ##Be more careful with floating point comparsion here.
+    ##Semi-major axes are from same underlying data so such comparisons should be ok...
     bound_filt = sys1_info[:, LOOKUP_SMA] == sys2_info[:, LOOKUP_SMA]
     ##Doesn't not work(!)  -- Have one quadruple system with very similar smas...
     # bound_filt_sanity_ck = np.isclose(sys1_info[:, LOOKUP_SMA], sys2_info[:, LOOKUP_SMA])
@@ -260,11 +261,12 @@ def main():
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    base = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/".format(cloud_tag0, sim_tag)
-    r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{0}/{1}/M2e4_snapshot_".format(cloud_tag0, sim_tag)
+    # v_str = "v1.2"
+    v_str = "."
+    base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
+    r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
     r2 = sys.argv[3]
-    # base_sink = base + "/sinkprop/M2e4_snapshot_"
-    base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
+    base_sink = base + "/sinkprop/M2e4_snapshot_"
     snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
     r2_nosuff = r2.replace(".p", "")
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
@@ -276,7 +278,7 @@ def main():
     end_snap = max(snaps)
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
-    save_path = f"{cloud_tag0}/{sim_tag}/{aa}"
+    save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     analysis_suff = "_mult"
     ####################################################################################################
     #################################################################################
@@ -326,6 +328,7 @@ def main():
              same_sys_final_norm=bound_time_data["same_sys_final_norm"],
              final_pair_mass_lbin=bound_time_data["final_pair_mass_lbin"],
              final_pair_mass_lsys=bound_time_data["final_pair_mass_lsys"],
+             bound_time_pers=np.array(bound_time_data["bound_time_pers"], dtype=object),
              mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b,
              snap_interval=snap_interval)
 #######################################################################################################################################################################
