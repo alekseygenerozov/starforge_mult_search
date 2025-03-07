@@ -21,8 +21,6 @@ LOOKUP_MTOT = 4
 LOOKUP_M = 5
 LOOKUP_SMA = 6
 LOOKUP_ECC = 7
-##TO FIX(!!)
-# snap_interval = 2.47e4
 
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
 sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
@@ -97,15 +95,6 @@ def get_mult_filt(bin_ids, lookup_dict, ic):
 
     return mults_filt
 
-def get_fst(first_snapshot_idx, uids):
-    fst_idx = np.zeros(len(uids)).astype(int)
-    for ii, row in enumerate(uids):
-        row_li = list(row)
-        for tmp_item in row_li:
-            tmp_snap1 = snap_lookup(first_snapshot_idx, tmp_item)[0][-1]
-            fst_idx[ii] = max(tmp_snap1, fst_idx[ii])
-
-    return fst_idx
 
 def get_bound_snaps(sys1_info, sys2_info):
     sys1_tag = ["{0}_{1}".format(row[LOOKUP_SNAP], row[2]) for row in sys1_info]
@@ -116,14 +105,9 @@ def get_bound_snaps(sys1_info, sys2_info):
     same_sys_filt2 = np.in1d(sys2_tag, sys1_tag)
     sys1_info = sys1_info[same_sys_filt1]
     sys2_info = sys2_info[same_sys_filt2]
-    ##Semi-major axes are from same underlying data so such comparisons should be ok...
+    ##Semi-major axes are from same underlying data so no floating point issues.
     bound_filt = sys1_info[:, LOOKUP_SMA] == sys2_info[:, LOOKUP_SMA]
-    ##Doesn't not work(!)  -- Have one quadruple system with very similar smas...
-    # bound_filt_sanity_ck = np.isclose(sys1_info[:, LOOKUP_SMA], sys2_info[:, LOOKUP_SMA])
-    # # try:
-    # #     assert np.all(bound_filt_sanity_ck==bound_filt)
-    # # except AssertionError:
-    # #     breakpoint()
+
     bound_snaps1 = sys1_info[bound_filt]
     bound_snaps2 = sys2_info[bound_filt]
 
@@ -132,7 +116,22 @@ def get_bound_snaps(sys1_info, sys2_info):
 
 def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     """
-    Quasi-persistent filter for binaries.
+    Get info about time each binary pair was bound.
+
+    :param bin_ids: List of binary pairs, where each pair is a set
+    :param lookup_dict: Lookup table (dict) of properties (e.g. system id, multiplicity, sma, etc.), indexed by particle id
+    :param fst: Array with the initial snapshot together for each pair
+    :param snap_interval: Interval between simulation snapshot (float)
+    :param path_lookup: Lookup table (dict) of properties of positions and masses for each binary pair.
+
+    :return: Dictionary containing: persistence filter (True if binary is persistent), final snapshot binary is bound,
+    final bound snapshot over the end snapshot (1 if the two stars are in a binary at the end), bound_time (number of
+    snapshots stars are bound together as a binary), bound_time_norm (bound time normalized to the binary period),
+    initial snapshot binary is bound,..., age difference between multiple stars, final snapshot
+    stars in the same multiple system over the final snapshot in simulation (1 if stars are in the same multiple system
+    in the end).
+    :rtype: dict
+
     """
     bound_time = np.zeros(len(bin_ids))
     bound_time_norm = np.zeros(len(bin_ids))
@@ -151,15 +150,14 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         ##Getting the final snapshot stars are bound to each other--refactor into its own function...
         sys1_info = lookup_dict[bin_list[0]]
         sys2_info = lookup_dict[bin_list[1]]
-        # fst_idx = max(sys1_info[0,0], sys2_info[0, 0])
-        # assert fst_idx==fst[ii]
         fst_idx = int(fst[ii])
         sys_lookup_sel0 = sys1_info[sys1_info[:,0].astype(int) < fst_idx]
         sys_lookup_sel1 = sys2_info[sys2_info[:,0].astype(int) < fst_idx]
+        ##Filter to check multiple history prior to the initial snapshot together.
         mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
-        ##Clean up the filtering here(!!)
+        ##Get snapshots where the two stars are bound together.
         bound_snaps1, bound_snaps2, same_sys_snap = get_bound_snaps(sys1_info, sys2_info)
         ##Get total number of snapshots!
         nsnaps = bound_snaps1[0, -1]
@@ -169,6 +167,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         init_bound_snaps[ii] = bound_snaps1[:, LOOKUP_SNAP][0]
         same_sys_final_norm[ii] = same_sys_snap[-1] / nsnaps
 
+        ##LIKELY NOT NEEDED...MAYBE WE CAN DELETE FOR SIMPLICITY.
         path1 = path_lookup[f"{bin_list[0]}"]
         path2 = path_lookup[f"{bin_list[1]}"]
         fpm = path1[path1[:, 0] == tmp_final_bound_snap][0, mcol] + path2[path2[:, 0] == tmp_final_bound_snap][0, mcol]
@@ -176,10 +175,10 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         fpm = path1[path1[:, 0] == same_sys_snap[-1]][0, mcol] + path2[path2[:, 0] == same_sys_snap[-1]][0, mcol]
         final_pair_mass_lsys[ii] = fpm
 
+        ##Total time binaries are bound normalized to the period.
         tmp_bound_time_pers = (bound_snaps1[:, LOOKUP_SMA] * cgs.pc / cgs.au) ** 1.5 / (bound_snaps1[:, LOOKUP_MTOT] + bound_snaps2[:, LOOKUP_MTOT]) ** .5
         bound_time_pers.append(tmp_bound_time_pers)
         bound_time[ii] = len(bound_snaps1)
-        ##Double-check how this sum is affected.
         bound_time_norm[ii] = np.sum(snap_interval / tmp_bound_time_pers)
 
     return {"quasi_filter": (bound_time_norm >= 1) & (bound_time > 1), "final_bound_snaps": final_bound_snaps,"final_bound_snaps_norm": final_bound_snaps_norm,
@@ -224,18 +223,20 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         h1 = path1[fst_idx, hcol]
         h2 = path2[fst_idx, hcol]
 
-        mfilt = np.where((~np.isinf(path1[:, mcol])) & (~np.isinf(path2[:, mcol])))
-        m1end = path1[mfilt][-1, mcol]
-        m2end = path2[mfilt][-1, mcol]
-        mfinal_primary[ii] = max(m1end, m2end)
-        mfinal_pair[ii] = m1end + m2end
-
         tmp_en_gas = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, mtot1, mtot2, h1=h1, h2=h2)
         tmp_en = find_multiples_new2.get_energy(pos1, pos2, vel1, vel2, m1, m2, h1=h1, h2=h2)
         ens_gas[ii] = tmp_en_gas[0] / tmp_en_gas[1]
         ens[ii] = tmp_en[0] / tmp_en[1]
         vangs[ii] = np.dot(vel1, vel2) / np.linalg.norm(vel1) / np.linalg.norm(vel2)
         vangs_prim[ii] = np.dot(vel1 - vel2, pos1 - pos2) / np.linalg.norm(vel1 - vel2) / np.linalg.norm(pos1 - pos2)
+
+        ##Get masses of stars at the last snapshot they exist, which will be the last snapshot, unless
+        ##there is a supernova
+        mfilt = np.where((~np.isinf(path1[:, mcol])) & (~np.isinf(path2[:, mcol])))
+        m1end = path1[mfilt][-1, mcol]
+        m2end = path2[mfilt][-1, mcol]
+        mfinal_primary[ii] = max(m1end, m2end)
+        mfinal_pair[ii] = m1end + m2end
 
     return {"ens": ens, "ens_gas":ens_gas, "same_sys_at_fst":same_sys_at_fst, "bin_at_fst": bin_at_fst,
             "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary, "mfinal_pair": mfinal_pair}
@@ -261,7 +262,6 @@ def main():
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    # v_str = "v1.2"
     v_str = "."
     base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
     r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
@@ -273,8 +273,6 @@ def main():
     snaps = np.array(snaps).astype(int)
 
     ##Get snapshot numbers automatically
-    start_snap_sink = min(snaps)
-    start_snap = min(snaps)
     end_snap = max(snaps)
     print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
@@ -284,7 +282,6 @@ def main():
     #################################################################################
 
     bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
-    ic = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz")["arr_1"]
     fst = np.load(save_path + f"/fst{analysis_suff}.npz")["arr_0"]
 
     with open(save_path + f"/lookup_dict.p", "rb") as ff:
@@ -292,24 +289,20 @@ def main():
     with open(save_path + f"/path_lookup.p", "rb") as ff:
         path_lookup = pickle.load(ff)
 
-    ####This will be part 2???
-    ##Quasi-persistent filter
+    ##Quasi-persistent filter and other info about time that binaries are bound
     bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup)
-    # np.savez(save_path + "/quasi", quasi_filter)
 
-    ##Multiplcity filter 1
-    # np.savez(save_path + "/mults_filt")
-    ##Clean up the filtering here(!!)
+    ##Multiplcity filter -- true if stars were single prior to the first time they were bound as a binary
+    ##MAYBE REMOVE FOR CLARITY: NOT USED IN CURRENT ANALYSIS.
     mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
 
     ##Binary fates
     fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]
-    # fates = []
 
     ##Exchange filter
     exchange_filt_b = get_exchange_filter(bin_ids, bound_time_data)
 
-    ##Energies/Angles...
+    ##Information about initial state--energies, angles, etc.
     en_data = get_energy(bin_ids, fst, lookup_dict, path_lookup)
     np.savez(save_path + f"/dat_coll{analysis_suff}.npz", bin_ids=bin_ids, fst=fst,
              ens=en_data["ens"], ens_gas=en_data["ens_gas"],

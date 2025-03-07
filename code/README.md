@@ -10,7 +10,7 @@ of the starforge snapshots to be analyzed.
 
 (1) Calculate the halo masses using "python3 run_batch_halo_only_par.py START END FT,"
 where START is the starting snapshot, END is the ending snapshot, and FT is the desired
-ft. To analyze all of the snapshots, use python3 run_batch_halo_only_par.py 0 -1 FT.
+ft. To analyze all the snapshots, use python3 run_batch_halo_only_par.py 0 -1 FT.
 
 (2) This will run the script halo_masses_single_double_par.py and produce two set output files: (i) Plain text files M2e4halo_masses*, with
 tabular data, containing the list of halo masses in the first column and 
@@ -21,14 +21,14 @@ each star particle's halo.
 
 (4) Use python3 run_batch.py START END FT to identify multiples in the simulation.
 START is the starting snapshot, END is the ending snapshot, and FT is the desired ft.
-To analyze all of the snapshots, use python3 run_batch.py 0 -1 FT.
+To analyze all the snapshots, use python3 run_batch.py 0 -1 FT.
 This will run the script find_multiples_new2.py, and output pickle files for all of the snapshots containing information about the multiples
 in the simulation. The data is stored in a "cluster" object that contains a list of "systems."
 Each system contains several fields encoding its properties, e.g.
 (i) multiplicity (ii) ids [ids of stars in the system] (iii) sub_mass [masses of
 stars in system] (iv) sub_pos [positions of stars in the system.] (v) orbital data, etc. The code below shows an example of using the 
 of reading a pickle file, and getting a numpy array of the system multiplicities.
-
+Note that the masses stores in the output data, include the halo mass contribution.
 
 ```
 with open(f"example.p", "rb") as ff:
@@ -37,7 +37,7 @@ with open(f"example.p", "rb") as ff:
 ```
 
 (5) User can adjust options in find_multiples_new2.py to tweak the multiplication id 
-algorithm 
+algorithm. 
 
 ```
 usage: find_multiples_new2.py [-h] [--snap_base SNAP_BASE]
@@ -78,16 +78,16 @@ options:
 NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba
 Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1)
 Also tested demo with: NumPy (1.26.0), SciPy (1.13.1), pytreegrav (1.1.4), h5py (3.12.1), numba (0.60.0)
+TO DO: Add pandas
 
-
-# Installation and Demo
+# Installation and Demos
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
 Code Ocean takes approximately 20 seconds. 
 
 The code capsule include a demo dataset of a single snapshot from a simulation of a
 smaller, 2x10^3 solar mass cloud.
 
-The total runtime for for the demo is 3 minutes on 10 core Lenovo E15 laptop and 4 minutes on Code Ocean
+The total runtime for the demo is 3 minutes on a 10 core Lenovo E15 laptop and 4 minutes on Code Ocean
 
 The demo will produce the output files described in #starforge_mult_search above, as well as a file called 'mult_summary' with
 the multiple statistics in the demo data. The contents should be as below:
@@ -97,7 +97,19 @@ Multiplicity 2 count: 17\
 Multiplicity 3 count: 2\
 Multiplicity 4 count: 6
 
+# Reproducing paper results and figures
+Runninng the full analysis pipeline takes several days of compute on an HPC.
 
+However, the results can be reproduced in reasonable time if the output of the 
+multiple search algorithm has already been prepared.
+
+To this end we provide users with
+
+1. Output files from the multiple search algorithm.
+2. Two scripts that post-process the data analyze_multiples.py and analyze_multiples_part2.py.
+3. Scripts that produce Figure 2-4, using data products from the preceding scripts
+
+The script "run_pipeline" runs the analysis in 1-3, and generates Figs. 2-4 in the paper.
 
 
 

@@ -1,6 +1,6 @@
 import glob
+import os
 import pickle
-##See if we can do the filtering in a cleaner/simpler way np.in1d can be a little uninituitive in some cases
 import sys
 
 import h5py
@@ -10,9 +10,7 @@ from starforge_mult_search.code import (find_multiples_new2,
                                         halo_masses_single_double_par)
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
-sys.path.append("/home/aleksey/code/python")
-# from bash_command import bash_command as bc
-# import cgs_const as cgs
+
 import pandas as pd
 
 LOOKUP_SNAP = 0
@@ -89,85 +87,95 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
 
     return np.array(lookup)
 
-def get_first_snap_idx(base_sink, start_snap, end_snap, cadence):
+def get_sink_df(base_sink, start_snap, end_snap, cadence):
     """
-    REFACTOR
-    Get lookup table of the first snapshot index used
+    Store sink data within Pandas dataframe.
 
+    :param base_sink: Path and prefix of sink files
     :param start_snap: First snapshot
     :param end_snap: Last snapshot
     :param cadence: Gap between snapshot times.
+
+    :return: Dataframe containing sink data.
+    :rtype: Pandas dataframe
     """
-    tmp_snap_idx = []
+    sinks_df = []
+    for ss in range(start_snap, end_snap + 1, cadence):
+        tmp_sink = pd.DataFrame(np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss))),
+                                columns=["pid", "x", "y", "z", "vx", "vy", "vz", "h", "m"])
+        tmp_sink.insert(0, "t", np.ones(len(tmp_sink)) * ss)
+        sinks_df.append(tmp_sink)
+    sinks_df = pd.concat(sinks_df).reset_index(drop=True)
+    return sinks_df
+
+def get_spin_df(base_sink, start_snap, end_snap, cadence):
+    """
+    Store spin data within Pandas dataframe.
+
+    :param base_sink: Path and prefix of sink files
+    :param start_snap: First snapshot
+    :param end_snap: Last snapshot
+    :param cadence: Gap between snapshot times.
+
+    :return: Dataframe containing spins.
+    :rtype: Pandas dataframe
+    """
+    spins_df = []
     for ss in range(start_snap, end_snap + 1, cadence):
         tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
-        tmp_idx = tmp_sink[:, 0].astype(int)
-        tmp_snap = [ss for ii in range(len(tmp_idx))]
-        tmp_snap_idx.append(np.transpose([tmp_idx, tmp_sink[:, 1], tmp_sink[:, 2], tmp_sink[:, 3], tmp_snap]))
-
-    tmp_snap_idx = np.vstack(tmp_snap_idx)
-    tmp_uu, tmp_ui = np.unique(tmp_snap_idx[:, 0], return_index=True)
-    first_snap_idx = tmp_snap_idx[tmp_ui]
-
-    return first_snap_idx
+        tmp_spin = pd.DataFrame(np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.spin".format(ss))),
+                                columns=["sx", "sy", "sz"])
+        tmp_spin.insert(0, "pid", tmp_sink[:,0])
+        tmp_spin.insert(0, "t", np.ones(len(tmp_spin)) * ss)
+        spins_df.append(tmp_spin)
+    spins_df = pd.concat(spins_df).reset_index(drop=True)
+    return spins_df
 
 def get_fst(first_snapshot_idx, uids):
+    """
+    Get first snapshot both stars exist for a list of stellar pairs.
+    """
     fst_idx = np.zeros(len(uids)).astype(int)
     for ii, row in enumerate(uids):
         row_li = list(row)
         for tmp_item in row_li:
-            tmp_snap1 = snap_lookup(first_snapshot_idx, tmp_item)[0][-1]
+            tmp_snap1 = first_snapshot_idx.loc[float(tmp_item)]["t"]
             fst_idx[ii] = max(tmp_snap1, fst_idx[ii])
 
     return fst_idx
 
-def get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence):
-    sinks_all = []
-    spins_all = []
-    ts = []
-    for ss in range(start_snap, end_snap + 1, cadence):
-        tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
-        sinks_all.append(tmp_sink)
-        tmp_spin = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.spin".format(ss)))
-        spins_all.append(tmp_spin)
-
-        ts.append(ss * np.ones(len(tmp_sink)))
-
-    sinks_all = np.vstack(sinks_all)
-    ts = np.concatenate(ts)
-    ts.shape = (-1, 1)
-    sinks_all = np.hstack((ts, sinks_all))
-    sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
-    spins_all = np.vstack(spins_all)
-    spins_all = np.hstack((ts, spins_all))
-    tags = ["{0}_{1}".format(sinks_all[ii, 1], sinks_all[ii, 0]) for ii in range(len(ts))]
-    sinks_all = sinks_all[np.argsort(tags)]
-    spins_all = spins_all[np.argsort(tags)]
-    tags2 = ["{0}_{1}".format(lookup[ii, 1], lookup[ii, 0]) for ii in range(len(ts))]
-    lookup_sorted = lookup[np.argsort(tags2)]
-    sinks_all = np.hstack((sinks_all, lookup_sorted[:, [2, LOOKUP_MTOT, LOOKUP_SMA, LOOKUP_ECC]]))
-    sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
-    assert (np.all(np.array(tags)[np.argsort(tags)] == np.array(tags2)[np.argsort(tags2)]))
-    ######Saving a path for each particle
-    utags = np.unique(sinks_all[:, 1])
+def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
+    sinks_all = pd.concat([sinks_df, lookup_df[["sys_id", "mtot", "sma", "ecc"]]], axis=1)
+    ##Collecting all tags and particle ids.
+    utags = sinks_all["pid"].unique()
+    utags = np.sort(utags)
     utags_str = utags.astype(int).astype(str)
-    utimes = np.unique(sinks_all[:, 0])
+    utimes = sinks_all["t"].unique()
+    utimes = np.sort(utimes)
+    # breakpoint()
+
     path_lookup = {}
     spin_lookup = {}
     path_lookup_times = {}
+    ##Saving a path for each particle
     for ii, uu in enumerate(utags):
-        tmp_sel = sinks_all[sinks_all[:, 1] == uu]
+        tmp_sel = sinks_all.loc[sinks_all["pid"] == uu]
         tmp_path1 = np.ones((end_snap + 1, len(sink_cols))) * np.inf
-        tmp_path1[tmp_sel[:, 0].astype(int)] = tmp_sel
+        tmp_path1[tmp_sel.iloc[:, 0].astype(int)] = tmp_sel
         path_lookup[utags_str[ii]] = tmp_path1
     for ii, uu in enumerate(utags):
-        tmp_sel = spins_all[sinks_all[:, 1] == uu]
+        tmp_sel = spins_df.loc[spins_df["pid"] == uu]
+        del tmp_sel["pid"]
         tmp_path1 = np.ones((end_snap + 1, 4)) * np.inf
-        tmp_path1[tmp_sel[:, 0].astype(int)] = tmp_sel
+        tmp_path1[tmp_sel.iloc[:, 0].astype(int)] = tmp_sel
         spin_lookup[utags_str[ii]] = tmp_path1
-
     for ii, uu in enumerate(utimes):
-        tmp_sel = sinks_all[sinks_all[:, 0] == uu]
+        tmp_sel = sinks_all.loc[sinks_all["t"] == uu]
+        ##Changing format and ordering for backwards compatibility
+        tmp_sel = np.array(tmp_sel.values.tolist())
+        tmp_order = np.argsort(tmp_sel[:, 1].astype(str))
+        tmp_sel = tmp_sel[tmp_order]
+
         path_lookup_times[int(uu)] = tmp_sel
 
     with open(save_path + "/path_lookup.p", "wb") as ff:
@@ -181,13 +189,13 @@ def get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence):
 
     return path_lookup
 
-
 def main():
+    ##Various data path
     cloud_tag = sys.argv[1]
     sim_tag = f"{cloud_tag}_{sys.argv[2]}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    v_str = ""
+    v_str = "./"
     base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
     r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
     r2 = sys.argv[3]
@@ -204,17 +212,18 @@ def main():
     end_snap = max(snaps)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
-    # ####################################################################################################
+    ###################################################################################################################
     ##Replace with more flexible command
-    bc.bash_command(f"mkdir -p {save_path}")
+    os.makedirs(save_path, exist_ok=True)
+    # bc.bash_command(f"mkdir -p {save_path}")
+    ##Store info about the surviving
     with open(save_path + "/mult_data_path", "w") as ff:
         ff.write(r1 + "\n")
         ff.write(r2 + "\n")
-    with open(save_path + "/save_data_path", "w") as ff:
-        ff.write(save_path + "\n")
 
     ##System lookup table
     lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
+    ##Add the final snapshot -- Useful for when we have to stack multiple seeds.
     lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
     np.savez(save_path + "/system_lookup_table", lookup)
     lookup_dict = {}
@@ -223,18 +232,15 @@ def main():
     with open(save_path + f"/lookup_dict.p", "wb") as ff:
         pickle.dump(lookup_dict, ff)
     ##Particle paths...
-    start_snap = int(min(lookup[:, LOOKUP_SNAP]))
-    get_paths(base_sink, save_path, lookup, start_snap, end_snap, cadence)
-
-    # #################################################################################
-    first_snap_idx = get_first_snap_idx(base_sink, start_snap_sink, end_snap, cadence)
-    ##Getting binaries that have *only* been in multiples...
-    lookup_pd = pd.DataFrame(lookup, columns=("time", "pid", "sid", "mult", "ms+mhalo", "x",
+    start_snap_b = int(min(lookup[:, LOOKUP_SNAP]))
+    assert start_snap == start_snap_b
+    ###################################################################################################################
+    ##Look pairs that are in the same system with the same semi-major axis.
+    ##Should get all the binaries ever -- including those in higher order multiples.
+    ##Semi-major axes are from same underlying data so don't have to worry about floating point issues.
+    lookup_df = pd.DataFrame(lookup, columns=("time", "pid", "sys_id", "mult", "mtot", "x",
                                               "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
-
-    ##Should get all the binaries ever -- including those in higher order multiples...
-    ##Semi-major axes are from same underlying data so don't have to worry about floating point issues...
-    sys_group = lookup_pd.groupby(["time", "sid", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
+    sys_group = lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
     sys_group = sys_group.to_list()
     ##Can try assert here to be sure that the array is sorted in time
     sys_group = np.array(sys_group)
@@ -246,14 +252,23 @@ def main():
     bin_in_mult = bin_in_mult[tmp_uidx]
     tfirst_bin_in_mult = tfirst_bin_in_mult[tmp_uidx]
     bin_in_mult = np.array([set(row) for row in bin_in_mult])
-
+    ###################################################################################################################
     np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
+    ##Getting the initial snapshot together for all the binary pairs.
+    sinks_df = get_sink_df(base_sink, start_snap, end_snap, cadence)
+    first_snap_idx = sinks_df.groupby("pid").first()
     fst = get_fst(first_snap_idx, bin_in_mult)
     np.savez(save_path + "/fst_mult", fst)
-
-
-#######################################################################################################################################################################
-#######################################################################################################################################################################
+    ###################################################################################################################
+    spins_df = get_spin_df(base_sink, start_snap, end_snap, cadence)
+    sinks_df = sinks_df.sort_values(["pid", "t"])
+    spins_df = spins_df.sort_values(["pid", "t"])
+    lookup_df = lookup_df.sort_values(["pid", "time"])
+    sinks_df.reset_index(inplace=True, drop=True)
+    spins_df.reset_index(inplace=True, drop=True)
+    lookup_df.reset_index(inplace=True, drop=True)
+    get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap)
+    ###################################################################################################################
 
 
 
