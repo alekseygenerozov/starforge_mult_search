@@ -1,5 +1,6 @@
 import ast
 import copy
+import dvc.api
 import glob
 import numpy as np
 import pandas as pd
@@ -233,8 +234,8 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
     return (f"{min(m1, m2)} {max(m1, m2)}"), s1==s2
 
 def main():
-    base_path = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/"
-    base, r1, r2 = get_paths(base_path, sys.argv[1], sys.argv[2])
+    params = dvc.api.params_show()
+    base, r1, r2 = get_paths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
     base_sink = base + "/sinkprop/M2e4_snapshot_"
 

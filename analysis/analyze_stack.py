@@ -113,12 +113,11 @@ def make_binned_data(absc, ords, bins):
     return binned_num, binned_numu, binned_den
 
 
-def get_paths(base_path, tag1, tag2, v_str="."):
+def get_paths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     """
     Auxiliary function for generating file paths.
     """
-    cloud_tag = tag1
-    sim_tag = f"{tag1}_{tag2}"
+    sim_tag = f"{cloud_tag}_{seed}"
     cloud_tag_split = cloud_tag.split("_")
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
 
