@@ -1,4 +1,5 @@
 from collections import defaultdict
+import glob
 import numpy as np
 
 LOOKUP_SNAP = 0
@@ -123,16 +124,19 @@ def get_paths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
 
     base = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/"
     r1 = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
-    r2 = sys.argv[3]
+    r2 = analysis_tag
 
-    return base, r1, r2
+    return base, r1, r2, cloud_tag0, sim_tag
 
 
-def get_snap_info(base_sink):
+def get_snap_info(base):
     """
     Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),
     start_snap (first snapshot number), end_snap (last snapshot number)
     """
+
+    base_sink = base + "/sinkprop/M2e4_snapshot_"
+
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
     cadence = np.diff(np.sort(snaps))[0]

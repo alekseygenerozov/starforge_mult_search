@@ -3,6 +3,7 @@ import copy
 import dvc.api
 import glob
 import numpy as np
+import os
 import pandas as pd
 import pickle
 import sys
@@ -235,19 +236,18 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
 
 def main():
     params = dvc.api.params_show()
-    base, r1, r2 = get_paths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
+    base, r1, r2, cloud_tag0, sim_tag = get_paths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
+    v_str = params["v_str"]
 
-    cadence, snap_interval, start_snap, end_snap = get_snap_info(base_sink)
-
+    cadence, snap_interval, start_snap, end_snap = get_snap_info(base)
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
-
+    os.makedirs(save_path, exist_ok=True)
     for snap in range(start_snap, end_snap + 1, cadence):
         with open(
-                f"{r1}{snap:03d}{r2}", "rb") as ff:
+                f"{r1}{snap:03d}_{r2}", "rb") as ff:
             cl = pickle.load(ff)
         for ss in cl.systems:
             if ss.multiplicity >= 2:
