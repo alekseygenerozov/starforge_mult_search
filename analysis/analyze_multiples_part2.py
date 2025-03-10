@@ -272,6 +272,7 @@ def main():
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
 
+
     ##Get snapshot numbers automatically
     end_snap = max(snaps)
     print(end_snap)

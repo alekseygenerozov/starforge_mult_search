@@ -1,8 +1,12 @@
 import ast
 import copy
+import glob
 import numpy as np
 import pandas as pd
+import pickle
+import sys
 
+from starforge_mult_search.code.find_multiples_new2 import cluster, system
 import cgs_const as cgs
 
 class SystemNode:
@@ -236,20 +240,25 @@ def main():
     base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
     r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
     r2 = sys.argv[3]
+    r2_nosuff = r2.replace(".p", "")
 
     base_sink = base + "/sinkprop/M2e4_snapshot_"
     print(base_sink)
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
     cadence = np.diff(np.sort(snaps))[0]
+    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
+    ##Get snapshot numbers automatically
+    start_snap = min(snaps)
+    end_snap = max(snaps)
 
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
 
-    for snap in range(start_snaps[sidx], end_snaps[sidx] + 1, cadence):
+    for snap in range(start_snap, end_snap + 1, cadence):
         with open(
-                f"{r1}_{snap:03d}_{r2}", "rb") as ff:
+                f"{r1}{snap:03d}{r2}", "rb") as ff:
             cl = pickle.load(ff)
         for ss in cl.systems:
             if ss.multiplicity >= 2:
@@ -259,16 +268,17 @@ def main():
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
 
                 n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict)
-                add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snaps[sidx])
+                add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap)
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p"))
     coll_full_df.set_index(["id", "t"], inplace=True)
 
-    frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(2.47e4 / x["p"])).rename("frac_of_orbit")
+    frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
 
     coll_full_df_life.to_parquet(save_path + f"/mults.pq")
 
-
+if __name__ == "__main__":
+    main()
