@@ -7,6 +7,7 @@ import pickle
 import sys
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
+from starforge_mult_search.analysis.analyze_stack import get_paths, get_snap_info
 import cgs_const as cgs
 
 class SystemNode:
@@ -232,25 +233,12 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
     return (f"{min(m1, m2)} {max(m1, m2)}"), s1==s2
 
 def main():
-    cloud_tag = sys.argv[1]
-    sim_tag = f"{cloud_tag}_{sys.argv[2]}"
-    cloud_tag_split = cloud_tag.split("_")
-    cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    v_str = "."
-    base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
-    r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
-    r2 = sys.argv[3]
+    base_path = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/"
+    base, r1, r2 = get_paths(base_path, sys.argv[1], sys.argv[2])
     r2_nosuff = r2.replace(".p", "")
-
     base_sink = base + "/sinkprop/M2e4_snapshot_"
-    print(base_sink)
-    snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
-    snaps = np.array(snaps).astype(int)
-    cadence = np.diff(np.sort(snaps))[0]
-    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
-    ##Get snapshot numbers automatically
-    start_snap = min(snaps)
-    end_snap = max(snaps)
+
+    cadence, snap_interval, start_snap, end_snap = get_snap_info(base_sink)
 
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)

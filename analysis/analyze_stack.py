@@ -111,3 +111,38 @@ def make_binned_data(absc, ords, bins):
         binned_den[bidx - 1] = len(tmp_ords)
 
     return binned_num, binned_numu, binned_den
+
+
+def get_paths(base_path, tag1, tag2, v_str="."):
+    """
+    Auxiliary function for generating file paths.
+    """
+    cloud_tag = tag1
+    sim_tag = f"{tag1}_{tag2}"
+    cloud_tag_split = cloud_tag.split("_")
+    cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
+
+    base = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/"
+    r1 = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
+    r2 = sys.argv[3]
+
+    return base, r1, r2
+
+
+def get_snap_info(base_sink):
+    """
+    Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),
+    start_snap (first snapshot number), end_snap (last snapshot number)
+    """
+    snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
+    snaps = np.array(snaps).astype(int)
+    cadence = np.diff(np.sort(snaps))[0]
+    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
+    ##Get snapshot numbers automatically
+    start_snap = min(snaps)
+    end_snap = max(snaps)
+
+    return cadence, snap_interval, start_snap, end_snap
+
+
+
