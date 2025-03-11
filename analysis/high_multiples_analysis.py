@@ -212,7 +212,7 @@ def lookup_star_mult(my_df, star_id, target, pre_filtered=False):
         tmp_sel = my_df.xs(target, level="t")
         tmp_sel = tmp_sel.loc[(tmp_sel["nbound_snaps"]>1) & (tmp_sel["frac_of_orbit"] >= 1)]
     # star_in_mult = [str(star_id) in row for row in tmp_sel.index.get_level_values("id")]
-    star_in_mult = tmp_sel.index.get_level_values("id").str.contains(star_id)
+    star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     breakpoint()
     mults_with_star = tmp_sel.loc[star_in_mult]
     if len(mults_with_star)==0:
