@@ -1,10 +1,10 @@
-import dvc.api
 import glob
 import os
 import pickle
 import sys
 
 import h5py
+import hydra
 import matplotlib.pyplot as plt
 import numpy as np
 from starforge_mult_search.code import (find_multiples_new2,
@@ -169,15 +169,13 @@ def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
 
     return path_lookup
 
-def main():
-    params = dvc.api.params_show()["base"]
-    params_extra = dvc.api.params_show()["config"][int(sys.argv[1])]
-    params.update(params_extra)
+@hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
+def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
     cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
-
+    #
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     ###################################################################################################################
@@ -191,7 +189,7 @@ def main():
 
     ##System lookup table
     lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
-    ##Add the final snapshot -- Useful for when we have to stack multiple seeds.
+    #Add the final snapshot -- Useful for when we have to stack multiple seeds.
     lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
     np.savez(save_path + "/system_lookup_table", lookup)
     lookup_dict = {}

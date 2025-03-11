@@ -1,7 +1,7 @@
 import ast
 import copy
-import dvc.api
 import glob
+import hydra
 import numpy as np
 import os
 import pandas as pd
@@ -234,8 +234,8 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
 
     return (f"{min(m1, m2)} {max(m1, m2)}"), s1==s2
 
-def main():
-    params = dvc.api.params_show()
+@hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
+def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]

@@ -1,4 +1,3 @@
-import dvc.api
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,8 +11,6 @@ from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_in
 
 # from find_multiples_new2 import cluster, system
 import h5py
-sys.path.append("/home/aleksey/code/python")
-from bash_command import bash_command as bc
 import cgs_const as cgs
 
 
@@ -259,8 +256,8 @@ def get_exchange_filter(bin_ids, bound_time_data):
     exchange_filt_b = my_counts > 1
     return exchange_filt_b
 
-def main():
-    params = dvc.api.params_show()
+@hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
+def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
