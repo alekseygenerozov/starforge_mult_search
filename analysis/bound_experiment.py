@@ -6,9 +6,6 @@ import numpy as np
 
 import pytreegrav
 
-# sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
-# import starforge_constants as sfc
-# import find_multiples_new2
 from starforge_mult_search.code.halo_masses_single_double_par import KE
 import starforge_mult_search.code.starforge_constants as sfc
 from starforge_mult_search.analysis.analyze_stack import mcol, pxcol, pycol, pzcol, vxcol, vycol, vzcol, hcol
@@ -54,6 +51,7 @@ def get_energies(p1_dat, g1_dat, p2_dat, g2_dat):
 
 ##Loading post-processed data tables
 #########################################################################################################
+##Make treatment of paths consistent with other files.
 sim_tag = f"M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{sys.argv[1]}"
 base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/new_analysis/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{sys.argv[1]}/"
 r2 = sys.argv[2].replace(".p", "")

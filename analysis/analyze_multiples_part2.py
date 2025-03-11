@@ -281,8 +281,8 @@ def main(params):
     ##Quasi-persistent filter and other info about time that binaries are bound
     bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup)
 
-    ##Multiplcity filter -- true if stars were single prior to the first time they were bound as a binary
-    ##MAYBE REMOVE FOR CLARITY: NOT USED IN CURRENT ANALYSIS.
+    ##Multiplcity filter -- true if stars were single prior to the first time they were bound as a *binary* [!]
+    ##This filter is used in the generation of Fig. 4
     mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
 
     ##Binary fates

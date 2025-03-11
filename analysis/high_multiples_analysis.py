@@ -266,7 +266,7 @@ def main(params):
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
-
+    ##GET IMPROVED FATES HERE(!!!) -- ACCOUNTING FOR LIFETIME FOR PERSISTENCE OF HIGHER MULTIPLES.
     coll_full_df_life.to_parquet(save_path + f"/mults.pq")
 
 if __name__ == "__main__":
