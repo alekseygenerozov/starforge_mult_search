@@ -75,12 +75,18 @@ def removeNestings(l, output):
         ##make_hier -- Multiplicity of children does not appear to be correct(!!!)
 
 
-def make_hier(hier1, orbs1, p_dict, v_dict, m_dict):
+def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
     """
     Recursively builds a hierarchy tree from the input hierarchy and orbit data.
 
     :param hier1: Hierarchical structure (list or int) representing the system.
     :param orbs1: List of orbit parameters corresponding to the hierarchy.
+    :param p_dict: Dictionary of particle positions in the system
+    :param v_dict: Dictionary of particle velocities in the system
+    :param m_dict: Dictionary of particle masses in the system
+    :param flat_id: Make ids hierarchy agnostic. If True then systems with the same stars, but different hierarchies
+     will have the same id. False by default.
+
     :return: A `SystemNode` representing the root of the hierarchy tree.
     """
     import copy
@@ -98,8 +104,13 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict):
         tmp_flat = []
         removeNestings(h_copy, tmp_flat)
         ## Can flatten and sort the hierarchy instead...
+        sid = rec_sort(h_copy)
+        if flat_id:
+            sid = []
+            removeNestings(h_copy, sid)
+            sid.sort()
         node = SystemNode(
-            data={"id": rec_sort(h_copy), "orbit": tmp_orb[[0, 1, 10, 11]], "pos": tmp_orb[4:7], "vel": tmp_orb[7:10],
+            data={"id": sid, "orbit": tmp_orb[[0, 1, 10, 11]], "pos": tmp_orb[4:7], "vel": tmp_orb[7:10],
                   "mult": len(tmp_flat)})
         # Extract the last two components from the hierarchy
         p1 = h_copy.pop()
@@ -240,6 +251,11 @@ def main(params):
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
     cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
+    flat_id = False
+    tail_out = ""
+    if ("flat_id" in params):
+        flat_id = params["flat_id"]
+        tail_out = "_flat"
 
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
@@ -256,7 +272,7 @@ def main(params):
                 v_dict = {ss.ids[ii]: ss.sub_vel[ii] for ii in range(len(ss.ids))}
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
 
-                n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict)
+                n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, flat_id=flat_id)
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap)
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p"))
@@ -267,7 +283,7 @@ def main(params):
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
     ##GET IMPROVED FATES HERE(!!!) -- ACCOUNTING FOR LIFETIME FOR PERSISTENCE OF HIGHER MULTIPLES.
-    coll_full_df_life.to_parquet(save_path + f"/mults.pq")
+    coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
 if __name__ == "__main__":
     main()

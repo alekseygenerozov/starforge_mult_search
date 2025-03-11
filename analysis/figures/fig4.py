@@ -4,8 +4,6 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
-# sns.set()
-%matplotlib inline
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
 from starforge_mult_search.analysis import analyze_multiples_part2
