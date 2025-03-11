@@ -1,3 +1,4 @@
+import dvc.api
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +8,7 @@ import pickle
 
 from starforge_mult_search.code import find_multiples_new2, halo_masses_single_double_par
 from starforge_mult_search.code.find_multiples_new2 import cluster,system
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
 
 # from find_multiples_new2 import cluster, system
 import h5py
@@ -258,24 +260,12 @@ def get_exchange_filter(bin_ids, bound_time_data):
     return exchange_filt_b
 
 def main():
-    cloud_tag = sys.argv[1]
-    sim_tag = f"{cloud_tag}_{sys.argv[2]}"
-    cloud_tag_split = cloud_tag.split("_")
-    cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    v_str = "."
-    base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
-    r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
-    r2 = sys.argv[3]
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
-    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
+    params = dvc.api.params_show()
+    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
-    snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
-    snaps = np.array(snaps).astype(int)
+    v_str = params["v_str"]
+    cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
 
-
-    ##Get snapshot numbers automatically
-    end_snap = max(snaps)
-    print(end_snap)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     analysis_suff = "_mult"

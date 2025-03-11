@@ -9,7 +9,6 @@ LOOKUP_MTOT = 4
 LOOKUP_SMA = 6
 LOOKUP_ECC = 7
 LOOKUP_Q = 8
-snap_interval = 2.47e4
 
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
 sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
@@ -114,7 +113,7 @@ def make_binned_data(absc, ords, bins):
     return binned_num, binned_numu, binned_den
 
 
-def get_paths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
+def get_fpaths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     """
     Auxiliary function for generating file paths.
     """
@@ -123,19 +122,19 @@ def get_paths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
 
     base = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/"
-    r1 = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
-    r2 = analysis_tag
+    r1 = base_path + f"/{v_str}/{cloud_tag0}/{sim_tag}/{cloud_tag_split[0]}_snapshot_"
+    r2 = "_" + analysis_tag
+    base_sink = base + f"/sinkprop/{cloud_tag_split[0]}_snapshot_"
 
-    return base, r1, r2, cloud_tag0, sim_tag
+    return base, base_sink, r1, r2, cloud_tag0, sim_tag
 
 
-def get_snap_info(base):
+def get_snap_info(base, base_sink):
     """
     Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),
     start_snap (first snapshot number), end_snap (last snapshot number)
     """
 
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
 
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)

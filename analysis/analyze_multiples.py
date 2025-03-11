@@ -1,3 +1,4 @@
+import dvc.api
 import glob
 import os
 import pickle
@@ -9,30 +10,10 @@ import numpy as np
 from starforge_mult_search.code import (find_multiples_new2,
                                         halo_masses_single_double_par)
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
 
 import pandas as pd
 
-LOOKUP_SNAP = 0
-LOOKUP_PID = 1
-LOOKUP_MTOT = 4
-LOOKUP_M = 5
-LOOKUP_SMA = 6
-LOOKUP_ECC = 7
-
-sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
-sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
-mcol = np.where(sink_cols == "m")[0][0]
-pxcol = np.where(sink_cols == "px")[0][0]
-pycol = np.where(sink_cols == "py")[0][0]
-pzcol = np.where(sink_cols == "pz")[0][0]
-vxcol = np.where(sink_cols == "vx")[0][0]
-vycol = np.where(sink_cols == "vy")[0][0]
-vzcol = np.where(sink_cols == "vz")[0][0]
-hcol = np.where(sink_cols == "h")[0][0]
-mcol = np.where(sink_cols == "m")[0][0]
-mtotcol = np.where(sink_cols == "mtot")[0][0]
-scol = np.where(sink_cols == "sys_id")[0][0]
 
 def snap_lookup(tmp_dat, pid, ID_COLUMN=0):
     tmp_idx = np.where(tmp_dat[:, ID_COLUMN].astype(int) == pid)[0][0]
@@ -152,7 +133,6 @@ def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
     utags_str = utags.astype(int).astype(str)
     utimes = sinks_all["t"].unique()
     utimes = np.sort(utimes)
-    # breakpoint()
 
     path_lookup = {}
     spin_lookup = {}
@@ -190,26 +170,14 @@ def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
     return path_lookup
 
 def main():
-    ##Various data path
-    cloud_tag = sys.argv[1]
-    sim_tag = f"{cloud_tag}_{sys.argv[2]}"
-    cloud_tag_split = cloud_tag.split("_")
-    cloud_tag0 = f"{cloud_tag_split[0]}_{cloud_tag_split[1]}"
-    v_str = "./"
-    base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/"
-    r1 = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/{v_str}/{cloud_tag0}/{sim_tag}/M2e4_snapshot_"
-    r2 = sys.argv[3]
-    base_sink = base + "/sinkprop/M2e4_snapshot_"
-    print(base_sink)
+    params = dvc.api.params_show()["base"]
+    params_extra = dvc.api.params_show()["config"][int(sys.argv[1])]
+    params.update(params_extra)
+    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
-    snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
-    snaps = np.array(snaps).astype(int)
-    cadence = np.diff(np.sort(snaps))[0]
-    print(cadence)
+    v_str = params["v_str"]
+    cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
 
-    ##Get snapshot numbers automatically
-    start_snap = min(snaps)
-    end_snap = max(snaps)
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     ###################################################################################################################
@@ -268,7 +236,7 @@ def main():
     spins_df.reset_index(inplace=True, drop=True)
     lookup_df.reset_index(inplace=True, drop=True)
     get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap)
-    ###################################################################################################################
+    ##################################################################################################################
 
 
 
