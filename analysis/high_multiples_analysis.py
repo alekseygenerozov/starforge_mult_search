@@ -119,7 +119,7 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
         # Handle nested structures recursively
         if isinstance(p1, list):
             # print(p_dict)
-            child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict)
+            child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
             node.add_child(child1)
         else:
             node.add_child(
@@ -127,7 +127,7 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
 
         if isinstance(p2, list):
             # print(p2)
-            child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict)
+            child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
             node.add_child(child2)
         else:
             node.add_child(
