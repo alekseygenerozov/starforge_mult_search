@@ -1,7 +1,8 @@
 import glob
+import hydra
 import numpy as np
 import matplotlib.pyplot as plt
-##See if we can do the filtering in a cleaner/simpler way np.in1d can be a little uninituitive in some cases
+import os
 import sys
 import pickle
 
