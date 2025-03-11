@@ -1,0 +1,41 @@
+base:
+  base_path: "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/"
+  cloud_tag: "M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5"
+  v_str: "."
+
+config:
+  - seed: 1
+    index: 0
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+
+  - seed: 2
+    index: 1
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+
+  - seed: 42
+    index: 2
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+
+  - seed: 1
+    index: 3
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse.p"
+
+  - seed: 2
+    index: 4
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse.p"
+
+  - seed: 42
+    index: 5
+    analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse.p"
+
+
+
+
+#config2:
+#  base_path: "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/"
+#  cloud_tag: "M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5"
+#  seed: "2"
+#  analysis_tag: "TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+#  v_str: "."
+
+

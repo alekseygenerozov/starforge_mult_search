@@ -1,0 +1,42 @@
+stages:
+  prepare1:
+    foreach: ${config}
+    do:
+      deps:
+        - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_multiples.py
+        - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_stack.py
+      params:
+        - base
+        - config
+      cmd: python /home/aleksey/code/python/starforge_mult_search/analysis/analyze_multiples.py ${item.index}
+
+
+#  prepare2:
+#    cmd: python /home/aleksey/code/python/starforge_mult_search/analysis/analyze_multiples_part2.py
+#    deps:
+#      - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_multiples.py
+#      - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_multiples_part2.py
+#      - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_stack.py
+#    params:
+#      - base_path
+#      - cloud_tag
+#      - seed
+#      - analysis_tag
+#      - v_str
+#    foreach:
+#      params:
+#        seed: 1, 2, 42
+#  multiples:
+#    cmd: python /home/aleksey/code/python/starforge_mult_search/analysis/high_multiples_analysis.py
+#    deps:
+#      - /home/aleksey/code/python/starforge_mult_search/analysis/high_multiples_analysis.py
+#      - /home/aleksey/code/python/starforge_mult_search/analysis/analyze_stack.py
+#    params:
+#      - base_path
+#      - cloud_tag
+#      - seed
+#      - analysis_tag
+#      - v_str
+#    foreach:
+#      params:
+#        seed: 1, 2, 42
