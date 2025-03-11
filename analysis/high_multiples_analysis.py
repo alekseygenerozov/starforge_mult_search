@@ -239,7 +239,6 @@ def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
-    breakpoint()
     cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
 
     coll_full = []
