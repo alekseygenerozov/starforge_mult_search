@@ -4,8 +4,6 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from analysis.figures.ex_fig1 import same_sys_filt
-
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
@@ -70,14 +68,13 @@ for seed in seeds:
         assert not np.any(np.isin(tmp_path_pickle.keys(), spin_lookup.keys()))
         lookup_dict.update(tmp_path_pickle)
 #########################################################################################################
-fates_corr = np.load(np.savez(suff_new.replace("/", "") + "_fates_corr.npz"))
+fates_corr = np.load(suff_new.replace("/", "") + "_fates_corr.npz")
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]
 
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 ##Replace with updated filter
-# fates = my_data["fates"]
 ##Surviving binaries including those in higher order multiples(!!)
 bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
 bin_ids_subset = bin_ids_11
@@ -129,7 +126,6 @@ fig.savefig("close_encounter_plot.pdf")
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
-# fates = my_data["fates"]
 no_mult_before_bin = my_data["mults_filt"]
 ##Replace with updated filter
 # same_sys_final_norm = my_data["same_sys_final_norm"]
