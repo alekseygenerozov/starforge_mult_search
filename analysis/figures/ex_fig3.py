@@ -10,10 +10,6 @@ import pandas as pd
 from sci_analysis.plotting import annotate_multiple_ecdf
 from scipy.stats import ks_2samp
 import seaborn as sns
-import matplotlib.patches as mpatches
-dummy_patch = mpatches.Patch(color='white', label='')
-
-from IPython.core.debugger import set_trace
 
 colorblind_palette = sns.color_palette("colorblind")
 import cgs_const as cgs
@@ -89,57 +85,62 @@ for seed in seeds:
         tmp_path_pickle = pickle.load(ff)
         assert not np.any(np.isin(tmp_path_pickle.keys(), spin_lookup.keys()))
         lookup_dict.update(tmp_path_pickle)
-#########################################################################################################
-import tqdm
 
-bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
+snap_interval = my_data["snap_interval"][0]
+#########################################################################################################
+lookup_dict_keys = lookup_dict.keys()
+lookup_dict_keys = list(lookup_dict_keys)
+first_mult = np.ones(len(lookup_dict_keys)) * np.inf
 f1 = coll_full_df_life["frac_of_orbit"]
 n1 = coll_full_df_life["nbound_snaps"]
-tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
-end_states = []
-same_sys_filt = np.empty(len(bin_ids)).astype(bool)
+tmp_sel = coll_full_df_life.loc[(f1>1) & (n1>1)]
+##Filter for selecting first instance of each index
+filt = ~tmp_sel.index.get_level_values("id").duplicated(keep="first")
+tmp_sel = tmp_sel.loc[filt]
 
-for ii, row in tqdm.tqdm(enumerate(bin_ids)):
-    bin_list = list(row)
-    id1 = bin_list[0]
-    id2 = bin_list[1]
-    end_time1 = lookup_dict[id1][-1, -1]
-    end_time2 = lookup_dict[id2][-1, -1]
+for ii,kk in enumerate(lookup_dict_keys):
+    tmp_filt = tmp_sel.index.get_level_values("id").str.contains(rf"\b{int(kk)}\b")
+    tmp_delay = tmp_sel.loc[tmp_filt].index.get_level_values("t").min()
 
-    end_time = min(end_time1, end_time2)
-    es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
-    end_states.append(es)
-    same_sys_filt[ii] = ss
-
-end_states = np.array(end_states)
+    if not np.isnan(tmp_delay):
+        first_mult[ii] = tmp_delay
 #########################################################################################################
-d1 = len(end_states[quasi_filter])
+lookup_dict_keys = lookup_dict.keys()
+n1 = len(lookup_dict_keys)
+mass_end = np.zeros(n1)
+delay_to_mult = np.ones(n1) * np.inf
+
+##Better to have some sort of persistence filter here even if it is a basic one??
+for idx,kk in enumerate(lookup_dict_keys):
+    tmp = lookup_dict[kk]
+    delay_to_mult[idx] = first_mult[idx] - tmp[0, LOOKUP_SNAP]
+    m_series = path_lookup[f"{int(kk)}"][:, mcol]
+    mass_end[idx] = m_series[~np.isinf(m_series)][-1]
 #########################################################################################################
-##Tallying all the non-surviving states.
-ns1 = len(end_states[(end_states=="1 1") & (quasi_filter) ]) / d1
-ns2 = len(end_states[(end_states=="1 2") & (quasi_filter) ]) / d1
-ns3 = len(end_states[(end_states=="1 3") & (quasi_filter) ]) / d1
-ns4 = len(end_states[(end_states=="1 4") & (quasi_filter) ]) / d1
-ns5 = []
-ns5.append(len(end_states[(end_states=="2 2") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="2 3") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="2 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="3 3") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="3 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="4 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns = len(end_states[~(same_sys_filt) & (quasi_filter) ]) / d1
+import matplotlib.colors as mcolors
+import matplotlib.cm as cm
 
+fig,ax = plt.subplots(figsize=(10, 8), constrained_layout=True)
+# ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
+ax.set_xlim(0.01, 1)
+ax.set_ylim(0., 1)
+ax.set_ylabel("CDF")
+ax.set_xlabel("Delay to multiple [Myr]")
+from matplotlib.lines import Line2D
 
-print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)} NS Tot CK: {ns}")
-#########################################################################################################
-##Tallying all the surviving states.
-ss1 = len(end_states[(end_states=="2 2") & (quasi_filter) ]) / d1
-ss2 = len(end_states[(end_states=="3 3") & (quasi_filter) ]) / d1
-ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
+bins = np.linspace(-1, 1, 10)
+# seq_palette = sns.color_palette("Blues", len(bins))
+cmap = sns.color_palette("Blues", as_cmap=True)  # Convert seaborn palette to a colormap
+norm = mcolors.Normalize(vmin=bins[0], vmax=bins[-1])  # Normalize bins for color mapping
 
-print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
+legend_handles = []
+for ii in range(1, len(bins)):
+    col = cmap(norm(bins[ii]))
+    ax.ecdf(delay_to_mult[(np.log10(mass_end)<bins[ii]) & (np.log10(mass_end)>bins[ii-1])] * snap_interval / 1e6,
+           color=col)
 
-##Also save seed info here--will be useful for the table...
-np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
-
+sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f)$")
+plt.show()
+fig.savefig("delay_to_mult.pdf")

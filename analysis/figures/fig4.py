@@ -134,7 +134,7 @@ final_pair_mass_no_halo = my_data["mfinal_pair"]
 
 bins = np.arange(-1, 1.21, 0.2)
 ##Does not include the small fraction of binaries with deleted stars.
-vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & (same_sys_filt)])), bins=bins,
+vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & ~(same_sys_filt)])), bins=bins,
                        histtype='step')
 vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_sys_filt)]), bins=bins,
                        histtype='step')
