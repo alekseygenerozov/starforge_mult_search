@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import pickle
 import sys
+import tqdm
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info
@@ -283,6 +284,31 @@ def main(params):
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
     ##GET IMPROVED FATES HERE(!!!) -- ACCOUNTING FOR LIFETIME FOR PERSISTENCE OF HIGHER MULTIPLES.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
+
+    analysis_suff = "_mult"
+    bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
+    ##Getting improved state for higher order multiples here...
+    f1 = coll_full_df_life["frac_of_orbit"]
+    n1 = coll_full_df_life["nbound_snaps"]
+    tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
+    end_states = []
+    same_sys_filt = np.empty(len(bin_ids)).astype(bool)
+    with open(save_path + f"/lookup_dict.p", "rb") as ff:
+        lookup_dict = pickle.load(ff)
+
+    for ii, row in tqdm.tqdm(enumerate(bin_ids)):
+        bin_list = list(row)
+        id1 = bin_list[0]
+        id2 = bin_list[1]
+        end_time1 = lookup_dict[id1][-1, -1]
+        end_time2 = lookup_dict[id2][-1, -1]
+
+        end_time = min(end_time1, end_time2)
+        es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
+        end_states.append(es)
+        same_sys_filt[ii] = ss
+
+    np.savez(save_path + "/fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
 if __name__ == "__main__":
     main()

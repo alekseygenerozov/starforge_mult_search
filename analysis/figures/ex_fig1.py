@@ -11,6 +11,7 @@ from sci_analysis.plotting import annotate_multiple_ecdf
 from scipy.stats import ks_2samp
 import seaborn as sns
 import matplotlib.patches as mpatches
+
 dummy_patch = mpatches.Patch(color='white', label='')
 
 from IPython.core.debugger import set_trace
@@ -47,27 +48,19 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 ##Stacking data
 my_ft = 1.0
 my_tides = False
+
 base_new = "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1, 2, 42)
-seeds_idx = (0, 1, 2)
-end_snaps = np.array((464, 423, 489))
-start_snaps = np.array((44, 48, 48))
-# seeds = (42,)
-# seeds_idx = (0,)
-# end_snaps = np.array((489,))
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
 # for seed in seeds:
 ##DO WE NEED TO SEPARATE dat_coll.npz and dat_coll_mult.npz
 suff = "_mult"
 npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]
-seeds_lookup = np.concatenate(
-    [[seed] * len(np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)["bin_ids"]) for
-     seed in seeds])
-seeds_lookup_idx = np.concatenate([[seeds_idx[seed_idx]] * len(
-    np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)["bin_ids"]) for seed_idx, seed
-                                   in enumerate(seeds)])
 my_data = npz_stack(npzs_list)
+
+npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
+fates_corr = npz_stack(npzs_list)
 coll_full_df_life = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults_flat.pq") for seed in seeds])
 
 path_lookup = {}
@@ -89,30 +82,12 @@ for seed in seeds:
         tmp_path_pickle = pickle.load(ff)
         assert not np.any(np.isin(tmp_path_pickle.keys(), spin_lookup.keys()))
         lookup_dict.update(tmp_path_pickle)
+
+
 #########################################################################################################
-import tqdm
-
-bin_ids = my_data["bin_ids"]
+end_states = fates_corr["end_states"]
+same_sys_filt = fates_corr["same_sys_filt"]
 quasi_filter = my_data["quasi_filter"]
-f1 = coll_full_df_life["frac_of_orbit"]
-n1 = coll_full_df_life["nbound_snaps"]
-tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
-end_states = []
-same_sys_filt = np.empty(len(bin_ids)).astype(bool)
-
-for ii, row in tqdm.tqdm(enumerate(bin_ids)):
-    bin_list = list(row)
-    id1 = bin_list[0]
-    id2 = bin_list[1]
-    end_time1 = lookup_dict[id1][-1, -1]
-    end_time2 = lookup_dict[id2][-1, -1]
-
-    end_time = min(end_time1, end_time2)
-    es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
-    end_states.append(es)
-    same_sys_filt[ii] = ss
-
-end_states = np.array(end_states)
 #########################################################################################################
 d1 = len(end_states[quasi_filter])
 #########################################################################################################
@@ -141,5 +116,5 @@ ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
 print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
 
 ##Also save seed info here--will be useful for the table...
-np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+# np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
