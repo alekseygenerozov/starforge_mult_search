@@ -14,6 +14,8 @@ from labelLine import labelLines
 from sci_analysis import plotting
 from scipy.stats import ks_2samp
 
+import tqdm
+
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
 LOOKUP_MULT = 3
@@ -79,18 +81,28 @@ quasi_filter = my_data["quasi_filter"]
 bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
 bin_ids_subset = bin_ids_11
 norm_sep = np.zeros(len(bin_ids_subset))
+mult_after_destruction = np.zeros(len(bin_ids_subset))
 
-for idx, uid in enumerate(bin_ids_subset):
+for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
-    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
+    sys1_info = lookup_dict[bin_list[0]]
+    sys2_info = lookup_dict[bin_list[1]]
+    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
 
     tmp_times = b1[:,0].astype(int)
     fb, lb = tmp_times[0], tmp_times[-1]
     path_diff_all = get_min_dist_binary(path_lookup, tmp_row)
     norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
+    try:
+        mult1 = sys1_info[sys1_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
+        mult2 = sys2_info[sys2_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
+    except IndexError:
+        breakpoint()
+    mult_after_destruction[idx] = max(mult1, mult2)
 
 norm_sep_og = np.copy(norm_sep)
+print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_destruction > 1]) / len(mult_after_destruction)}")
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]

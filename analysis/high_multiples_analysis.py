@@ -13,6 +13,7 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info
 import cgs_const as cgs
 
+
 class SystemNode:
     """
     Node representing a single component of the system hierarchy.
@@ -300,8 +301,8 @@ def main(params):
         bin_list = list(row)
         id1 = bin_list[0]
         id2 = bin_list[1]
-        end_time1 = lookup_dict[id1][-1, -1]
-        end_time2 = lookup_dict[id2][-1, -1]
+        end_time1 = lookup_dict[id1][-1, LOOKUP_SNAP]
+        end_time2 = lookup_dict[id2][-1, LOOKUP_SNAP]
 
         end_time = min(end_time1, end_time2)
         es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
