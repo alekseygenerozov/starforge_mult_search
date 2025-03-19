@@ -78,7 +78,7 @@ options:
 NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba
 Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1)
 Also tested demo with: NumPy (1.26.0), SciPy (1.13.1), pytreegrav (1.1.4), h5py (3.12.1), numba (0.60.0)
-TO DO: Add pandas
+TO DO: Add pandas [For analysis scripts]
 
 # Installation and Demos
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
@@ -98,19 +98,22 @@ Multiplicity 3 count: 2\
 Multiplicity 4 count: 6
 
 # Reproducing paper results and figures
-Runninng the full analysis pipeline takes several days of compute on an HPC.
+Running the full analysis pipeline takes several days of compute on an HPC.
 
 However, the results can be reproduced in reasonable time if the output of the 
 multiple search algorithm has already been prepared.
 
-To this end we provide users with
+1. Output files from the multiple search algorithm. [In the directory ...]
+2. Scripts that post-process the data (e.g. analyze_multiples.py, analyze_multiples_part2.py,
+high_multiples_analysis.py) reorganizes the data into tables for easier analysis.
+3. Scripts that produce Figures in the analysis/figures..., using the above data tables. 
 
-1. Output files from the multiple search algorithm.
-2. Two scripts that post-process the data analyze_multiples.py and analyze_multiples_part2.py.
-3. Scripts that produce Figure 2-4, using data products from the preceding scripts
-
-The script "run_pipeline" runs the analysis in 1-3, and generates Figs. 2-4 in the paper.
+The script "run_pipeline" runs the analysis in 1-3, and generates pdf files 
+for figures... in the paper.
 
 
+[Can give more detail about the data tables here.]
+
+[Have some undocumented scripts here...]
 
 

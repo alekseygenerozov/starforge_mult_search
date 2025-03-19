@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import pandas as pd
 
@@ -8,15 +10,27 @@ pd.set_option("display.precision", 2)
 my_ft = 1.0
 my_tides = False
 
+# base_new_all = ["../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/M2e4_R3/M2e4_R3_S0_T1_B0.1_Res271_n2_sol0.5_",
+#         "../analysis_pipeline_experiment/v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+#                 ]
+# seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (1,), (42,)]
+
 base_new_all = ["../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
-        "../analysis_pipeline_experiment/M2e4_R3/M2e4_R3_S0_T1_B0.1_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
                 ]
-seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (1,), (42,)]
+seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (42,)]
+grand_total_stars = 0
+grand_total_bins_a = 0
+grand_total_bins_b = 0
 for ii in range(len(base_new_all)):
     base_new = base_new_all[ii]
     suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
@@ -38,7 +52,10 @@ for ii in range(len(base_new_all)):
         my_data = np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)
         # final_sys_filter = (my_data["same_sys_final_norm"] == 1)
         final_sys_filter =  np.load(base_new + str(seed) + suff_new + f"/fates_corr.npz", allow_pickle=True)["same_sys_filt"]
-
+        with open(base_new + str(seed) + suff_new + "/path_lookup.p", "rb") as ff:
+            tmp_path_pickle = pickle.load(ff)
+            tmp_nstar = len(tmp_path_pickle.keys())
+        grand_total_stars += tmp_nstar
 
         bin_ids = my_data["bin_ids"]
         quasi_filter = my_data["quasi_filter"]
@@ -78,6 +95,10 @@ for ii in range(len(base_new_all)):
         # Display the DataFrame
         df.set_index("Condition", inplace=True)
         print(df)
+        grand_total_bins_a += tot1
+        grand_total_bins_b += tot2
 
     print(np.mean(c0s), np.mean(c1s), np.mean(c2s), np.mean(c3s))
     print(1, np.mean(f1s), 1, np.mean(f3s))
+
+print(grand_total_stars, grand_total_bins_a, grand_total_bins_b)

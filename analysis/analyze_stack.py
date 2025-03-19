@@ -54,6 +54,14 @@ def subtract_path(p1, p2):
 
     return diff
 
+def subtract_path_1d(p1, p2):
+    assert len(p1)==len(p2)
+    diff = np.ones(len(p1)) * np.inf
+    filt = (~np.isinf(p1)) & (~np.isinf(p2))
+    diff[filt] = p1[filt] - p2[filt]
+
+    return diff
+
 def max_w_infinite(p1):
     """
     Maximum of ID array with infinity placeholders.

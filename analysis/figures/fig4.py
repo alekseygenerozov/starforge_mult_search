@@ -95,6 +95,7 @@ norm_sep_og = np.copy(norm_sep)
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
+##May want to revisit this filter
 no_mult_before_bin = my_data["mults_filt"]
 ##NOTE: Deliberately take different filters here to have a clean sample
 bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]

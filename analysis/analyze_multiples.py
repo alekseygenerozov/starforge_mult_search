@@ -208,6 +208,7 @@ def main(params):
                                               "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
     sys_group = lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
     sys_group = sys_group.to_list()
+    breakpoint()
     ##Can try assert here to be sure that the array is sorted in time
     sys_group = np.array(sys_group)
     tfirst_bin_in_mult = sys_group[:,0]

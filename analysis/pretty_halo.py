@@ -161,7 +161,7 @@ config.read("config")
 snap_idx = config.getint("params","snap_idx")
 bin_id1 = config.getint("params","bin1")
 bin_id2 = config.getint("params", "bin2")
-my_ft = config.get("params","ft", fallback="8.0")
+my_ft = config.get("params","ft", fallback="1.0")
 seed = config.getint("params","seed", fallback=42)
 rmax = config.getfloat("params", "rmax", fallback=0.5)
 res = config.getint("params", "res", fallback=800)
@@ -256,7 +256,13 @@ ymax *= conv
 p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
 ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3], tmp_halo_pos_center[:,4], color=col1, alpha=0.4)
 ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3], tmp_halo_pos2_center[:,4], color="#A52A2A", alpha=0.4)
+
+center_b, tmp_pos_center_b, tmp_halo_pos_center_b, tmp_pos2_center_b, tmp_halo_pos2_center_b, com_w_halo_b, com2_w_halo_b = get_phalo(base, aa, snap_idx,
+                                                                                       bin_id1, bin_id2, 8.0)
+ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv, tmp_halo_pos_center_b[:,3], tmp_halo_pos_center_b[:,4], color=col1, alpha=0.2)
+ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3], tmp_halo_pos2_center_b[:,4], color="#A52A2A", alpha=0.2)
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
+
 #####################################################################################################
 with open(base + aa + "/path_lookup.p", "rb") as ff:
     path_lookup = (pickle.load(ff))
@@ -309,7 +315,7 @@ v_rescale = 3.
 vel1 = tmp_pos_center[3] * 100. / cgs.au / 1e4 * cgs.year * v_rescale , tmp_pos_center[4] * 100. / cgs.au / 1e4 * cgs.year * v_rescale
 # vel1 = com_w_halo[3] * 100. / cgs.au * cgs.year , com_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X")
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
 # ax.arrow(start_pt[0], start_pt[1],
 #          end_pt[0] - start_pt[0], end_pt[1] - start_pt[1],
 #          color='k', head_width=1000, head_length=500,
@@ -322,7 +328,7 @@ start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
 vel1 = tmp_pos2_center[3] * 100. / cgs.au / 1e4 * cgs.year * v_rescale, tmp_pos2_center[4] * 100. / cgs.au / 1e4 * cgs.year * v_rescale
 # vel1 = com2_w_halo[3] * 100. / cgs.au * cgs.year , com2_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X")
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
 # ax.plot([start_pt[0], end_pt[0]], [start_pt[1], end_pt[1]], "k")
 # ax.arrow(start_pt[0], start_pt[1],
 #          end_pt[0] - start_pt[0], end_pt[1] - start_pt[1],

@@ -23,6 +23,7 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab, add_node_to_orbit_tab_streamlined
 
+##CAN HAVE THIS AS AN IMPORT -- NOT THE BEST PRACTICE, BUT THEN AT LEAST WE DON'T HAVE THE SAME CODE OVER AND OVER AGAIN
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
 LOOKUP_MULT = 3
@@ -107,6 +108,7 @@ ns = len(end_states[~(same_sys_filt) & (quasi_filter) ]) / d1
 
 
 print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)} NS Tot CK: {ns}")
+print((ns) * d1)
 #########################################################################################################
 ##Tallying all the surviving states.
 ss1 = len(end_states[(end_states=="2 2") & (quasi_filter) ]) / d1
@@ -114,7 +116,9 @@ ss2 = len(end_states[(end_states=="3 3") & (quasi_filter) ]) / d1
 ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
 
 print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
+print((ss1 + ss2 + ss3) * d1)
 
 ##Also save seed info here--will be useful for the table...
 # np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
+##Good place to put the book-keeping about single stars -- Already done in ex_fig8.py
