@@ -14,16 +14,6 @@ pd.set_option("display.precision", 2)
 my_ft = 1.0
 my_tides = False
 
-# base_new_all = ["../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/M2e4_R3/M2e4_R3_S0_T1_B0.1_Res271_n2_sol0.5_",
-#         "../analysis_pipeline_experiment/v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
-#                 ]
-# seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (1,), (42,)]
-
 base_new_all = ["../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
         "../analysis_pipeline_experiment/M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",

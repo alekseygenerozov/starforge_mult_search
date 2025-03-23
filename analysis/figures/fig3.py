@@ -6,18 +6,9 @@ import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
+from starforge_mult_search.analysis.figures.figure_preamble import *
 from labelLine import labelLines
 
-seeds = (1,2,42)
-my_ft = 1.0
-my_tides=False
-base_new =  "../new_analysis/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
-suff = "_mult"
-
-suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
-npzs_list = []
-npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
-my_data = npz_stack(npzs_list)
 bfb_filter = my_data["same_sys_at_fst"].astype(bool)
 
 fig,ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
