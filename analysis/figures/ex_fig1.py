@@ -63,6 +63,7 @@ my_data = npz_stack(npzs_list)
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
 fates_corr = npz_stack(npzs_list)
 coll_full_df_life = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults_flat.pq") for seed in seeds])
+coll_full_df_life = coll_full_df_life.loc[(high_df["frac_of_orbit"]>=1) & (high_df["nbound_snaps"]>1)]
 
 path_lookup = {}
 spin_lookup = {}
@@ -116,6 +117,7 @@ ss2 = len(end_states[(end_states=="3 3") & (quasi_filter) ]) / d1
 ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
 
 print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
+print(f"B:{ss1 * d1} T:{ss2 * d1} Q:{ss3 * d1}")
 print((ss1 + ss2 + ss3) * d1)
 
 ##Also save seed info here--will be useful for the table...

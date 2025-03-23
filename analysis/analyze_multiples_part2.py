@@ -230,8 +230,9 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         vangs[ii] = np.dot(vel1, vel2) / np.linalg.norm(vel1) / np.linalg.norm(vel2)
         vangs_prim[ii] = np.dot(vel1 - vel2, pos1 - pos2) / np.linalg.norm(vel1 - vel2) / np.linalg.norm(pos1 - pos2)
 
-        ##Get masses of stars at the last snapshot they exist, which will be the last snapshot, unless
+        ##Get masses of stars at the last snapshot both exist, which will be the last snapshot, unless
         ##there is a supernova
+        ##Select snapshots where star exists by filter infs
         mfilt = np.where((~np.isinf(path1[:, mcol])) & (~np.isinf(path2[:, mcol])))
         m1end = path1[mfilt][-1, mcol]
         m2end = path2[mfilt][-1, mcol]
@@ -291,7 +292,8 @@ def main(params):
     ##Exchange filter
     exchange_filt_b = get_exchange_filter(bin_ids, bound_time_data)
 
-    ##Information about initial state--energies, angles, etc.
+    ##Information about initial state--energies, angles, etc. -- much of this data is not used in the final analysis
+    ##Get rid of any unused data for clarity -- and also for safety: should not save filters that should not be used(!)
     en_data = get_energy(bin_ids, fst, lookup_dict, path_lookup)
     np.savez(save_path + f"/dat_coll{analysis_suff}.npz", bin_ids=bin_ids, fst=fst,
              ens=en_data["ens"], ens_gas=en_data["ens_gas"],

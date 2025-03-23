@@ -93,6 +93,7 @@ lookup_dict_keys = list(lookup_dict_keys)
 first_mult = np.ones(len(lookup_dict_keys)) * np.inf
 f1 = coll_full_df_life["frac_of_orbit"]
 n1 = coll_full_df_life["nbound_snaps"]
+##Make f1 >= 1 for consistency, but should not matter.
 tmp_sel = coll_full_df_life.loc[(f1>1) & (n1>1)]
 ##Filter for selecting first instance of each index
 filt = ~tmp_sel.index.get_level_values("id").duplicated(keep="first")
@@ -116,10 +117,13 @@ for idx,kk in enumerate(lookup_dict_keys):
     delay_to_mult[idx] = first_mult[idx] - tmp[0, LOOKUP_SNAP]
     m_series = path_lookup[f"{int(kk)}"][:, mcol]
     mass_end[idx] = m_series[~np.isinf(m_series)][-1]
+
+breakpoint()
 #########################################################################################################
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 
+##Wide figure to accomodate the colorbar
 fig,ax = plt.subplots(figsize=(10, 8), constrained_layout=True)
 # ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
 ax.set_xlim(0.01, 1)

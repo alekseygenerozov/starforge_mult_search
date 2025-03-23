@@ -20,6 +20,7 @@ import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+
 # Create new colormap
 # newcolors = plt.cm.viridis(np.linspace(0, 1, 256))
 # # Reduce blue in the first half to avoid conflict with blue scatter points
@@ -234,6 +235,10 @@ ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")#, edg
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
+
+for ii in range(len(partpos)):
+    ax.scatter(partpos[ii, 0] - center[0], partpos[ii, 1] - center[1], marker='o', color='0.5', s=40)
+
 
 fig.savefig("pretty." + savetype)
 

@@ -162,32 +162,32 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup):
 
 ##Tabulate persistence of systems
 ##Need recursion, because we can have survival while embedded in a higher order multiple.
-def add_node_to_orbit_tab(n1, snap, coll_full, end_snap):
-    if n1.data["orbit"] is None:
-        return
-    else:
-        tab_dat = []
-        tab_dat.append(snap)
-        tab_dat.append(end_snap)
+# def add_node_to_orbit_tab(n1, snap, coll_full, end_snap):
+#     if n1.data["orbit"] is None:
+#         return
+#     else:
+#         tab_dat = []
+#         tab_dat.append(snap)
+#         tab_dat.append(end_snap)
+#
+#         tmp_orb = n1.data["orbit"]
+#         ##Data for outer orbit
+#         tab_dat.append(tmp_orb[0])
+#         tab_dat.append(tmp_orb[1])
+#
+#         tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
+#         tab_dat.append(tmp_per)
+#
+#         if str(n1.data["id"]) in coll_full:
+#             coll_full[str(n1.data["id"])].append(tab_dat)
+#         else:
+#             coll_full[str(n1.data["id"])] = [tab_dat]
+#
+#         add_node_to_orbit_tab(n1.children[0], snap, coll_full, end_snap)
+#         add_node_to_orbit_tab(n1.children[1], snap, coll_full, end_snap)
 
-        tmp_orb = n1.data["orbit"]
-        ##Data for outer orbit
-        tab_dat.append(tmp_orb[0])
-        tab_dat.append(tmp_orb[1])
 
-        tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
-        tab_dat.append(tmp_per)
-
-        if str(n1.data["id"]) in coll_full:
-            coll_full[str(n1.data["id"])].append(tab_dat)
-        else:
-            coll_full[str(n1.data["id"])] = [tab_dat]
-
-        add_node_to_orbit_tab(n1.children[0], snap, coll_full, end_snap)
-        add_node_to_orbit_tab(n1.children[1], snap, coll_full, end_snap)
-
-
-def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap):
+def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False):
     if n1.data["orbit"] is None:
         return
     else:
@@ -203,10 +203,11 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap):
 
         tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
         tab_dat.append(tmp_per)
+        tab_dat.append(sub_sys)
         coll_full.append(tab_dat)
 
-        add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap)
-        add_node_to_orbit_tab_streamlined(n1.children[1], snap, coll_full, end_snap)
+        add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
+        add_node_to_orbit_tab_streamlined(n1.children[1], snap, coll_full, end_snap, sub_sys=True)
 
 def get_mult(my_id):
     kk_flat=[]
@@ -246,6 +247,27 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
 
     return (f"{min(m1, m2)} {max(m1, m2)}"), s1==s2
 
+def parse_mult_id(id_str):
+    return set(map(int, id_str.replace("[", "").replace("]", "").split(",")))
+
+def subset_count(ids1, ids):
+    subsets = []
+    for row in ids:
+        subsets.append(np.all([ii in row for ii in ids1]))
+    subsets = np.array(subsets)
+
+    return len(subsets[subsets])
+
+def filter_top_level(my_df):
+    """
+    Get only the top level of the multiples
+    """
+    mult_ids = my_df.index.get_level_values("id")
+    mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+    my_counts = np.array([subset_count(row, mult_ids_set.to_list()) for row in mult_ids_set.to_list()])
+
+    return my_df.loc[my_counts==1]
+
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
@@ -274,9 +296,9 @@ def main(params):
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
 
                 n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, flat_id=flat_id)
-                add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap)
+                add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p"))
+    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss"))
     coll_full_df.set_index(["id", "t"], inplace=True)
 
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
@@ -301,8 +323,8 @@ def main(params):
         bin_list = list(row)
         id1 = bin_list[0]
         id2 = bin_list[1]
-        end_time1 = lookup_dict[id1][-1, LOOKUP_SNAP]
-        end_time2 = lookup_dict[id2][-1, LOOKUP_SNAP]
+        end_time1 = lookup_dict[id1][-1, 0]
+        end_time2 = lookup_dict[id2][-1, 0]
 
         end_time = min(end_time1, end_time2)
         es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
