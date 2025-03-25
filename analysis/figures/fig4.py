@@ -52,8 +52,9 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ck2 = [bin_list[1] in mult_id for mult_id in mult_ids_set]
     ck2 = np.any(ck2)
 
-    pmult_filt[ii] = ck1 or ck2
+    pmult_filt[ii] = ~(ck1 or ck2)
 
+np.savez("pmult_filt.npz", pmult_filt)
 #########################################################################################################
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
 fates_corr = npz_stack(npzs_list)
@@ -79,7 +80,10 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     tmp_times = b1[:,0].astype(int)
     fb, lb = tmp_times[0], tmp_times[-1]
     path_diff_all = get_min_dist_binary(path_lookup, tmp_row)
-    norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
+    try:
+        norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
+    except IndexError:
+        breakpoint()
     try:
         mult1 = sys1_info[sys1_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
         mult2 = sys2_info[sys2_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
@@ -97,10 +101,9 @@ bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
 ##May want to revisit this filter
-no_mult_before_bin = my_data["mults_filt"]
-##NOTE: Deliberately take different filters here to have a clean sample
-##Makes signal much weaker(!)
-bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & ~(pmult_filt)]
+no_mult_before_bin = pmult_filt
+##NOTE: Deliberately take different filters here to have a clean sample--[TO DO: Decide on the exact filtering to use here.]
+bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
 print(len(bin_ids_surv))
 norm_sep = np.zeros(len(bin_ids_surv))
 bin_ids_subset = bin_ids_surv
@@ -109,7 +112,6 @@ for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
     b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
-
     path_diff_all = get_min_dist_binary(path_lookup, tmp_row)
     ##Minimum distance for all surviving binaries
     norm_sep[idx] = np.min(path_diff_all[b1[:,0].astype(int)][:,0] / (2 * b1[:, LOOKUP_SMA]))
