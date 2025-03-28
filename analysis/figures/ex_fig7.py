@@ -40,14 +40,10 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
     star_masses = star_masses[~np.isinf(star_masses)]
     star_final_mass[ii] = star_masses[-1]
     star_end_snap = int(star_times[-1])
-    if star_end_snap < len(path_lookup[star_id][:,0]) - 1:
-        star_mult_label_final[ii] = -1
-        continue
 
     tmp_sel = coll_full_df_life.xs(star_end_snap, level="t")
     tmp_sel = tmp_sel.loc[(tmp_sel["nbound_snaps"]>1) & (tmp_sel["frac_of_orbit"] >= 1)]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
-    ##May fail if we an issue with substring...
     mults_with_star = tmp_sel.loc[star_in_mult]
     if len(mults_with_star)==0:
         continue
@@ -56,6 +52,7 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
 #########################################################################################################
 single_filter = (star_mult_label_final==1)
 single_final_masses = star_final_mass[single_filter]
+all_masses = star_final_mass#[star_mult_label_final!=-1]
 from_bins_filt = np.isin(star_ids[single_filter].astype(int), bin_ids_quasi_list)
 print(f"Number of final singles: {len(single_final_masses)}")
 print(f"Number of final singles from bins: {len(single_final_masses[from_bins_filt])}")
@@ -84,36 +81,41 @@ print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mu
 #########################################################################################################
 fig,ax = plt.subplots()
 # ax.set_title(r"Singles Final MF")
-ax.annotate(r"Final Single MF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=18)
 ax.set_yscale("log")
 ax.set_ylabel("PDF")
 ax.set_xlabel("Log(Mass [$M_{\odot}$])")
 bsize = 0.1
+bins = np.arange(-2, 1.81, bsize)
+ax.annotate(r"IMF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=18)
 
-ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=np.arange(-2, 1.2, bsize), label="All singles", linewidth=4)
-ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=np.arange(-2, 1.2, bsize), label="Always single", linewidth=2.5)
-# ax.hist(np.log10(sings[~tmp_filt][:, LOOKUP_MTOT]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="Not from bins", density=True)
-ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="From binaries", density=True,
+ax.hist(np.log10(all_masses), histtype='step', density=True, bins=bins, label="All stars", linewidth=4, color="0.5")
+ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=bins, label="All singles", linewidth=4)
+ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=bins, label="Always single", linewidth=2.5)
+# ax.hist(np.log10(sings[~tmp_filt][:, LOOKUP_MTOT]), histtype='step', bins=bins, label="Not from bins", density=True)
+ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bins, label="From binaries", density=True,
        linewidth=2.5)
-ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="From higher\nmultiples", density=True,
+ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=bins, label="From higher\nmultiples", density=True,
        linewidth=2.5, linestyle="-.")
 
-ax.legend(fontsize=16)
+ax.legend(fontsize=16, loc="upper right", bbox_to_anchor=(0.6, 0.35))
 
-absc = np.geomspace(0.3, 10, 500)
+absc = np.geomspace(0.3, 10**1.8, 500)
 
 def lighten_color(color, factor=0.5):
     """Lightens the given color by blending it with white."""
     return tuple(1 - factor * (1 - c) for c in color)
 
+f0 = fit_power(all_masses[all_masses > 0.3], 1.1)[0]
 f1 = fit_power(single_final_masses[single_final_masses > 0.3], 1.1)[0]
 f2 = fit_power(single_final_masses[from_bins_filt & (single_final_masses > 0.3)], 1.1)[0]
 print(f"Power law fits {f1} {f2}")
 
 fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
+# l0,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f0 + 1), color="0.5", linestyle="--", label=f"$dN/dm \\propto m^{{-{f0:.2f}}}$")
 l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], linestyle="--", label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$")
 l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
+# labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
 labelLines([l1], fontsize=16, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.16)
-labelLines([l2], fontsize=16, xvals=(-0.1,), ang=-45, y_offset=0.22)
+labelLines([l2], fontsize=16, xvals=(-0.1,), ang=0, y_offset=0.15, align=False)
 
 fig.savefig("single_mf.pdf")

@@ -12,6 +12,7 @@ from starforge_mult_search.code.run_batch_aux import bash_command, get_cadence
 
 with open("data_loc", "r") as ff:
 	snap_base = ff.read()
+	snap_base = snap_base.strip()
 snaps = glob.glob(snap_base + "*hdf5")
 
 cadence = get_cadence()
