@@ -288,6 +288,7 @@ def main(params):
         with open(
                 f"{r1}{snap:03d}{r2}", "rb") as ff:
             cl = pickle.load(ff)
+        sidx = 0
         for ss in cl.systems:
             if ss.multiplicity >= 2:
                 h1, o1 = list(ss.hierarchy), list(ss.orbits)
@@ -297,10 +298,10 @@ def main(params):
 
                 n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, flat_id=flat_id)
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
+                sidx += 1
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss"))
     coll_full_df.set_index(["id", "t"], inplace=True)
-
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")

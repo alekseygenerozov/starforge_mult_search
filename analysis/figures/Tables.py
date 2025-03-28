@@ -106,13 +106,16 @@ for ii in range(len(base_new_all)):
         tmp_bin_list = my_data["bin_ids"][my_data["quasi_filter"] & final_sys_filter]
         tmp_mult_coll = []
         tmp_ids = high_df_final.index.get_level_values(level="id")
+        nmismatch = 0
         for row in tmp_bin_list:
             tmp_row_list = list(row)
             tmp_id1 = lookup_star_mult(high_df_final, tmp_row_list[0], -1, pre_filtered=True)#[0]
             tmp_id2 = lookup_star_mult(high_df_final, tmp_row_list[1], -1, pre_filtered=True)#[0]
             if tmp_id1[0]!=tmp_id2[0]:
+                nmismatch += 1
                 continue
             tmp_mult_coll.append(tmp_id1[0])
+        print(nmismatch)
         nmults = len(np.unique(tmp_mult_coll))
         grand_total_mults_b += nmults
 

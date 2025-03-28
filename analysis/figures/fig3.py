@@ -34,7 +34,7 @@ ax.hist(vangs_prim[quasi_filter & ~bfb_filter], bins=bins, histtype='step', colo
 ax.annotate(f'Rel vel & sep', xy=(-1, 2.5), color=bar_color, va="bottom")
 
 iso_height =  1. / (0.1) / len(bins)
-l1,=ax.plot([-1, 0.5, 0.75, 1], [iso_height, iso_height, iso_height, iso_height], "--",  label="Isotropic")
+l1,=ax.plot([-1, 0.5, 0.75, 1], [iso_height, iso_height, iso_height, iso_height], "-.",  label="Isotropic")
 labelLines([l1], xvals=[0])
 
 fig.savefig("angs.pdf")

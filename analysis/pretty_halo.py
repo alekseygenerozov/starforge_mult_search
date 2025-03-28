@@ -173,7 +173,9 @@ plimit = config.getfloat("params", "plimit", fallback=-1)
 ins = config.getfloat("params", "ins", fallback=-1.0)
 ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
+v_rescale = config.get("params", "v_rescale", fallback=2)
 
+v_scale = 100. / cgs.au / 1e4 * cgs.year * v_rescale
 d_cut = rmax
 # base = f"/work2/09543/aleksey2/frontera/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
@@ -257,15 +259,22 @@ xmax *= conv
 ymin *= conv
 ymax *= conv
 
-
 p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3], tmp_halo_pos_center[:,4], color=col1, alpha=0.4)
-ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3], tmp_halo_pos2_center[:,4], color="#A52A2A", alpha=0.4)
+ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3] * v_scale * snap_interval, tmp_halo_pos_center[:,4] * v_scale * snap_interval,
+          scale=1, scale_units = "xy", angles = "xy",
+          color=col1, alpha=0.4)
+ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3] * v_scale * snap_interval, tmp_halo_pos2_center[:,4] * v_scale * snap_interval,
+          scale=1, scale_units = "xy", angles = "xy",
+          color="#A52A2A", alpha=0.4)
 
 center_b, tmp_pos_center_b, tmp_halo_pos_center_b, tmp_pos2_center_b, tmp_halo_pos2_center_b, com_w_halo_b, com2_w_halo_b = get_phalo(base, aa, snap_idx,
                                                                                        bin_id1, bin_id2, 8.0)
-ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv, tmp_halo_pos_center_b[:,3], tmp_halo_pos_center_b[:,4], color=col1, alpha=0.2)
-ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3], tmp_halo_pos2_center_b[:,4], color="#A52A2A", alpha=0.2)
+ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv, tmp_halo_pos_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos_center_b[:,4]  * v_scale * snap_interval,
+          scale=1, scale_units = "xy", angles = "xy",
+          color=col1, alpha=0.2)
+ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos2_center_b[:,4] * v_scale * snap_interval,
+          scale=1, scale_units = "xy", angles = "xy",
+          color="#A52A2A", alpha=0.2)
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 
 #####################################################################################################
@@ -317,7 +326,7 @@ ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e
            (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.
-vel1 = tmp_pos_center[3] * 100. / cgs.au / 1e4 * cgs.year * v_rescale , tmp_pos_center[4] * 100. / cgs.au / 1e4 * cgs.year * v_rescale
+vel1 = tmp_pos_center[3] * v_scale , tmp_pos_center[4] * v_scale
 # vel1 = com_w_halo[3] * 100. / cgs.au * cgs.year , com_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
@@ -330,7 +339,7 @@ ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
 # ax.scatter(tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv, c="k", marker="X")
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
-vel1 = tmp_pos2_center[3] * 100. / cgs.au / 1e4 * cgs.year * v_rescale, tmp_pos2_center[4] * 100. / cgs.au / 1e4 * cgs.year * v_rescale
+vel1 = tmp_pos2_center[3] * v_scale, tmp_pos2_center[4] * v_scale
 # vel1 = com2_w_halo[3] * 100. / cgs.au * cgs.year , com2_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)

@@ -83,21 +83,22 @@ print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(sin
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
 fig,ax = plt.subplots()
-ax.set_title(r"Singles Final MF")
+# ax.set_title(r"Singles Final MF")
+ax.annotate(r"Final Single MF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=18)
 ax.set_yscale("log")
 ax.set_ylabel("PDF")
 ax.set_xlabel("Log(Mass [$M_{\odot}$])")
 bsize = 0.1
 
-ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=np.arange(-2, 1.2, bsize), label="All", linewidth=4)
+ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=np.arange(-2, 1.2, bsize), label="All singles", linewidth=4)
 ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=np.arange(-2, 1.2, bsize), label="Always single", linewidth=2.5)
 # ax.hist(np.log10(sings[~tmp_filt][:, LOOKUP_MTOT]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="Not from bins", density=True)
 ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="From binaries", density=True,
        linewidth=2.5)
 ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=np.arange(-2, 1.2, bsize), label="From higher\nmultiples", density=True,
-       linewidth=2.5, linestyle="--")
+       linewidth=2.5, linestyle="-.")
 
-ax.legend()
+ax.legend(fontsize=16)
 
 absc = np.geomspace(0.3, 10, 500)
 
