@@ -1,64 +1,51 @@
-import ast
-from collections import defaultdict
-import copy
-import pickle
-import os
-
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-from sci_analysis.plotting import annotate_multiple_ecdf
-from scipy.stats import ks_2samp
-import seaborn as sns
-import matplotlib.patches as mpatches
 
-dummy_patch = mpatches.Patch(color='white', label='')
+from starforge_mult_search.analysis.analyze_stack import make_binned_data
+from figure_preamble import *
 
-from IPython.core.debugger import set_trace
+##Mass bins to use.
+bins = np.linspace(-1, 2, 6)
+bins_center = 0.5 * (bins[1:] + bins[:-1])
+same_sys_at_ist = my_data["same_sys_at_fst"]
+##Previously filtering -- may have missed the SNE cases(!)
+# same_sys_filt = (my_data["same_sys_final_norm"] == 1)
 
-colorblind_palette = sns.color_palette("colorblind")
-import cgs_const as cgs
-from starforge_mult_search.analysis import analyze_multiples_part2
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
+tmp_filt_part1 = (my_data["quasi_filter"]) & (same_sys_filt)
+absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
+n1, n1u, d1 = make_binned_data(absc, ords, bins)
 
-from starforge_mult_search.analysis.figures.figure_preamble import *
-#########################################################################################################
-end_states = fates_corr["end_states"]
-same_sys_filt = fates_corr["same_sys_filt"]
-quasi_filter = my_data["quasi_filter"]
-#########################################################################################################
-d1 = len(end_states[quasi_filter])
-#########################################################################################################
-##Tallying all the non-surviving states.
-ns1 = len(end_states[(end_states=="1 1") & (quasi_filter) ]) / d1
-ns2 = len(end_states[(end_states=="1 2") & (quasi_filter) ]) / d1
-ns3 = len(end_states[(end_states=="1 3") & (quasi_filter) ]) / d1
-ns4 = len(end_states[(end_states=="1 4") & (quasi_filter) ]) / d1
-ns5 = []
-ns5.append(len(end_states[(end_states=="2 2") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="2 3") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="2 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="3 3") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="3 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns5.append(len(end_states[(end_states=="4 4") &  ~(same_sys_filt) & (quasi_filter) ]) / d1)
-ns = len(end_states[~(same_sys_filt) & (quasi_filter) ]) / d1
+tmp_filt_part1 = (my_data["quasi_filter"]) & ~(same_sys_filt)
+absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
+n2, n2u, d2 = make_binned_data(absc, ords, bins)
 
+tmp_filt_part1 = (my_data["quasi_filter"])
+absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
+n3, n3u, d3 = make_binned_data(absc, ords, bins)
 
-print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)} NS Tot CK: {ns}")
-print((ns) * d1)
-#########################################################################################################
-##Tallying all the surviving states.
-ss1 = len(end_states[(end_states=="2 2") & (quasi_filter) ]) / d1
-ss2 = len(end_states[(end_states=="3 3") & (quasi_filter) ]) / d1
-ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
+from labelLine import labelLines
 
-print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
-print(f"B:{ss1 * d1} T:{ss2 * d1} Q:{ss3 * d1}")
-print((ss1 + ss2 + ss3) * d1)
+fig, ax = plt.subplots()
+ax.set_xlim(-0.8, 1.8)
+ax.set_ylim(0, 1.)
+ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
+ax.set_ylabel("BFB Fraction")
 
-##Also save seed info here--will be useful for the table...
-# np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+ax.errorbar(bins_center, n1 / d1, \
+            yerr=n1u / d1, marker="s", linestyle="", alpha=0.7, label="Survivors")
+ax.errorbar(bins_center, n2 / d2, \
+            yerr=n2u / d2, marker="s", linestyle="", alpha=0.7, label="Non-survivors")
 
-##Good place to put the book-keeping about single stars -- Already done in ex_fig8.py
+fig, ax = plt.subplots()
+ax.set_xlim(-0.8, 1.8)
+ax.set_ylim(0, 1.)
+ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
+ax.set_ylabel("BFB Fraction")
+
+ax.errorbar(bins_center, n3 / d3, \
+            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7, label="Survivors")
+
+print(n3 /d3)
+# ax.legend(title=r"$f_t=$"+f"{my_ft}")
+ax.legend(loc="lower left")
+fig.savefig("bfb_mass.pdf")

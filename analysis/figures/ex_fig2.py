@@ -1,51 +1,81 @@
+import ast
+from collections import defaultdict
+import copy
+import pickle
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from sci_analysis.plotting import annotate_multiple_ecdf
+from scipy.stats import ks_2samp
+import seaborn as sns
 
-from starforge_mult_search.analysis.analyze_stack import make_binned_data
-from figure_preamble import *
+colorblind_palette = sns.color_palette("colorblind")
+import cgs_const as cgs
+from starforge_mult_search.analysis import analyze_multiples_part2
+from starforge_mult_search.code.find_multiples_new2 import cluster, system
+from starforge_mult_search.analysis.analyze_stack import npz_stack
+from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
 
-##Mass bins to use.
-bins = np.linspace(-1, 2, 6)
-bins_center = 0.5 * (bins[1:] + bins[:-1])
-same_sys_at_ist = my_data["same_sys_at_fst"]
-##Previously filtering -- may have missed the SNE cases(!)
-# same_sys_filt = (my_data["same_sys_final_norm"] == 1)
+from starforge_mult_search.analysis.figures.figure_preamble import *
+#########################################################################################################
+lookup_dict_keys = lookup_dict.keys()
+lookup_dict_keys = list(lookup_dict_keys)
+first_mult = np.ones(len(lookup_dict_keys)) * np.inf
+f1 = coll_full_df_life["frac_of_orbit"]
+n1 = coll_full_df_life["nbound_snaps"]
+##Make f1 >= 1 for consistency, but should not matter.
+tmp_sel = coll_full_df_life.loc[(f1>1) & (n1>1)]
+##Filter for selecting first instance of each index
+filt = ~tmp_sel.index.get_level_values("id").duplicated(keep="first")
+tmp_sel = tmp_sel.loc[filt]
 
-tmp_filt_part1 = (my_data["quasi_filter"]) & (same_sys_filt)
-absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
-n1, n1u, d1 = make_binned_data(absc, ords, bins)
+for ii,kk in enumerate(lookup_dict_keys):
+    tmp_filt = tmp_sel.index.get_level_values("id").str.contains(rf"\b{int(kk)}\b")
+    tmp_delay = tmp_sel.loc[tmp_filt].index.get_level_values("t").min()
 
-tmp_filt_part1 = (my_data["quasi_filter"]) & ~(same_sys_filt)
-absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
-n2, n2u, d2 = make_binned_data(absc, ords, bins)
+    if not np.isnan(tmp_delay):
+        first_mult[ii] = tmp_delay
+#########################################################################################################
+lookup_dict_keys = lookup_dict.keys()
+n1 = len(lookup_dict_keys)
+mass_end = np.zeros(n1)
+delay_to_mult = np.ones(n1) * np.inf
 
-tmp_filt_part1 = (my_data["quasi_filter"])
-absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
-n3, n3u, d3 = make_binned_data(absc, ords, bins)
+##Better to have some sort of persistence filter here even if it is a basic one??
+for idx,kk in enumerate(lookup_dict_keys):
+    tmp = lookup_dict[kk]
+    delay_to_mult[idx] = first_mult[idx] - tmp[0, LOOKUP_SNAP]
+    m_series = path_lookup[f"{int(kk)}"][:, mcol]
+    mass_end[idx] = m_series[~np.isinf(m_series)][-1]
 
-from labelLine import labelLines
+#########################################################################################################
+import matplotlib.colors as mcolors
+import matplotlib.cm as cm
 
-fig, ax = plt.subplots()
-ax.set_xlim(-0.8, 1.8)
-ax.set_ylim(0, 1.)
-ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
-ax.set_ylabel("BFB Fraction")
+##Wide figure to accomodate the colorbar
+fig,ax = plt.subplots(figsize=(10, 8), constrained_layout=True)
+# ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
+ax.set_xlim(0.01, 1)
+ax.set_ylim(0., 1)
+ax.set_ylabel("CDF")
+ax.set_xlabel("Delay to multiple [Myr]")
+from matplotlib.lines import Line2D
 
-ax.errorbar(bins_center, n1 / d1, \
-            yerr=n1u / d1, marker="s", linestyle="", alpha=0.7, label="Survivors")
-ax.errorbar(bins_center, n2 / d2, \
-            yerr=n2u / d2, marker="s", linestyle="", alpha=0.7, label="Non-survivors")
+bins = np.linspace(-1, 1, 10)
+# seq_palette = sns.color_palette("Blues", len(bins))
+cmap = sns.color_palette("Blues", as_cmap=True)  # Convert seaborn palette to a colormap
+norm = mcolors.Normalize(vmin=bins[0], vmax=bins[-1])  # Normalize bins for color mapping
 
-fig, ax = plt.subplots()
-ax.set_xlim(-0.8, 1.8)
-ax.set_ylim(0, 1.)
-ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
-ax.set_ylabel("BFB Fraction")
+legend_handles = []
+for ii in range(1, len(bins)):
+    col = cmap(norm(bins[ii]))
+    ax.ecdf(delay_to_mult[(np.log10(mass_end)<bins[ii]) & (np.log10(mass_end)>bins[ii-1])] * snap_interval / 1e6,
+           color=col)
 
-ax.errorbar(bins_center, n3 / d3, \
-            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7, label="Survivors")
-
-print(n3 /d3)
-# ax.legend(title=r"$f_t=$"+f"{my_ft}")
-ax.legend(loc="lower left")
-fig.savefig("bfb_mass.pdf")
+sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f)$")
+plt.show()
+fig.savefig("delay_to_mult.pdf")
