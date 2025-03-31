@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult
-
 from starforge_mult_search.analysis.high_multiples_analysis import filter_top_level
 
 pd.set_option("display.precision", 2)

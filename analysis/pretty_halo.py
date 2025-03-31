@@ -9,7 +9,7 @@ import h5py
 
 from meshoid import Meshoid
 
-import cgs_const as cgs
+from starforge_mult_search import cgs_const as cgs
 
 # sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
 # from analyze_multiples import snap_lookup

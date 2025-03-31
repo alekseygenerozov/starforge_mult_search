@@ -21,8 +21,8 @@ each star particle's halo.
 
 (4) Use python3 run_batch.py START END FT to identify multiples in the simulation.
 START is the starting snapshot, END is the ending snapshot, and FT is the desired ft.
-To analyze all the snapshots, use python3 run_batch.py 0 -1 FT.
-This will run the script find_multiples_new2.py, and output pickle files for all of the snapshots containing information about the multiples
+To analyze all the snapshots, use python3 starforge_mult_search/code/run_batch.py 0 -1 "1.0 --ntides".
+This will run the script find_multiples_new2.py, and output pickle files for all the snapshots containing information about the multiples
 in the simulation. The data is stored in a "cluster" object that contains a list of "systems."
 Each system contains several fields encoding its properties, e.g.
 (i) multiplicity (ii) ids [ids of stars in the system] (iii) sub_mass [masses of
@@ -37,7 +37,8 @@ with open(f"example.p", "rb") as ff:
 ```
 
 (5) User can adjust options in find_multiples_new2.py to tweak the multiplication id 
-algorithm. 
+algorithm. Note that we have specified the --ntides flag in our analysis to turn off
+the tidal criterion in the multiple identification.
 
 ```
 usage: find_multiples_new2.py [-h] [--snap_base SNAP_BASE]
@@ -75,10 +76,11 @@ options:
   ```
 # Requirements
 
-NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba
-Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1)
+NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba, astropy, hydra, pandas, seaborn
+Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1),
+astropy (7.0.0), hydra (1.3.2), pandas (2.1.4), seaborn (0.13.2)
 Also tested demo with: NumPy (1.26.0), SciPy (1.13.1), pytreegrav (1.1.4), h5py (3.12.1), numba (0.60.0)
-TO DO: Add pandas [For analysis scripts]
+
 
 # Installation and Demos
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
@@ -100,20 +102,23 @@ Multiplicity 4 count: 6
 # Reproducing paper results and figures
 Running the full analysis pipeline takes several days of compute on an HPC.
 
-However, the results can be reproduced in reasonable time if the output of the 
-multiple search algorithm has already been prepared.
+However, the paper figures can be reproduced in reasonable time (~?? min) if the output of the 
+multiple search algorithm has already been prepared. We have upload this output, so 
+that this can be done. The scripts for this part of the analysis are stored in the 
+"analysis" subdirectory.
 
 1. Output files from the multiple search algorithm. [In the directory ...]
-2. Scripts that post-process the data (e.g. analyze_multiples.py, analyze_multiples_part2.py,
-high_multiples_analysis.py) reorganizes the data into tables for easier analysis.
-3. Scripts that produce Figures in the analysis/figures..., using the above data tables. 
+2. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
+high_multiples_analysis.py), reogranizing the data into tables for easier analysis. For completeness
+we describe these scripts' outputs in README_ANALYSIS, but the user does not actually need to interact 
+with these intermediate outputs to reproduce the paper figures.
+3. Scripts that produce Figures in the analysis/figures, using the above data tables. 
+So fig2.py generates figure 2, fig3.py generates figure 3, etc.
+4. fig2.py also generates ex_fig5.py, and ex_fig2.py generates the right panel of fig2.
+5. fig4.py generates the *numbers* in the schematic in fig. 4
+6. Tables.py generate the *numbers* in the Tables.
 
-The script "run_pipeline" runs the analysis in 1-3, and generates pdf files 
-for figures... in the paper.
-
-
-[Can give more detail about the data tables here.]
-
-[Have some undocumented scripts here...]
+The script "run_pipeline_all" runs the analysis steps above, and generates pdf files 
+for the figures in the paper.
 
 
