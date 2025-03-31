@@ -114,6 +114,6 @@ for bb, uid in enumerate(bin_ids_example):
     axs[2].yaxis.set_major_formatter(FuncFormatter(log_formatter))
 
 
-    fig1.savefig(f"bin_example_a_{bb}.pdf")
-    fig2.savefig(f"bin_example_e_{bb}.pdf")
-    fig3.savefig(f"bin_example_m_{bb}.pdf")
+    fig1.savefig(f"ex_fig3_a_{bb}.pdf")
+    fig2.savefig(f"ex_fig3_e_{bb}.pdf")
+    fig3.savefig(f"ex_fig4_m_{bb}.pdf")

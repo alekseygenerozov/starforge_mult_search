@@ -91,7 +91,6 @@ ax.annotate(r"IMF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="lef
 ax.hist(np.log10(all_masses), histtype='step', density=True, bins=bins, label="All stars", linewidth=4, color="0.5")
 ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=bins, label="All singles", linewidth=4)
 ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=bins, label="Always single", linewidth=2.5)
-# ax.hist(np.log10(sings[~tmp_filt][:, LOOKUP_MTOT]), histtype='step', bins=bins, label="Not from bins", density=True)
 ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bins, label="From binaries", density=True,
        linewidth=2.5)
 ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=bins, label="From higher\nmultiples", density=True,
@@ -118,4 +117,4 @@ l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], 
 labelLines([l1], fontsize=16, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.16)
 labelLines([l2], fontsize=16, xvals=(-0.1,), ang=0, y_offset=0.15, align=False)
 
-fig.savefig("single_mf.pdf")
+fig.savefig("ex_fig6.pdf")

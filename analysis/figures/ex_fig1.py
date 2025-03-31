@@ -33,6 +33,7 @@ ax.errorbar(bins_center, n1 / d1, \
             yerr=n1u / d1, marker="s", linestyle="", alpha=0.7, label="Survivors")
 ax.errorbar(bins_center, n2 / d2, \
             yerr=n2u / d2, marker="s", linestyle="", alpha=0.7, label="Non-survivors")
+fig.savefig("ex_fig1.pdf")
 
 fig, ax = plt.subplots()
 ax.set_xlim(-0.8, 1.8)
@@ -46,4 +47,4 @@ ax.errorbar(bins_center, n3 / d3, \
 print(n3 /d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
 ax.legend(loc="lower left")
-fig.savefig("bfb_mass.pdf")
+fig.savefig("fig2b.pdf")

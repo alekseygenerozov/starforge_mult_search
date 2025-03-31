@@ -20,9 +20,8 @@ from sci_analysis import plotting
 
 from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
-##One of the stars was in a persistent multiple before the 2 stars became *binary* -- can also see what
-##what happens if we construct a filter based on 1st time the 2 stars became *system*
-##Move this code to high_multiples_analysis.py(!)
+## Constructing new filter: whether
+## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults_flat.pq") for seed in seeds])
@@ -53,7 +52,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
 
     pmult_filt[ii] = ~(ck1 or ck2)
 
-np.savez("pmult_filt.npz", pmult_filt)
+# np.savez("pmult_filt.npz", pmult_filt)
 #########################################################################################################
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
 fates_corr = npz_stack(npzs_list)
@@ -99,9 +98,9 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
-##May want to revisit this filter
 no_mult_before_bin = pmult_filt
-##NOTE: Deliberately take different filters here to have a clean sample--[TO DO: Decide on the exact filtering to use here.]
+##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
+##to make sense.
 bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
 print(len(bin_ids_surv))
 norm_sep = np.zeros(len(bin_ids_surv))
@@ -126,14 +125,8 @@ ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
 plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        ("Surviving\n(no mult\ninteractions)", "Ionized",  "Min(Lb and Lb+1)", "Lb", "traj_extrap"), ax=ax,
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', None, None, None], linestyles=["--", None, None, None])
-fig.savefig("close_encounter_plot.pdf")
+fig.savefig("fig5a.pdf")
 #########################################################################################################
-# bin_ids = my_data["bin_ids"]
-# quasi_filter = my_data["quasi_filter"]
-# no_mult_before_bin = my_data["mults_filt"]
-# ##Replace with updated filter
-# # same_sys_final_norm = my_data["same_sys_final_norm"]
-# final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
 final_pair_mass_no_halo = my_data["mfinal_pair"]
 
 bins = np.arange(-1, 1.21, 0.2)
@@ -148,4 +141,4 @@ ax.set_ylabel("$N_{surv}$ / $N_{dis}$")
 ax.set_xlabel("log($m_{pair, f}$ [$M_{\odot}$])")
 plt.plot(0.5 * (b1[1:] + b1[:-1]), vs_b / vd_b, "s-")
 
-fig.savefig("nsurv_mass.pdf")
+fig.savefig("fig5b.pdf")

@@ -44,8 +44,7 @@ ns5.append(len(end_states[(end_states=="4 4") &  ~(same_sys_filt) & (quasi_filte
 ns = len(end_states[~(same_sys_filt) & (quasi_filter) ]) / d1
 
 
-print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)} NS Tot CK: {ns}")
-print((ns) * d1)
+print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)}")
 #########################################################################################################
 ##Tallying all the surviving states.
 ss1 = len(end_states[(end_states=="2 2") & (quasi_filter) ]) / d1
@@ -54,9 +53,4 @@ ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
 
 print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
 print(f"B:{ss1 * d1} T:{ss2 * d1} Q:{ss3 * d1}")
-print((ss1 + ss2 + ss3) * d1)
 
-##Also save seed info here--will be useful for the table...
-# np.savez(suff_new.replace("/", "") + "_fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
-
-##Good place to put the book-keeping about single stars -- Already done in ex_fig8.py

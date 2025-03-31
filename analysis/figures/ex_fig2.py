@@ -25,8 +25,8 @@ lookup_dict_keys = list(lookup_dict_keys)
 first_mult = np.ones(len(lookup_dict_keys)) * np.inf
 f1 = coll_full_df_life["frac_of_orbit"]
 n1 = coll_full_df_life["nbound_snaps"]
-##Make f1 >= 1 for consistency, but should not matter.
-tmp_sel = coll_full_df_life.loc[(f1>1) & (n1>1)]
+##Selecting persistent multiples
+tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
 ##Filter for selecting first instance of each index
 filt = ~tmp_sel.index.get_level_values("id").duplicated(keep="first")
 tmp_sel = tmp_sel.loc[filt]
@@ -78,4 +78,4 @@ sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f)$")
 plt.show()
-fig.savefig("delay_to_mult.pdf")
+fig.savefig("ex_fig2.pdf")

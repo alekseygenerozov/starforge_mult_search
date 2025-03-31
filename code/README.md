@@ -113,7 +113,7 @@ high_multiples_analysis.py), reogranizing the data into tables for easier analys
 we describe these scripts' outputs in README_ANALYSIS, but the user does not actually need to interact 
 with these intermediate outputs to reproduce the paper figures.
 3. Scripts that produce Figures in the analysis/figures, using the above data tables. 
-So fig2.py generates figure 2, fig3.py generates figure 3, etc.
+So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc.
 4. fig2.py also generates ex_fig5.py, and ex_fig2.py generates the right panel of fig2.
 5. fig4.py generates the *numbers* in the schematic in fig. 4
 6. Tables.py generate the *numbers* in the Tables.

@@ -37,7 +37,7 @@ iso_height =  1. / (0.1) / len(bins)
 l1,=ax.plot([-1, 0.5, 0.75, 1], [iso_height, iso_height, iso_height, iso_height], "-.",  label="Isotropic")
 labelLines([l1], xvals=[0])
 
-fig.savefig("angs.pdf")
+fig.savefig("fig3a.pdf")
 
 ##Getting control age differences seed-by-seed
 ##Save this info with the data files...
@@ -81,4 +81,4 @@ annotate_multiple_ecdf((d1,  d2), labels=("Binaries", "Control"), x_offset=(0.3,
 
 ax.annotate("Binaries", (0.8, 800))
 ax.annotate("Control", (5.5, 800), color='red')
-fig.savefig("age_differences.pdf")
+fig.savefig("fig3b.pdf")

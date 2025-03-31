@@ -89,7 +89,7 @@ ax.annotate("Gas", (0.95, 0.75), ha='left', color=colorblind_palette[1])
 ax.annotate("Unbound", (-0.05,0.96), ha='right', color='0.5')
 ax.annotate("Bound", (0.03,0.96), ha='left', color='0.5')
 
-fig.savefig("energy.pdf")
+fig.savefig("fig2a.pdf")
 
 
 ##Be wary of flips here....
@@ -123,4 +123,4 @@ y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[2], alpha=0.3)
 ax.annotate("Gas corrected", (0.55, 0.5), ha='left', color=colorblind_palette[2]) 
 plt.show()
-fig.savefig("energy_space.pdf")
+fig.savefig("ex_fig5.pdf")
