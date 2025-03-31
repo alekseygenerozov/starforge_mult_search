@@ -32,13 +32,11 @@ npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seed
 comp = npz_stack(npzs_list)
 
 # Load data
-higher_filt = (base_data["same_sys_at_fst"].astype(bool)) & (base_data["init_bound_snaps"]!=base_data["fst"])
-quasi_filter = base_data["quasi_filter"]# & ~higher_filt
+quasi_filter = base_data["quasi_filter"]
 ens = base_data["ens"]
 ens_gas = base_data["ens_gas"]
 
-comp_higher_filt = (comp["same_sys_at_fst"].astype(bool)) & (comp["init_bound_snaps"]!=comp["fst"])
-comp_quasi_filter = comp["quasi_filter"]# & ~comp_higher_filt
+comp_quasi_filter = comp["quasi_filter"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 

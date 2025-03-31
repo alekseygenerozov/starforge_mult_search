@@ -35,65 +35,65 @@ hcol = np.where(sink_cols == "h")[0][0]
 mcol = np.where(sink_cols == "m")[0][0]
 mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
+#
+# def get_fate(r1, r2, row, ss):
+#     """
+#     :param string r1: Bases of pickle file name
+#     :param string r2: End of pickle file name
+#     :param list row: List (or other subscriptable) with binary elements
+#     :param int ss: Snapshot index
+#
+#     :return: Fate of binary (specified by row) in snapshot number ss. (i) d = At least on star deleted
+#     (ii) s[2-4] = In system of multiplicity i (s2 means system is surviving as a binary) (iii) i = ionized
+#     (iv) mm = Stars are in separate multiples (v) ms = One star is in a single, while the other is in a multiple
+#     :rtype: string
+#     """
+#     with open(r1 + "{0:03d}".format(int(ss)) + r2, "rb") as ff:
+#         cl = pickle.load(ff)
+#     mults_a = np.array([sys1.multiplicity for sys1 in cl.systems])
+#     ids_a = np.array([sys1.ids for sys1 in cl.systems], dtype=object)
+#
+#     try:
+#         idx1 = np.where(np.concatenate([np.isin([row[0]], tmp_row) for tmp_row in ids_a]))[0][0]
+#         idx2 = np.where(np.concatenate([np.isin([row[1]], tmp_row) for tmp_row in ids_a]))[0][0]
+#     except IndexError:
+#         return 'd'
+#
+#     if idx1 == idx2:
+#         mult_sys = len(ids_a[idx1])
+#         return ('s' + str(mult_sys))
+#     else:
+#         if len(ids_a[idx1]) == 1 and len(ids_a[idx2]) == 1:
+#             return 'i'
+#         elif len(ids_a[idx1]) > 1 and len(ids_a[idx2]) > 1:
+#             return 'mm'
+#         elif (len(ids_a[idx1]) == 1 and len(ids_a[idx2]) == 2) or (len(ids_a[idx1]) == 2 and len(ids_a[idx2]) == 1):
+#             return 'bs'
+#         elif (len(ids_a[idx1]) == 1 and len(ids_a[idx2]) > 2) or (len(ids_a[idx1]) > 2 and len(ids_a[idx2]) == 1):
+#             return 'ms'
 
-def get_fate(r1, r2, row, ss):
-    """
-    :param string r1: Bases of pickle file name
-    :param string r2: End of pickle file name
-    :param list row: List (or other subscriptable) with binary elements
-    :param int ss: Snapshot index
-
-    :return: Fate of binary (specified by row) in snapshot number ss. (i) d = At least on star deleted
-    (ii) s[2-4] = In system of multiplicity i (s2 means system is surviving as a binary) (iii) i = ionized
-    (iv) mm = Stars are in separate multiples (v) ms = One star is in a single, while the other is in a multiple
-    :rtype: string
-    """
-    with open(r1 + "{0:03d}".format(int(ss)) + r2, "rb") as ff:
-        cl = pickle.load(ff)
-    mults_a = np.array([sys1.multiplicity for sys1 in cl.systems])
-    ids_a = np.array([sys1.ids for sys1 in cl.systems], dtype=object)
-
-    try:
-        idx1 = np.where(np.concatenate([np.isin([row[0]], tmp_row) for tmp_row in ids_a]))[0][0]
-        idx2 = np.where(np.concatenate([np.isin([row[1]], tmp_row) for tmp_row in ids_a]))[0][0]
-    except IndexError:
-        return 'd'
-
-    if idx1 == idx2:
-        mult_sys = len(ids_a[idx1])
-        return ('s' + str(mult_sys))
-    else:
-        if len(ids_a[idx1]) == 1 and len(ids_a[idx2]) == 1:
-            return 'i'
-        elif len(ids_a[idx1]) > 1 and len(ids_a[idx2]) > 1:
-            return 'mm'
-        elif (len(ids_a[idx1]) == 1 and len(ids_a[idx2]) == 2) or (len(ids_a[idx1]) == 2 and len(ids_a[idx2]) == 1):
-            return 'bs'
-        elif (len(ids_a[idx1]) == 1 and len(ids_a[idx2]) > 2) or (len(ids_a[idx1]) > 2 and len(ids_a[idx2]) == 1):
-            return 'ms'
-
-def get_mult_filt(bin_ids, lookup_dict, ic):
-    """
-    Checking to see if multiples had previously been single prior to their first appearance
-
-    :param bin_ids Array-like: List of binary ids to check
-    :param sys_lookup Dict-like: Lookup table for stellar properties
-    :param ic Array-like: Lookup table for initial binary properties
-
-    :return: Array of booleans. True=Multiple stars had previously been in multiple
-    :rtype: np.ndarray
-    """
-    t_first = ic[:, 0].astype(int)
-    mults_filt = np.zeros(len(bin_ids)).astype(bool)
-    for ii, row in enumerate(bin_ids):
-        row_list = list(row)
-        sys_lookup_sel0 = lookup_dict[(row_list[0])]
-        sys_lookup_sel0 = sys_lookup_sel0[(sys_lookup_sel0[:,0].astype(int) < t_first[ii])]
-        sys_lookup_sel1 = lookup_dict[(row_list[1])]
-        sys_lookup_sel1 = sys_lookup_sel1[(sys_lookup_sel1[:,0].astype(int) < t_first[ii])]
-        mults_filt[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
-
-    return mults_filt
+# def get_mult_filt(bin_ids, lookup_dict, ic):
+#     """
+#     Checking to see if multiples had previously been single prior to their first appearance
+#
+#     :param bin_ids Array-like: List of binary ids to check
+#     :param sys_lookup Dict-like: Lookup table for stellar properties
+#     :param ic Array-like: Lookup table for initial binary properties
+#
+#     :return: Array of booleans. True=Multiple stars had previously been in multiple
+#     :rtype: np.ndarray
+#     """
+#     t_first = ic[:, 0].astype(int)
+#     mults_filt = np.zeros(len(bin_ids)).astype(bool)
+#     for ii, row in enumerate(bin_ids):
+#         row_list = list(row)
+#         sys_lookup_sel0 = lookup_dict[(row_list[0])]
+#         sys_lookup_sel0 = sys_lookup_sel0[(sys_lookup_sel0[:,0].astype(int) < t_first[ii])]
+#         sys_lookup_sel1 = lookup_dict[(row_list[1])]
+#         sys_lookup_sel1 = sys_lookup_sel1[(sys_lookup_sel1[:,0].astype(int) < t_first[ii])]
+#         mults_filt[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
+#
+#     return mults_filt
 
 
 def get_bound_snaps(sys1_info, sys2_info):
@@ -138,7 +138,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     init_bound_snaps = np.zeros(len(bin_ids))
     final_bound_snaps = np.zeros(len(bin_ids))
     final_bound_snaps_norm = np.zeros(len(bin_ids))
-    mults_filt_corr = np.zeros(len(bin_ids))
+    # mults_filt_corr = np.zeros(len(bin_ids))
     age_diff = np.zeros(len(bin_ids))
     same_sys_final_norm = np.zeros(len(bin_ids))
     final_pair_mass_lbin = np.zeros(len(bin_ids))
@@ -154,7 +154,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         sys_lookup_sel0 = sys1_info[sys1_info[:,0].astype(int) < fst_idx]
         sys_lookup_sel1 = sys2_info[sys2_info[:,0].astype(int) < fst_idx]
         ##Filter to check multiple history prior to the initial snapshot together.
-        mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
+        # mults_filt_corr[ii] = (np.all(sys_lookup_sel0[:, 3].astype(int) == 1) and np.all(sys_lookup_sel1[:, 3].astype(int) == 1))
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
         ##Get snapshots where the two stars are bound together.
@@ -182,7 +182,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         bound_time_norm[ii] = np.sum(snap_interval / tmp_bound_time_pers)
 
     return {"quasi_filter": (bound_time_norm >= 1) & (bound_time > 1), "final_bound_snaps": final_bound_snaps,"final_bound_snaps_norm": final_bound_snaps_norm,
-            "bound_time":bound_time, "bound_time_norm":bound_time_norm, "init_bound_snaps":init_bound_snaps, "mults_filt_corr": mults_filt_corr,
+            "bound_time":bound_time, "bound_time_norm":bound_time_norm, "init_bound_snaps":init_bound_snaps,
             "age_diff": age_diff, "same_sys_final_norm": same_sys_final_norm, "final_pair_mass_lbin": final_pair_mass_lbin,
             "final_pair_mass_lsys": final_pair_mass_lsys, "bound_time_pers": bound_time_pers}
 
@@ -242,21 +242,21 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     return {"ens": ens, "ens_gas":ens_gas, "same_sys_at_fst":same_sys_at_fst, "bin_at_fst": bin_at_fst,
             "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary, "mfinal_pair": mfinal_pair}
 
-def get_exchange_filter(bin_ids, bound_time_data):
-    quasi_filter = bound_time_data["quasi_filter"]
-    tmp_bins = np.array([list(row) for row in bin_ids[(quasi_filter)]]).ravel()
-    my_counts = np.zeros(len(bin_ids))
-
-    # for ii, uid in enumerate(bin_ids[(quasi_filter) & (final_bound_snaps_norm==1)]):
-    for ii, uid in enumerate(bin_ids):
-        bin_list = list(uid)
-        tmp_count1 = len(np.where(tmp_bins == bin_list[0])[0])
-        tmp_count2 = len(np.where(tmp_bins == bin_list[1])[0])
-
-        my_counts[ii] = max(tmp_count1, tmp_count2)
-
-    exchange_filt_b = my_counts > 1
-    return exchange_filt_b
+# def get_exchange_filter(bin_ids, bound_time_data):
+#     quasi_filter = bound_time_data["quasi_filter"]
+#     tmp_bins = np.array([list(row) for row in bin_ids[(quasi_filter)]]).ravel()
+#     my_counts = np.zeros(len(bin_ids))
+#
+#     # for ii, uid in enumerate(bin_ids[(quasi_filter) & (final_bound_snaps_norm==1)]):
+#     for ii, uid in enumerate(bin_ids):
+#         bin_list = list(uid)
+#         tmp_count1 = len(np.where(tmp_bins == bin_list[0])[0])
+#         tmp_count2 = len(np.where(tmp_bins == bin_list[1])[0])
+#
+#         my_counts[ii] = max(tmp_count1, tmp_count2)
+#
+#     exchange_filt_b = my_counts > 1
+#     return exchange_filt_b
 
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
@@ -284,13 +284,13 @@ def main(params):
 
     ##Multiplcity filter -- true if stars were single prior to the first time they were bound as a *binary* [!]
     ##This filter is used in the generation of Fig. 4
-    mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
+    # mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
 
     ##Binary fates
-    fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]
+    # fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]
 
     ##Exchange filter
-    exchange_filt_b = get_exchange_filter(bin_ids, bound_time_data)
+    # exchange_filt_b = get_exchange_filter(bin_ids, bound_time_data)
 
     ##Information about initial state--energies, angles, etc. -- much of this data is not used in the final analysis
     ##Get rid of any unused data for clarity -- and also for safety: should not save filters that should not be used(!)
@@ -305,7 +305,6 @@ def main(params):
              final_bound_snaps_norm=bound_time_data["final_bound_snaps_norm"],
              final_bound_snaps=bound_time_data["final_bound_snaps"],
              init_bound_snaps=bound_time_data["init_bound_snaps"],
-             mults_filt_corr=bound_time_data["mults_filt_corr"],
              bound_time=bound_time_data["bound_time"],
              bound_time_norm=bound_time_data["bound_time_norm"],
              delta_snap=bound_time_data["age_diff"],
@@ -313,7 +312,6 @@ def main(params):
              final_pair_mass_lbin=bound_time_data["final_pair_mass_lbin"],
              final_pair_mass_lsys=bound_time_data["final_pair_mass_lsys"],
              bound_time_pers=np.array(bound_time_data["bound_time_pers"], dtype=object),
-             mults_filt=mults_filt, fates=fates, exchange_filt_b=exchange_filt_b,
              snap_interval=snap_interval)
 #######################################################################################################################################################################
 #######################################################################################################################################################################

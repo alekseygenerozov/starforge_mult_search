@@ -8,8 +8,6 @@ from figure_preamble import *
 bins = np.linspace(-1, 2, 6)
 bins_center = 0.5 * (bins[1:] + bins[:-1])
 same_sys_at_ist = my_data["same_sys_at_fst"]
-##Previously filtering -- may have missed the SNE cases(!)
-# same_sys_filt = (my_data["same_sys_final_norm"] == 1)
 
 tmp_filt_part1 = (my_data["quasi_filter"]) & (same_sys_filt)
 absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]

@@ -22,7 +22,6 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
 ##One of the stars was in a persistent multiple before the 2 stars became *binary* -- can also see what
 ##what happens if we construct a filter based on 1st time the 2 stars became *system*
-
 ##Move this code to high_multiples_analysis.py(!)
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
@@ -129,12 +128,12 @@ plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', None, None, None], linestyles=["--", None, None, None])
 fig.savefig("close_encounter_plot.pdf")
 #########################################################################################################
-bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
-no_mult_before_bin = my_data["mults_filt"]
-##Replace with updated filter
-# same_sys_final_norm = my_data["same_sys_final_norm"]
-final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
+# bin_ids = my_data["bin_ids"]
+# quasi_filter = my_data["quasi_filter"]
+# no_mult_before_bin = my_data["mults_filt"]
+# ##Replace with updated filter
+# # same_sys_final_norm = my_data["same_sys_final_norm"]
+# final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
 final_pair_mass_no_halo = my_data["mfinal_pair"]
 
 bins = np.arange(-1, 1.21, 0.2)
