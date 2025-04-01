@@ -7,12 +7,12 @@ Output files:
   - `LOOKUP_PID`: Particle ID.
   - `LOOKUP_SID`: Parent system index.
   - `LOOKUP_MULT`: Particle multiplicity.
-  - `LOOKUP_MTOT`: Mass including gas halo.
-  - `LOOKUP_M`: Mass excluding gas halo.
-  - `LOOKUP_SMA`: Semi-major axis.
+  - `LOOKUP_MTOT`: Mass including gas halo [Msun].
+  - `LOOKUP_M`: Mass excluding gas halo [Msun].
+  - `LOOKUP_SMA`: Semi-major axis [pc].
   - `LOOKUP_ECC`: Eccentricity.
   - `LOOKUP_Q`: Mass ratio.
-  - `LOOKUP_MPRIM`: Primary mass.
+  - `LOOKUP_MPRIM`: Primary mass [Msun].
   - `LOOKUP_MPRIM_ID`: Primary star index.
   - `LOOKUP_STAR_ORDER`: Rank in multiple (1 = Primary).
   - Note: If single, `LOOKUP_SMA`, `LOOKUP_ECC`, and `LOOKUP_Q` are -1.
@@ -21,14 +21,15 @@ Output files:
 - `path_lookup.p`: Pickle file containing particle positions and masses. The columns are:
   - `t`: Snapshot number
   - `id`: Particle ID. 
-  - `px, py, pz`: Position components. 
-  - `vx, vy, vz`: Velocity components.
-  - `h`: Softening length. 
-  - `m`: Mass of particle (without halo).
+  - `px, py, pz`: Position components [pc]. 
+  - `vx, vy, vz`: Velocity components [1 m/s].
+  - `h`: Softening length [pc]. 
+  - `m`: Mass of particle (without halo) [Msun].
   - `sys_id`: System index (in systems list)
-  - `mtot`: Mass of particle + halo
+  - `mtot`: Mass of particle + halo [Msun].
   - `sma`: Semi-major axis [pc].
   - `ecc`: Eccentricity.
+  - Note: Unlike lookup, all arrays have the same number of rows. We use np.inf as placeholders if stars do not exist at a particular snapshot.
 #### `analyze_multiples_part2.py`
 Refines and extends the analysis with additional properties.
 
@@ -43,16 +44,16 @@ Output files:
   - `vangs`: Angle between velocity vectors.
   - `vangs_prim`: Angle between separation and secondary velocity.
   - `mfinal_primary`: Max primary mass at last snapshot both exist.
-  - `mfinal_pair`: Total pair mass at last snapshot both exist.
-  - `quasi_filter`: Mask for selecting persistent binaries.
+  - `mfinal_pair`: Total pair mass at last snapshot both exist [Msun].
+  - `quasi_filter`: Mask for selecting persistent binaries [Msun].
   - `init_bound_snaps`: First snapshot pair is binary.
   - `final_bound_snaps`: Last snapshot pair is binary.
   - `bound_time`: Number of snapshots pair remains bound.
   - `delta_snap`: Time difference between star formation.
   - `same_sys_final_norm`: Whether pair remains in same system at the end. CAUTION: Do not
             use this filter to check survival, as it does not require the multiple to be perisistent
-  - `final_pair_mass_lbin`: Total pair mass at last binary snapshot.
-  - `final_pair_mass_lsys`: Total pair mass at last system snapshot.
+  - `final_pair_mass_lbin`: Total pair mass at last binary snapshot [Msun].
+  - `final_pair_mass_lsys`: Total pair mass at last system snapshot [Msun].
   - `snap_interval`: Time interval between snapshots.
   - Note: Mass fields *exclude* gas halos.
 
@@ -60,7 +61,8 @@ Output files:
 Processes higher-order multiples.
 
 Output files:
-- `mults_flat.pq`: Pandas DataFrame with multiple systems and their longevity. Stores all high order multiples and sub-systems
+- `mults_flat.pq`: Pandas DataFrame with multiple systems and their longevity. Stores all high order multiples and sub-systems.
+[Do we want to explain the flat suffix here? e.g. The flat suffix refers to the fact that each multiple's just depends on the stars it conta]
   - Columns: `id`, `t`, `tf`, `a`, `e`, `p`, `ss`, `frac_of_orbit`, `nbound_snaps`.
   - `id`: Particle IDs in multiple (Index). 
   - `t`: Snapshot number (Index).
@@ -77,5 +79,5 @@ Output files:
   - `same_sys_filt`: Whether pairs remain in persistent multiples. THIS is what is used to select survivors
 
 #### `analyze_stack.py`
-Aggregates data across multiple seeds, and contains auxillary functions for post-processing data.
+Aggregates data across multiple seeds, and contains auxilliary functions for post-processing data.
 
