@@ -21,7 +21,7 @@ def snap_lookup(tmp_dat, pid, ID_COLUMN=0):
 
 def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
     """
-    Get the a lookup table for parent system/orbit of each star
+    Get a lookup table for parent system/orbit of each star
 
     :param r1 string: Bases of pickle file name
     :param r2 string: End of pickle file name
@@ -179,9 +179,8 @@ def main(params):
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     ###################################################################################################################
-    ##Replace with more flexible command
+    ##Making output data path.
     os.makedirs(save_path, exist_ok=True)
-    # bc.bash_command(f"mkdir -p {save_path}")
     ##Store info about the surviving
     with open(save_path + "/mult_data_path", "w") as ff:
         ff.write(r1 + "\n")

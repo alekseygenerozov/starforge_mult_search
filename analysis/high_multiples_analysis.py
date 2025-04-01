@@ -13,7 +13,6 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info
 from starforge_mult_search.analysis import cgs_const as cgs
 
-
 class SystemNode:
     """
     Node representing a single component of the system hierarchy.
@@ -120,7 +119,6 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
 
         # Handle nested structures recursively
         if isinstance(p1, list):
-            # print(p_dict)
             child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
             node.add_child(child1)
         else:
@@ -128,7 +126,6 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
                 SystemNode(data={"id": p1, "orbit": None, "pos": p_dict[p1], "vel": v_dict[p1], "mass": m_dict[p1]}))
 
         if isinstance(p2, list):
-            # print(p2)
             child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
             node.add_child(child2)
         else:
@@ -158,34 +155,6 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup):
     jhat_2 = jhat_2 / np.linalg.norm(jhat_2)
 
     return np.dot(jhat_1, jhat_2)
-
-
-##Tabulate persistence of systems
-##Need recursion, because we can have survival while embedded in a higher order multiple.
-# def add_node_to_orbit_tab(n1, snap, coll_full, end_snap):
-#     if n1.data["orbit"] is None:
-#         return
-#     else:
-#         tab_dat = []
-#         tab_dat.append(snap)
-#         tab_dat.append(end_snap)
-#
-#         tmp_orb = n1.data["orbit"]
-#         ##Data for outer orbit
-#         tab_dat.append(tmp_orb[0])
-#         tab_dat.append(tmp_orb[1])
-#
-#         tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
-#         tab_dat.append(tmp_per)
-#
-#         if str(n1.data["id"]) in coll_full:
-#             coll_full[str(n1.data["id"])].append(tab_dat)
-#         else:
-#             coll_full[str(n1.data["id"])] = [tab_dat]
-#
-#         add_node_to_orbit_tab(n1.children[0], snap, coll_full, end_snap)
-#         add_node_to_orbit_tab(n1.children[1], snap, coll_full, end_snap)
-
 
 def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False):
     if n1.data["orbit"] is None:
@@ -225,16 +194,13 @@ def lookup_star_mult(my_df, star_id, target, pre_filtered=False):
     if not pre_filtered:
         tmp_sel = my_df.xs(target, level="t")
         tmp_sel = tmp_sel.loc[(tmp_sel["nbound_snaps"]>1) & (tmp_sel["frac_of_orbit"] >= 1)]
-    # star_in_mult = [str(star_id) in row for row in tmp_sel.index.get_level_values("id")]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     mults_with_star = tmp_sel.loc[star_in_mult]
     if len(mults_with_star)==0:
         return star_id, 1
-    ##Ensure that the ordering remains the same! -- should be an easy way to ensure this is robust.
     tmp_mults = mults_with_star.groupby("id", sort=False).apply(lambda x: get_mult(x.name)).values
 
     tmp_idx = np.where(tmp_mults==np.max(tmp_mults))[0][0]
-    # print(tmp_mults, mults_with_star.index.get_level_values("id"))
     return mults_with_star.index.get_level_values("id")[tmp_idx], tmp_mults[tmp_idx]
 
 def get_pair_state(my_df, id1, id2, target, **kwargs):
@@ -306,12 +272,11 @@ def main(params):
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
-    ##GET IMPROVED FATES HERE(!!!) -- ACCOUNTING FOR LIFETIME FOR PERSISTENCE OF HIGHER MULTIPLES.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
     analysis_suff = "_mult"
     bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
-    ##Getting improved state for higher order multiples here...
+    ##Getting state of binaries at end of simulation using tabulated persistent multiples
     f1 = coll_full_df_life["frac_of_orbit"]
     n1 = coll_full_df_life["nbound_snaps"]
     tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]

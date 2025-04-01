@@ -38,7 +38,6 @@ def get_bound_snaps(sys1_info, sys2_info):
     sys1_tag = ["{0}_{1}".format(row[LOOKUP_SNAP], row[2]) for row in sys1_info]
     sys2_tag = ["{0}_{1}".format(row[LOOKUP_SNAP], row[2]) for row in sys2_info]
     ##STARS COULD BE IN THE SAME MULTIPLE BUT NOT BOUND--HAVE TO DO FURTHER FILTERING BASED ON SMA
-    ##This code block repeats frequently -- refactor into its own function...
     same_sys_filt1 = np.in1d(sys1_tag, sys2_tag)
     same_sys_filt2 = np.in1d(sys2_tag, sys1_tag)
     sys1_info = sys1_info[same_sys_filt1]
@@ -76,7 +75,6 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     init_bound_snaps = np.zeros(len(bin_ids))
     final_bound_snaps = np.zeros(len(bin_ids))
     final_bound_snaps_norm = np.zeros(len(bin_ids))
-    # mults_filt_corr = np.zeros(len(bin_ids))
     age_diff = np.zeros(len(bin_ids))
     same_sys_final_norm = np.zeros(len(bin_ids))
     final_pair_mass_lbin = np.zeros(len(bin_ids))
@@ -88,7 +86,6 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         ##Getting the final snapshot stars are bound to each other--refactor into its own function...
         sys1_info = lookup_dict[bin_list[0]]
         sys2_info = lookup_dict[bin_list[1]]
-        fst_idx = int(fst[ii])
         ##Filter to check multiple history prior to the initial snapshot together.
         age_diff[ii] = np.abs(sys1_info[0,0] - sys2_info[0,0]) * snap_interval[0]
 
@@ -142,7 +139,7 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         look2 = lookup_dict[bin_list[1]]
         look2 = look2[look2[:, LOOKUP_SNAP]==fst_idx]
 
-        ##Could also be true if the pair is in the sam multiple system(!)
+        ##Check if pair is in the same multiple/same binary at fst.
         same_sys_at_fst[ii] = (look1[:,2] == look2[:, 2])[0]
         bin_at_fst[ii] = ((look1[:,2] == look2[:, 2]) and (look1[:, LOOKUP_SMA]==look2[:, LOOKUP_SMA]))[0]
 
@@ -150,7 +147,6 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         pos2 = path2[fst_idx, 2:5]
         vel1 = path1[fst_idx, 5:8]
         vel2 = path2[fst_idx, 5:8]
-        ##Corrected Indexing
         m1 = path1[fst_idx, mcol]
         m2 = path2[fst_idx, mcol]
         mtot1 = look1[0, LOOKUP_MTOT]
@@ -165,9 +161,8 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         vangs[ii] = np.dot(vel1, vel2) / np.linalg.norm(vel1) / np.linalg.norm(vel2)
         vangs_prim[ii] = np.dot(vel1 - vel2, pos1 - pos2) / np.linalg.norm(vel1 - vel2) / np.linalg.norm(pos1 - pos2)
 
-        ##Get masses of stars at the last snapshot both exist, which will be the last snapshot, unless
-        ##there is a supernova
-        ##Select snapshots where star exists by filter infs
+        ##Get masses of stars at the last snapshot both exist, which will be the last snapshot, unless there is a supernova
+        ##Select snapshots where star exists by filtering infs
         mfilt = np.where((~np.isinf(path1[:, mcol])) & (~np.isinf(path2[:, mcol])))
         m1end = path1[mfilt][-1, mcol]
         m2end = path2[mfilt][-1, mcol]
@@ -201,18 +196,7 @@ def main(params):
     ##Quasi-persistent filter and other info about time that binaries are bound
     bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup)
 
-    ##Multiplcity filter -- true if stars were single prior to the first time they were bound as a *binary* [!]
-    ##This filter is used in the generation of Fig. 4
-    # mults_filt = get_mult_filt(bin_ids, lookup_dict, bound_time_data["init_bound_snaps"][:, np.newaxis])
-
-    ##Binary fates
-    # fates = [get_fate(r1, r2, list(row), end_snap) for row in bin_ids]
-
-    ##Exchange filter
-    # exchange_filt_b = get_exchange_filter(bin_ids, bound_time_data)
-
     ##Information about initial state--energies, angles, etc. -- much of this data is not used in the final analysis
-    ##Get rid of any unused data for clarity -- and also for safety: should not save filters that should not be used(!)
     en_data = get_energy(bin_ids, fst, lookup_dict, path_lookup)
     np.savez(save_path + f"/dat_coll{analysis_suff}.npz", bin_ids=bin_ids, fst=fst,
              ens=en_data["ens"], ens_gas=en_data["ens_gas"],

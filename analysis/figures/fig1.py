@@ -205,15 +205,11 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-# sc1 = ax.quiver(tmp_pos_center[0], tmp_pos_center[1], tmp_pos_center[3], tmp_pos_center[4])#, edgecolors="k", facecolors="none")
 ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k")
 ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
-
-# for ii in range(len(partpos)):
-#     ax.scatter(partpos[ii, 0] - center[0], partpos[ii, 1] - center[1], marker='o', color='0.5', s=40)
 
 fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
@@ -275,7 +271,6 @@ if ins > 0:
     axins.tick_params(axis="x", which="major", labelsize=16, rotation=45)
     axins.tick_params(axis="y", which="major", labelsize=16)
     width, height = "30%", "30%"  # specify the width and height of the inset in relative terms
-    # axins = inset_axes(ax, width=width, height=height, loc=ins_loc, borderpad=2, bbox_transform = ax.transAxes)
     axins.set_aspect('equal')
     # Update the view to reflect the new units
     axins.set_xlim(x1, x2)
