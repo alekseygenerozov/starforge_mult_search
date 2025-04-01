@@ -62,7 +62,7 @@ Processes higher-order multiples.
 
 Output files:
 - `mults_flat.pq`: Pandas DataFrame with multiple systems and their longevity. Stores all high order multiples and sub-systems.
-[Do we want to explain the flat suffix here? e.g. The flat suffix refers to the fact that each multiple's just depends on the stars it conta]
+[The flat suffix refers to the fact that each multiple's just depends on the stars it contains and not the hierarchy -- this behavior is controlled by the flat_id parameter.]
   - Columns: `id`, `t`, `tf`, `a`, `e`, `p`, `ss`, `frac_of_orbit`, `nbound_snaps`.
   - `id`: Particle IDs in multiple (Index). 
   - `t`: Snapshot number (Index).

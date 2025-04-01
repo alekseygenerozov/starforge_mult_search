@@ -102,7 +102,7 @@ Multiplicity 4 count: 6
 
 # Reproducing paper results and figures
 Running the full analysis pipeline for the actual simulations data takes several days of compute on an HPC.
-Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for a particular cloud).
+Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for each cloud).
 
 However, the paper figures can be reproduced in reasonable time (within ~20 minutes) if the output of the 
 multiple search algorithm has been prepared in advance. We have upload this output, so 
@@ -116,8 +116,8 @@ with these intermediate outputs to reproduce the paper figures.
 2. Scripts that produce Figures in the analysis/figures, using the above data tables. 
 So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc. 
 fig2.py also generates ex_fig5.py, and ex_fig1.py generates the right panel of fig2. (As fig2b.pdf)
-fig4.py generates the numbers in the schematic in fig. 4
-3. Tables.py generate the numbers in the Tables.
+fig4.py generates the numbers in the schematic in fig. 4, and writes them to logs/fig4.log. 
+3. Tables.py generate the numbers in Tables 1 and 2 and writes them to logs/tables.log
 
 The script "run_pipeline_all" runs the analysis steps above, and generates pdf files 
 for the figures in the paper. The intermediate data tables (described in README_ANALYSIS.MD)

@@ -49,6 +49,9 @@ python ~/code/python/starforge_mult_search/analysis/figures/fig1.py example1 > l
 python ~/code/python/starforge_mult_search/analysis/figures/fig1.py example2 > logs/fig1_2.log 2>&1
 echo "Figure 1 generated."
 
+python ~/code/python/starforge_mult_search/analysis/figures/Tables.py example2 > logs/tables.log 2>&1
+echo "Tables generated."
+
 # Generate static figures
 FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5)
 for SCRIPT in "${FIG_SCRIPTS[@]}"; do
