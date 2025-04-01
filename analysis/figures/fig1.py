@@ -9,10 +9,10 @@ import h5py
 
 from meshoid import Meshoid
 
-from starforge_mult_search import cgs_const as cgs
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.code import starforge_constants as sfc
+from starforge_mult_search.analysis import cgs_const as cgs
 import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -137,7 +137,7 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 
 
 config = configparser.ConfigParser()
-config.read("config")
+config.read(f"config_{sys.argv[1]}")
 
 snap_idx = config.getint("params","snap_idx")
 bin_id1 = config.getint("params","bin1")
@@ -182,7 +182,7 @@ partpos = partpos.astype(np.float64)
 partmasses = partmasses.astype(np.float64)
 partsink = partsink.astype(np.float64)
 
-##GET HALO AND PARTICLE POSITIONS CENTERED ON THE FIRST STAR
+##GET HALO AND PARTICLE POSITIONS CENTERED ON THE STARS' COM
 center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
                                                                                        bin_id1, bin_id2, my_ft)
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
@@ -205,16 +205,17 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-sc1 = ax.quiver(tmp_pos_center[0], tmp_pos_center[1], tmp_pos_center[3], tmp_pos_center[4])#, edgecolors="k", facecolors="none")
-ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")#, edgecolors="k", facecolors="none")
+# sc1 = ax.quiver(tmp_pos_center[0], tmp_pos_center[1], tmp_pos_center[3], tmp_pos_center[4])#, edgecolors="k", facecolors="none")
+ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k")
+ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
 
-for ii in range(len(partpos)):
-    ax.scatter(partpos[ii, 0] - center[0], partpos[ii, 1] - center[1], marker='o', color='0.5', s=40)
+# for ii in range(len(partpos)):
+#     ax.scatter(partpos[ii, 0] - center[0], partpos[ii, 1] - center[1], marker='o', color='0.5', s=40)
 
-fig.savefig("pretty." + savetype)
+fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
 fig,ax = plt.subplots(figsize=(9.5,8), constrained_layout=True)
 ax.set_xlabel("x [$10^4$ au]")
@@ -303,7 +304,6 @@ ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
              arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
 
-
-fig.savefig(f"prettyb_{snap_idx:03d}." + savetype)
+fig.savefig(f"fig1_{sys.argv[1]}b." + savetype)
 
 

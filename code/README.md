@@ -101,15 +101,16 @@ Multiplicity 3 count: 2\
 Multiplicity 4 count: 6
 
 # Reproducing paper results and figures
-Running the full analysis pipeline takes several days of compute on an HPC.
+Running the full analysis pipeline for the actual simulations data takes several days of compute on an HPC.
+Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for a particular cloud).
 
-However, the paper figures can be reproduced in reasonable time (~?? min) if the output of the 
+However, the paper figures can be reproduced in reasonable time (within ~20 minutes) if the output of the 
 multiple search algorithm has been prepared in advance. We have upload this output, so 
 that this can be done. The scripts for this part of the analysis are stored in the 
 "analysis" subdirectory. In summary this directory contains the 
 
 1. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
-high_multiples_analysis.py), reogranizing the data into tables for easier analysis. For completeness,
+high_multiples_analysis.py) and reogranize the data into tables for easier analysis. For completeness,
 we describe these scripts' outputs in README_ANALYSIS.md, but the user does not need to interact 
 with these intermediate outputs to reproduce the paper figures.
 2. Scripts that produce Figures in the analysis/figures, using the above data tables. 
@@ -120,7 +121,7 @@ fig4.py generates the numbers in the schematic in fig. 4
 
 The script "run_pipeline_all" runs the analysis steps above, and generates pdf files 
 for the figures in the paper. The intermediate data tables (described in README_ANALYSIS.MD)
-are store in directories like:
+are stored in directories with names like the following:
 
 M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1/analyze_multiples_output__TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.
 
