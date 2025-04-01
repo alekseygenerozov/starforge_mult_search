@@ -44,13 +44,13 @@ ns5.append(len(end_states[(end_states=="4 4") &  ~(same_sys_filt) & (quasi_filte
 ns = len(end_states[~(same_sys_filt) & (quasi_filter) ]) / d1
 
 
-print(f"S S:{ns1} B S:{ns2} T S:{ns3} Q S:{ns4} M M:{np.sum(ns5)} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5)}")
+print(f"S S:{ns1:.4f} B S:{ns2:.4f} T S:{ns3:.4f} Q S:{ns4:.4f} M M:{np.sum(ns5):.4f} NS Tot: {ns1 + ns2 + ns3 + ns4 + np.sum(ns5):.4f}")
 #########################################################################################################
 ##Tallying all the surviving states.
 ss1 = len(end_states[(end_states=="2 2") & (quasi_filter) ]) / d1
 ss2 = len(end_states[(end_states=="3 3") & (quasi_filter) ]) / d1
 ss3 = len(end_states[(end_states=="4 4") & (quasi_filter) ]) / d1
 
-print(f"B:{ss1} T:{ss2} Q:{ss3} S Tot:{ss1 + ss2 + ss3}")
-print(f"B:{ss1 * d1} T:{ss2 * d1} Q:{ss3 * d1}")
+print(f"B:{ss1:.4f} T:{ss2:.4f} Q:{ss3:.4f} S Tot:{ss1 + ss2 + ss3:.4f}")
+# print(f"B:{ss1 * d1} T:{ss2 * d1} Q:{ss3 * d1}")
 

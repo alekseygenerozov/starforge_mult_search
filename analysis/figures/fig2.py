@@ -81,7 +81,6 @@ print(interp1d(x_gas1, y_gas1)(0))
 print(interp1d(x_gas2, y_gas2)(0))
 
 # Plot ECDF
-# ax.plot(x_gas, y_gas, label="Gas", color='blue')
 ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[1], alpha=0.3)
 ax.plot([0, 0], [0,1], '0.5', linestyle=':')
 ax.annotate("No gas", (-0.2, 0.6), ha='right', color=colorblind_palette[0]) 
@@ -105,7 +104,6 @@ ens_ck_seed1 = np.load("en_col_seed1_8.0.npz")["arr_0"]
 ens_ck_seed2 = np.load("en_col_seed2_8.0.npz")["arr_0"]
 ens_ck_seed42 = np.load("en_col_seed42_8.0.npz")["arr_0"]
 ens_ck = np.concatenate((ens_ck_seed1, ens_ck_seed2, ens_ck_seed42))
-# print(len(ens_ck))
 
 log_ens_ratio_ft8 = np.log10(-ens_ck[:, 0] / ens_ck[:, 1])[comp_quasi_filter]
 ax.ecdf(log_ens_ratio_ft8, color=colorblind_palette[2])

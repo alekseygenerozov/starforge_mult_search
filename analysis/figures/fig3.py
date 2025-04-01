@@ -3,6 +3,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import pickle
 import seaborn as sns
+
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
@@ -41,10 +42,10 @@ fig.savefig("fig3a.pdf")
 
 ##Getting control age differences seed-by-seed
 ##Save this info with the data files...
-snap_interval = 2.47e4
 delta_snapc = np.zeros(len(my_data["bin_ids"]))
 idx = 0
-for seed in seeds:
+for sidx, seed in enumerate(seeds):
+    snap_interval = my_data["snap_interval"][sidx]
     tmp_data_path = base_new + str(seed) + suff_new
     tmp_data = np.load(tmp_data_path + f"/dat_coll{suff}.npz", allow_pickle=True)
     with open(tmp_data_path + "/path_lookup.p", "rb") as ff:
@@ -67,15 +68,11 @@ from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
 delta_snap = my_data["delta_snap"]
 quasi_filter = my_data["quasi_filter"]
 
-##Caption: Cumulative distribution of age differences between binary stars in the simulation (black) compared to the age differences
-##of randomly chosen pairs. Most binary stars form close together in time.
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"Age Difference [Myr]")
-# ax.legend(title=f"$f_t={int(my_ft)}$")
 
 d1 = delta_snap[~np.isinf(delta_snap) & (quasi_filter)] / 1e6
-# d1b = delta_snap[~np.isinf(delta_snap) & (quasi_filter) & (final_bin_filt)] / 1e6
 d2 = delta_snapc[~np.isinf(delta_snapc)] / 1e6
 annotate_multiple_ecdf((d1,  d2), labels=("Binaries", "Control"), x_offset=(0.3, 0.32))
 

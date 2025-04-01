@@ -38,13 +38,9 @@ seeds = (1, 2, 42)
 seeds_idx = (0, 1, 2)
 end_snaps = np.array((464, 423, 489))
 start_snaps = np.array((44, 48, 48))
-# seeds = (42,)
-# seeds_idx = (0,)
-# end_snaps = np.array((489,))
+
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
-# for seed in seeds:
-##DO WE NEED TO SEPARATE dat_coll.npz and dat_coll_mult.npz
 suff = "_mult"
 npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]
 seeds_lookup = np.concatenate(

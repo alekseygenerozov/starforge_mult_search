@@ -26,6 +26,7 @@ grand_total_bins_a = 0
 grand_total_bins_b = 0
 grand_total_mults = 0
 grand_total_mults_b = 0
+##For all clouds...
 for ii in range(len(base_new_all)):
     base_new = base_new_all[ii]
     suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
@@ -39,13 +40,10 @@ for ii in range(len(base_new_all)):
     c2s = []
     c3s = []
     f3s = []
-
+    ##And all corresponding seeds.
     for seed in seeds:
         print(base_new, seed)
-        # npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
-        # my_data = npz_stack(npzs_list)
         my_data = np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)
-        # final_sys_filter = (my_data["same_sys_final_norm"] == 1)
         final_sys_filter =  np.load(base_new + str(seed) + suff_new + f"/fates_corr.npz", allow_pickle=True)["same_sys_filt"]
         with open(base_new + str(seed) + suff_new + "/path_lookup.p", "rb") as ff:
             tmp_path_pickle = pickle.load(ff)
@@ -54,28 +52,21 @@ for ii in range(len(base_new_all)):
 
         bin_ids = my_data["bin_ids"]
         quasi_filter = my_data["quasi_filter"]
-        # quasi_filter = get_quasi_filter_modb(my_data, 10)
         ss_fst = my_data["same_sys_at_fst"].astype(bool)
-        # final_bin_filter = (my_data["fates"] == "s2")
-        # final_bin_filter_wm = (my_data["final_bound_snaps_norm"] == 1.)
         tot1 = len(bin_ids[quasi_filter])
         tot2 = len(bin_ids[quasi_filter & final_sys_filter])
-        # tot3 = len(ens_gas[quasi_filter & final_bin_filter_wm])
 
         c0s.append(tot1)
         c1s.append(len(bin_ids[(quasi_filter) & (ss_fst)]))
         print(c1s[-1])
         f1s.append(c1s[-1] / tot1)
         c2s.append(len(bin_ids[quasi_filter & final_sys_filter]))
-        # f2s.append(c2s[-1] / tot2)
         c3s.append(len(bin_ids[quasi_filter & ss_fst & final_sys_filter]))
         f3s.append(c3s[-1] / tot2)
 
         ##Incorporate final multiple filter into the core data tables for easy filtering...
         data = [
             {"Condition": "Total", "Count": tot1, "Fraction": 1.0},
-            # {"Condition": "Bound at IST (no gas)", "Count": len(bin_ids[(quasi_filter) & (ss_fst)]),
-            #  "Fraction": len(bin_ids[(quasi_filter) & (ss_fst)]) / tot1},
             {"Condition": "Bound at IST", "Count": c1s[-1],
              "Fraction": f1s[-1]},
             {"Condition": "Survivors", "Count": tot2,

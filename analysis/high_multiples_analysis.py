@@ -73,9 +73,6 @@ def removeNestings(l, output):
         else:
             output.append(i)
 
-        ##make_hier -- Multiplicity of children does not appear to be correct(!!!)
-
-
 def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
     """
     Recursively builds a hierarchy tree from the input hierarchy and orbit data.

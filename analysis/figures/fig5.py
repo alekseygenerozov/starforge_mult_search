@@ -34,7 +34,6 @@ high_df["mult_ids_set"] = mult_ids_set.to_list()
 tval = high_df.index.get_level_values("t")
 high_df["tval"] = tval
 pmult_filt = np.zeros(len(bin_ids)).astype(bool)
-##
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
     if not quasi_filter[ii]:
@@ -44,7 +43,6 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     tmp_sel = high_df.query(f"tval < {ibs}")
     mult_ids_set = tmp_sel["mult_ids_set"]
 
-    # mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
     ck1 = [bin_list[0] in mult_id for mult_id in mult_ids_set]
     ck1 = np.any(ck1)
     ck2 = [bin_list[1] in mult_id for mult_id in mult_ids_set]
@@ -52,17 +50,16 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
 
     pmult_filt[ii] = ~(ck1 or ck2)
 
-# np.savez("pmult_filt.npz", pmult_filt)
 #########################################################################################################
+##Loading data
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
 fates_corr = npz_stack(npzs_list)
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]
-
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
-##Replace with updated filter
-##Surviving binaries including those in higher order multiples(!!)
+#########################################################################################################
+##Ionized binaries and encounters -- those that end up as single stars
 bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
 bin_ids_subset = bin_ids_11
 norm_sep = np.zeros(len(bin_ids_subset))
@@ -95,6 +92,7 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
 norm_sep_og = np.copy(norm_sep)
 print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_destruction > 1]) / len(mult_after_destruction)}")
 #########################################################################################################
+##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
@@ -130,7 +128,6 @@ fig.savefig("fig5a.pdf")
 final_pair_mass_no_halo = my_data["mfinal_pair"]
 
 bins = np.arange(-1, 1.21, 0.2)
-##Does not include the small fraction of binaries with deleted stars.
 vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & ~(same_sys_filt)])), bins=bins,
                        histtype='step')
 vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_sys_filt)]), bins=bins,
