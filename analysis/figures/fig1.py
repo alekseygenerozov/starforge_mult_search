@@ -10,27 +10,12 @@ import h5py
 from meshoid import Meshoid
 
 from starforge_mult_search import cgs_const as cgs
-
-# sys.path.append("/home/aleksey/code/python/star_forge_analysis/")
-# from analyze_multiples import snap_lookup
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.code import starforge_constants as sfc
 import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-
-# Create new colormap
-# newcolors = plt.cm.viridis(np.linspace(0, 1, 256))
-# # Reduce blue in the first half to avoid conflict with blue scatter points
-# newcolors[:128, 2] *= np.linspace(0.3, 1, 128)
-# # Reduce red and green in the second half to avoid conflict with orange scatter points
-# newcolors[128:, 0] *= np.linspace(1, 0.5, 128)
-# newcolors[128:, 1] *= np.linspace(1, 0.7, 128)
-#
-# custom_cmap = colors.ListedColormap(newcolors)
-# Adjust scatter plot colors
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
@@ -128,17 +113,12 @@ def add_colorbar_to_axes(ax, mappable, label='', orientation='vertical', size='5
     return cbar
 
 
-
-
 units.registry["au"] = AUnit()
 colorblind_palette = sns.color_palette("colorblind")
 # Set the matplotlib color cycle to the seaborn colorblind palette
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=colorblind_palette)
 plt.rcParams['lines.linewidth'] = 3
 plt.rcParams['patch.linewidth'] = 3
-# col2 = (1, 0.2, 0.2)  # More vibrant orange
-# col1 =  (0.8, 0.3, 0.3)    # More vibrant blue
-# col1 = colorblind_palette[0]
 col1 = np.array((129, 50, 168)) / 256
 col2 = colorblind_palette[1]
 
@@ -177,20 +157,15 @@ v_rescale = config.get("params", "v_rescale", fallback=2)
 
 v_scale = 100. / cgs.au / 1e4 * cgs.year * v_rescale
 d_cut = rmax
-# base = f"/work2/09543/aleksey2/frontera/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 
-# with open(base + "/data_loc", "r") as ff:
-# 	snap_base = ff.read().strip()
 r2 = f"_TidesTrue_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 
-# snap_file = base + f"_{snap_idx:03d}.hdf5"
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
 
 den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = \
 find_multiples_new2.load_data(snap_file, res_limit=1e-3)
-##WOULD HAVE BEEN BETTER TO PUT THIS FUNCTIONALITY IN LOAD DATA!!!
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
 huniq = h[indx]
@@ -230,10 +205,8 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-# sc1 = ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k")#, edgecolors="k", facecolors="none")
 sc1 = ax.quiver(tmp_pos_center[0], tmp_pos_center[1], tmp_pos_center[3], tmp_pos_center[4])#, edgecolors="k", facecolors="none")
 ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")#, edgecolors="k", facecolors="none")
-# plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
@@ -241,14 +214,9 @@ if plimit > 0:
 for ii in range(len(partpos)):
     ax.scatter(partpos[ii, 0] - center[0], partpos[ii, 1] - center[1], marker='o', color='0.5', s=40)
 
-
 fig.savefig("pretty." + savetype)
-
 ############################################################################################################
-
 fig,ax = plt.subplots(figsize=(9.5,8), constrained_layout=True)
-# ax.ticklabel_format(style='sci', axis='both', scilimits=(4,4), useMathText=True)
-
 ax.set_xlabel("x [$10^4$ au]")
 ax.set_ylabel("y [$10^4$ au]")
 
@@ -295,7 +263,6 @@ p1 = subtract_path(tmp1[:, pxcol:pzcol + 1], coms)
 p2 = subtract_path(tmp2[:, pxcol:pzcol + 1], coms)
 
 tmp_orb = get_initial_orbit(tmp1, tmp2)
-# add_colorbar_to_axes(ax, p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 ########################################################################################
 if ins > 0:
     from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset, inset_axes
@@ -303,7 +270,6 @@ if ins > 0:
     # Define the region to zoom in on
     x1, x2, y1, y2 = -ins, ins, -ins, ins
     # Create an inset of the zoomed region
-    # axins = zoomed_inset_axes(ax, zoom=4, loc='upper right', borderpad=2)
     axins = ax.inset_axes([0.7, 0.1, 0.2, 0.2])
     axins.tick_params(axis="x", which="major", labelsize=16, rotation=45)
     axins.tick_params(axis="y", which="major", labelsize=16)
@@ -311,14 +277,12 @@ if ins > 0:
     # axins = inset_axes(ax, width=width, height=height, loc=ins_loc, borderpad=2, bbox_transform = ax.transAxes)
     axins.set_aspect('equal')
     # Update the view to reflect the new units
-    # ax.autoscale_view()
     axins.set_xlim(x1, x2)
     axins.set_ylim(y1, y2)
     axins.set_xticks([-ins/2, ins/2])
     axins.set_yticks([-ins/2, ins/2])
     axins.plot(p1[:, 0] * conv, p1[:, 1] * conv, color=col1)
     axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2)
-    # mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5", linewidth=2)
 
 ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
 ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
@@ -327,34 +291,19 @@ ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.
 vel1 = tmp_pos_center[3] * v_scale , tmp_pos_center[4] * v_scale
-# vel1 = com_w_halo[3] * 100. / cgs.au * cgs.year , com_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
-# ax.arrow(start_pt[0], start_pt[1],
-#          end_pt[0] - start_pt[0], end_pt[1] - start_pt[1],
-#          color='k', head_width=1000, head_length=500,
-#          length_includes_head=True, linewidth=1.5)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
              arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
-# ax.scatter(tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv, c="k", marker="X")
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
 vel1 = tmp_pos2_center[3] * v_scale, tmp_pos2_center[4] * v_scale
-# vel1 = com2_w_halo[3] * 100. / cgs.au * cgs.year , com2_w_halo[4] * 100. / cgs.au * cgs.year
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
-# ax.plot([start_pt[0], end_pt[0]], [start_pt[1], end_pt[1]], "k")
-# ax.arrow(start_pt[0], start_pt[1],
-#          end_pt[0] - start_pt[0], end_pt[1] - start_pt[1],
-#          color='k', head_width=1000, head_length=500,
-#          length_includes_head=True, linewidth=1.5)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
              arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
 
-# plt.tight_layout()
-# fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-# from matplotlib.transforms import Bbox
-# bbox = Bbox.from_bounds(0, 0, 8.5, 8)
+
 fig.savefig(f"prettyb_{snap_idx:03d}." + savetype)
 
 

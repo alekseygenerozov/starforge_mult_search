@@ -2,7 +2,7 @@
 
 # starforge_mult_search
 
-Idenfies all of the binaries in a starforge simulation snapshot. Here are the necessary
+Idenfies all the binaries in a starforge simulation snapshot. Here are the necessary
 steps:
 
 (0) Make a file called data_loc in your current working directory with the location
@@ -103,22 +103,25 @@ Multiplicity 4 count: 6
 Running the full analysis pipeline takes several days of compute on an HPC.
 
 However, the paper figures can be reproduced in reasonable time (~?? min) if the output of the 
-multiple search algorithm has already been prepared. We have upload this output, so 
+multiple search algorithm has been prepared in advance. We have upload this output, so 
 that this can be done. The scripts for this part of the analysis are stored in the 
-"analysis" subdirectory.
+"analysis" subdirectory. In summary this directory contains the 
 
-1. Output files from the multiple search algorithm. [In the directory ...]
-2. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
-high_multiples_analysis.py), reogranizing the data into tables for easier analysis. For completeness
-we describe these scripts' outputs in README_ANALYSIS, but the user does not actually need to interact 
+1. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
+high_multiples_analysis.py), reogranizing the data into tables for easier analysis. For completeness,
+we describe these scripts' outputs in README_ANALYSIS.md, but the user does not need to interact 
 with these intermediate outputs to reproduce the paper figures.
-3. Scripts that produce Figures in the analysis/figures, using the above data tables. 
-So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc.
-4. fig2.py also generates ex_fig5.py, and ex_fig2.py generates the right panel of fig2.
-5. fig4.py generates the *numbers* in the schematic in fig. 4
-6. Tables.py generate the *numbers* in the Tables.
+2. Scripts that produce Figures in the analysis/figures, using the above data tables. 
+So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc. 
+fig2.py also generates ex_fig5.py, and ex_fig1.py generates the right panel of fig2. (As fig2b.pdf)
+fig4.py generates the numbers in the schematic in fig. 4
+3. Tables.py generate the numbers in the Tables.
 
 The script "run_pipeline_all" runs the analysis steps above, and generates pdf files 
-for the figures in the paper.
+for the figures in the paper. The intermediate data tables (described in README_ANALYSIS.MD)
+are store in directories like:
 
+M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1/analyze_multiples_output__TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.
 
+The first part of name (M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1) indicates the cloud parameters of the underlying 
+starforge simulation. The suffix at the end (TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse) indicates the parameters used for the halo multiple identification code 
