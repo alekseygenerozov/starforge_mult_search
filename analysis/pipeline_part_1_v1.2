@@ -1,3 +1,5 @@
-python ~/code/python/starforge_mult_search/analysis/analyze_multiples.py seed=$1 analysis_tag=$2 v_str=v1.2
-python ~/code/python/starforge_mult_search/analysis/analyze_multiples_part2.py seed=$1 analysis_tag=$2 v_str=v1.2
-python ~/code/python/starforge_mult_search/analysis/high_multiples_analysis.py seed=$1 analysis_tag=$2 +flat_id=True v_str=v1.2
+CODE_BASE = "/home/aleksey/code/python/starforge_mult_search/"
+
+python $CODE_BASE/analysis/analyze_multiples.py seed=$1 analysis_tag=$2 v_str=v1.2
+python $CODE_BASE/analysis/analyze_multiples_part2.py seed=$1 analysis_tag=$2 v_str=v1.2
+python $CODE_BASE/analysis/high_multiples_analysis.py seed=$1 analysis_tag=$2 +flat_id=True v_str=v1.2
