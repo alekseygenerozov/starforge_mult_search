@@ -1,0 +1,17 @@
+for ii in {1,2,42}
+    do python ~/code/python/starforge_mult_search/analysis/bound_experiment.py $ii _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse 8.0
+done
+
+for ii in {1,2,42}
+    do python ~/code/python/starforge_mult_search/analysis/bound_experiment.py $ii _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse 1.0
+done
+
+python ~/code/python/starforge_mult_search/analysis/figures/fig2.py
+python ~/code/python/starforge_mult_search/analysis/figures/fig3.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig1.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig2.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig3.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig4.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig7.py
+python ~/code/python/starforge_mult_search/analysis/figures/ex_fig8.py
+python ~/code/python/starforge_mult_search/analysis/figures/fig4.py

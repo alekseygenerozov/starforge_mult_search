@@ -78,7 +78,8 @@ options:
 
 NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba, astropy, hydra, pandas, seaborn
 Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1),
-astropy (7.0.0), hydra (1.3.2), pandas (2.1.4), seaborn (0.13.2)
+astropy (7.0.0), hydra (1.3.2), pandas (2.1.4), seaborn (0.13.2), meshoid (1.46.0) [TO DO: Generate environment that is like
+TACC and run analysis with this?! To avoid any inconsistencies. TO: Add github for meshoid.]
 Also tested demo with: NumPy (1.26.0), SciPy (1.13.1), pytreegrav (1.1.4), h5py (3.12.1), numba (0.60.0)
 
 

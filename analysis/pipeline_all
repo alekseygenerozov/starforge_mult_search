@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Define seeds and cloud tags
+SEEDS=(1 2 42)
+CLOUD_TAGS=(
+    "M2e4_R10_S0_T1_B1_Res271_n2_sol0.5"
+    "M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5"
+    "M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5"
+    "M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5"
+)
+
+# Common analysis tag
+ANALYSIS_TAG="TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+
+# Create a logs directory
+mkdir -p logs
+
+# Run pipeline_part_1 in parallel for each seed
+for SEED in "${SEEDS[@]}"; do
+    echo "Running pipeline_part_1 for seed $SEED..."
+    ./pipeline_part_1 $SEED $ANALYSIS_TAG > logs/part1_seed_${SEED}.log 2>&1 &
+done
+
+# Run pipeline_part_1_non_fid in parallel for each cloud tag
+for CLOUD_TAG in "${CLOUD_TAGS[@]}"; do
+    echo "Running pipeline_part_1_non_fid for cloud $CLOUD_TAG..."
+    ./pipeline_part_1_non_fid "$CLOUD_TAG" 1 $ANALYSIS_TAG > logs/part1_nonfid_${CLOUD_TAG//\//_}.log 2>&1 &
+done
+
+./pipeline_part_1_v1.2 42 TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p > logs/part1_v1.2.log 2>&1 &
+
+# Wait for all Part 1 processes to complete
+wait
+
+# Proceed to figure generation
+echo "All Part 1 analyses completed. Starting figure generation..."
+
+# Run figure generation
+for SEED in "${SEEDS[@]}"; do
+    echo "Generating figures for seed $SEED with ft=8.0..."
+    python ~/code/python/starforge_mult_search/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse 8.0 > logs/figs_ft8_seed_${SEED}.log 2>&1 &
+    echo "Generating figures for seed $SEED with ft=1.0..."
+    python ~/code/python/starforge_mult_search/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse 1.0 > logs/figs_ft1_seed_${SEED}.log 2>&1 &
+done
+
+wait
+
+# Generate static figures
+FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5)
+for SCRIPT in "${FIG_SCRIPTS[@]}"; do
+    echo "Generating static figure $SCRIPT..."
+    python ~/code/python/starforge_mult_search/analysis/figures/$SCRIPT.py > logs/${SCRIPT}.log 2>&1
+    echo "Figure $SCRIPT generated."
+done
+
+# Completion message
+echo "Pipeline execution completed successfully."
