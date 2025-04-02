@@ -7,8 +7,7 @@ import h5py
 import hydra
 import matplotlib.pyplot as plt
 import numpy as np
-import (find_multiples_new2,
-                                        halo_masses_single_double_par)
+import find_multiples_new2, halo_masses_single_double_par
 from find_multiples_new2 import cluster, system
 from analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
 
