@@ -1,5 +1,5 @@
 #CODE_BASE = "/home/aleksey/code/python/starforge_mult_search/"
-CODE_BASE = "/root/capsule/code/"
+CODE_BASE="/root/capsule/code/"
 
 python $CODE_BASE/analysis/analyze_multiples.py seed=$1 analysis_tag=$2
 python $CODE_BASE/analysis/analyze_multiples_part2.py seed=$1 analysis_tag=$2

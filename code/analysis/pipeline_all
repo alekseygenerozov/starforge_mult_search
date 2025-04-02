@@ -64,3 +64,7 @@ done
 
 # Completion message
 echo "Pipeline execution completed successfully."
+
+mv logs /results
+mv *.pdf /results
+mv M2e4_R10 /results

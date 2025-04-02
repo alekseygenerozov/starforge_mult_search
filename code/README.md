@@ -105,8 +105,8 @@ Running the full analysis pipeline for the actual simulations data takes several
 Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for each cloud).
 
 However, the paper figures can be reproduced in reasonable time (within ~20 minutes) if the output of the 
-multiple search algorithm has been prepared in advance. We have upload this output, so 
-that this can be done. The scripts for this part of the analysis are stored in the 
+multiple search algorithm has been prepared in advance. We have uploaded this data for the fiducial simulation, so 
+that our figures can be reproduced. The scripts for this part of the analysis are stored in the 
 "analysis" subdirectory. In summary this directory contains the 
 
 1. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
@@ -117,7 +117,7 @@ with these intermediate outputs to reproduce the paper figures.
 So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc. 
 fig2.py also generates ex_fig5.py, and ex_fig1.py generates the right panel of fig2. (As fig2b.pdf)
 fig4.py generates the numbers in the schematic in fig. 4, and writes them to logs/fig4.log. 
-3. Tables.py generate the numbers in Tables 1 and 2 and writes them to logs/tables.log
+3. Tables.py generate the numbers for the fiducial simulations in Tables 1 and writes it to logs/tables.log.
 
 The script "run_pipeline_all" runs the analysis steps above, and generates pdf files 
 for the figures in the paper. The intermediate data tables (described in README_ANALYSIS.MD)
@@ -127,3 +127,6 @@ M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1/analyze_multiples_output__TidesF
 
 The first part of name (M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1) indicates the cloud parameters of the underlying 
 starforge simulation. The suffix at the end (TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse) indicates the parameters used for the halo multiple identification code 
+
+To reduce the size of the required data assets, we have opted not to upload the multiple output data for the non-fiducial
+simulations--this is only required for part of Table 1 and Extended Data Table 2.
