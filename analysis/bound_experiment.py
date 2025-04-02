@@ -52,14 +52,15 @@ def get_energies(p1_dat, g1_dat, p2_dat, g2_dat):
 ##Loading post-processed data tables
 #########################################################################################################
 sim_tag = f"M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{sys.argv[1]}"
-base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/new_analysis/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{sys.argv[1]}/"
+base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{sys.argv[1]}/"
 r2 = sys.argv[2].replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
 
-bin_ids = np.load(base + aa + "/unique_bin_ids_mult.npz", allow_pickle=True)['arr_0']
+bin_ids = np.load(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/unique_bin_ids_mult.npz", allow_pickle=True)['arr_0']
 with open(base + aa + "/path_lookup.p", "rb") as ff:
     path_lookup = pickle.load(ff)
+
 #########################################################################################################
 en_col = []
 for ii, uid in enumerate(bin_ids):
