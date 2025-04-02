@@ -76,9 +76,9 @@ options:
   ```
 # Requirements
 
-Versions: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (1.1) [https://github.com/mikegrudic/pytreegrav], h5py (3.2.1), numba (0.57.1),
-astropy (6.0.1), hydra (1.3.2), pandas (2.2.3), seaborn (0.13.2), meshoid (1.46.1)  [https://github.com/mikegrudic/meshoid],
-pyarrow (19.0.1)
+astropy (6.0.1), hydra (1.3.2), meshoid (1.46.1)  [https://github.com/mikegrudic/meshoid], numba (0.57.1), NumPy (1.24.4), 
+pandas (2.2.3), pyarrow (19.0.1), pytreegrav (1.1) [https://github.com/mikegrudic/pytreegrav], SciPy (1.6.1), seaborn (0.13.2)
+
 
 # Installation and Demos
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
@@ -101,7 +101,7 @@ Multiplicity 4 count: 6
 Running the full analysis pipeline for the actual simulations data takes several days of compute on an HPC.
 Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for each cloud).
 
-However, the paper figures can be reproduced in reasonable time (within ~20 minutes) if the output of the 
+However, the paper figures can be reproduced in reasonable time (within ~15 minutes on Code Ocean) if the output of the 
 multiple search algorithm has been prepared in advance. We have uploaded this data for the fiducial simulation, so 
 that our figures can be reproduced. The scripts for this part of the analysis are stored in the 
 "analysis" subdirectory. In summary this directory contains the 
@@ -126,4 +126,4 @@ The first part of name (M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1) indicat
 starforge simulation. The suffix at the end (TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse) indicates the parameters used for the halo multiple identification code 
 
 To reduce the size of the required data assets, we have opted not to upload the multiple output data for the non-fiducial
-simulations--this is only required for part of Table 1 and Extended Data Table 2.
+simulations--these would be required for part of Table 1 and Extended Data Table 2.
