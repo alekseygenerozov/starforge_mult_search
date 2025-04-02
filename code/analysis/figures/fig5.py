@@ -16,7 +16,7 @@ from analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
 from labelLine import labelLines
 
 ##Try to get rid of this import...
-from sci_analysis import plotting
+from analysis.sci_analysis import plotting
 
 from analysis.figures.figure_preamble import *
 #########################################################################################################

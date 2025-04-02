@@ -76,9 +76,9 @@ options:
   ```
 # Requirements
 
-NumPy, SciPy, pytreegrav (https://github.com/mikegrudic/pytreegrav), h5py, numba, astropy, hydra, pandas, seaborn
-Versions used in paper: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (commit:b38de42e, similar to version 1.1), h5py (3.2.1), numba (0.57.1),
-astropy (6.0.1), hydra (1.3.2), pandas (2.2.3), seaborn (0.13.2), meshoid (1.46.0) [TO: Add github for meshoid.]
+Versions: NumPy (1.24.4), SciPy (1.6.1), pytreegrav (1.1) [https://github.com/mikegrudic/pytreegrav], h5py (3.2.1), numba (0.57.1),
+astropy (6.0.1), hydra (1.3.2), pandas (2.2.3), seaborn (0.13.2), meshoid (1.46.1)  [https://github.com/mikegrudic/meshoid],
+pyarrow (19.0.1)
 
 # Installation and Demos
 We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on

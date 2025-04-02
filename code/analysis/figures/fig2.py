@@ -10,7 +10,7 @@ from analysis.labelLine import labelLines
 ##Stacking data
 my_tides = False
 suff = "_mult"
-base_new =  "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+base_new =  "/data/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1,2,42)
 
 # Compute ECDF
