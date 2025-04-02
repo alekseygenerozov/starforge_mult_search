@@ -6,9 +6,9 @@ import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.labelLine import labelLines
-from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.code.analysis.analyze_stack import npz_stack
+from starforge_mult_search.code.analysis.labelLine import labelLines
+from starforge_mult_search.code.analysis.figures.figure_preamble import *
 
 bfb_filter = my_data["same_sys_at_fst"].astype(bool)
 
@@ -63,7 +63,7 @@ for sidx, seed in enumerate(seeds):
         delta_snapc[idx] = np.abs(snapc2 - snapc1) * snap_interval
         idx += 1
 
-from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
+from starforge_mult_search.code.analysis.plotting import annotate_multiple_ecdf
 
 delta_snap = my_data["delta_snap"]
 quasi_filter = my_data["quasi_filter"]

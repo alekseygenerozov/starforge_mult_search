@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from starforge_mult_search.analysis.analyze_stack import make_binned_data
-from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.code.analysis.analyze_stack import make_binned_data
+from starforge_mult_search.code.analysis.figures.figure_preamble import *
 
 ##Mass bins to use.
 bins = np.linspace(-1, 2, 6)

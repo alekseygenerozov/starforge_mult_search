@@ -12,7 +12,7 @@ from meshoid import Meshoid
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.code import starforge_constants as sfc
-from starforge_mult_search.analysis import cgs_const as cgs
+from starforge_mult_search.code.analysis import cgs_const as cgs
 import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable

@@ -7,18 +7,18 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
+from starforge_mult_search.code.analysis.plotting import annotate_multiple_ecdf
 from scipy.stats import ks_2samp
 import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
-from starforge_mult_search.analysis import analyze_multiples_part2
+from starforge_mult_search.code.analysis import analyze_multiples_part2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
-from starforge_mult_search.analysis import cgs_const as cgs
+from starforge_mult_search.code.analysis.analyze_stack import npz_stack
+from starforge_mult_search.code.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
+from starforge_mult_search.code.analysis import cgs_const as cgs
 
-from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.code.analysis.figures.figure_preamble import *
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)

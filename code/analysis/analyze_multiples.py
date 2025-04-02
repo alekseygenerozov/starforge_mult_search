@@ -10,7 +10,7 @@ import numpy as np
 from starforge_mult_search.code import (find_multiples_new2,
                                         halo_masses_single_double_par)
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
+from starforge_mult_search.code.analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
 
 import pandas as pd
 

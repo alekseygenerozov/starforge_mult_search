@@ -4,8 +4,8 @@ from matplotlib.ticker import FuncFormatter
 
 import matplotlib.pyplot as plt
 
-from starforge_mult_search.analysis import cgs_const as cgs
-from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.code.analysis import cgs_const as cgs
+from starforge_mult_search.code.analysis.figures.figure_preamble import *
 
 bin_ids = my_data["bin_ids"]
 fst = my_data["fst"]

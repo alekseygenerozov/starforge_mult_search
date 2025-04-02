@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import npz_stack
+from starforge_mult_search.code.analysis.analyze_stack import npz_stack
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1

@@ -8,7 +8,7 @@ import pytreegrav
 
 from starforge_mult_search.code.halo_masses_single_double_par import KE
 import starforge_mult_search.code.starforge_constants as sfc
-from starforge_mult_search.analysis.analyze_stack import mcol, pxcol, pycol, pzcol, vxcol, vycol, vzcol, hcol
+from starforge_mult_search.code.analysis.analyze_stack import mcol, pxcol, pycol, pzcol, vxcol, vycol, vzcol, hcol
 
 
 def get_mxvh(h5f, id):
