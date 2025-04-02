@@ -57,8 +57,9 @@ r2 = sys.argv[2].replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 base_sink = base + "/sinkprop/{0}_snapshot_".format(sim_tag)
 
-bin_ids = np.load(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/unique_bin_ids_mult.npz", allow_pickle=True)['arr_0']
-with open(base + aa + "/path_lookup.p", "rb") as ff:
+base_post = base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "")
+bin_ids = np.load(base_post + aa + "/unique_bin_ids_mult.npz", allow_pickle=True)['arr_0']
+with open(base_post + aa + "/path_lookup.p", "rb") as ff:
     path_lookup = pickle.load(ff)
 
 #########################################################################################################

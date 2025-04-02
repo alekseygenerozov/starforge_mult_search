@@ -35,7 +35,7 @@ def subtract_path(p1, p2):
     return diff
 
 def get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft):
-    with open(base + aa + "/path_lookup.p", "rb") as ff:
+    with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
         path_lookup = (pickle.load(ff))
 
     tmp_pos = path_lookup[f"{bin_id1}"][snap_idx, pxcol:vzcol+1]
@@ -159,7 +159,7 @@ v_scale = 100. / cgs.au / 1e4 * cgs.year * v_rescale
 d_cut = rmax
 base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 
-r2 = f"_TidesTrue_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
+r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
@@ -243,7 +243,7 @@ ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * co
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 
 #####################################################################################################
-with open(base + aa + "/path_lookup.p", "rb") as ff:
+with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
     path_lookup = (pickle.load(ff))
 # ##Getting com over time for pair -- make sure that the replacement here will not cause errors
 tmp1 = path_lookup[f"{bin_id1}"]
