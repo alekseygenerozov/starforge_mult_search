@@ -3,7 +3,7 @@ set -ex
 
 export PYTHONPATH=$PYTHONPATH:/code
 # This is the master script for the capsule. When you click "Reproducible Run", the code in this file will execute.
-#bash run_demo.sh "$@"
+bash run_demo.sh "$@"
 cd /code/analysis
 bash pipeline_all
 
