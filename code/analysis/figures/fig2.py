@@ -5,7 +5,7 @@ import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
 from analysis.analyze_stack import npz_stack
-from labelLine import labelLines
+from analysis.labelLine import labelLines
 
 ##Stacking data
 my_tides = False
