@@ -7,7 +7,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from starforge_mult_search.code.analysis.plotting import annotate_multiple_ecdf
+from analysis.plotting import annotate_multiple_ecdf
 from scipy.stats import ks_2samp
 import seaborn as sns
 import matplotlib.patches as mpatches
@@ -15,13 +15,13 @@ import matplotlib.patches as mpatches
 dummy_patch = mpatches.Patch(color='white', label='')
 
 colorblind_palette = sns.color_palette("colorblind")
-from starforge_mult_search.code.analysis import analyze_multiples_part2
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.code.analysis.analyze_stack import npz_stack
-from starforge_mult_search.code.analysis import cgs_const as cgs
-from starforge_mult_search.code.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
+from analysis import analyze_multiples_part2
+from find_multiples_new2 import cluster, system
+from analysis.analyze_stack import npz_stack
+from analysis import cgs_const as cgs
+from analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
 
-from starforge_mult_search.code.analysis.figures.figure_preamble import *
+from analysis.figures.figure_preamble import *
 #########################################################################################################
 end_states = fates_corr["end_states"]
 same_sys_filt = fates_corr["same_sys_filt"]

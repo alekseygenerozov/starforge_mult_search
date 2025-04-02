@@ -10,15 +10,15 @@ import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.code.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
-from starforge_mult_search.code.analysis import analyze_multiples_part2
-from starforge_mult_search.code.analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
+from analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
+from analysis import analyze_multiples_part2
+from analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
 from labelLine import labelLines
 
 ##Try to get rid of this import...
 from sci_analysis import plotting
 
-from starforge_mult_search.code.analysis.figures.figure_preamble import *
+from analysis.figures.figure_preamble import *
 #########################################################################################################
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*

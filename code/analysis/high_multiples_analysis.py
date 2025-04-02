@@ -9,9 +9,9 @@ import pickle
 import sys
 import tqdm
 
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.code.analysis.analyze_stack import get_fpaths, get_snap_info
-from starforge_mult_search.code.analysis import cgs_const as cgs
+from find_multiples_new2 import cluster, system
+from analysis.analyze_stack import get_fpaths, get_snap_info
+from analysis import cgs_const as cgs
 
 class SystemNode:
     """

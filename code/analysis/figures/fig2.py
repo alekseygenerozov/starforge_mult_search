@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.code.analysis.analyze_stack import npz_stack
+from analysis.analyze_stack import npz_stack
 from labelLine import labelLines
 
 ##Stacking data

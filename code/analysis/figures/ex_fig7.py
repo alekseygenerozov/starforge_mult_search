@@ -1,8 +1,8 @@
 import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
 
-from starforge_mult_search.code.analysis.figures.figure_preamble import *
-from starforge_mult_search.code.analysis.analyze_stack import max_w_infinite, subtract_path_1d
+from analysis.figures.figure_preamble import *
+from analysis.analyze_stack import max_w_infinite, subtract_path_1d
 
 path_lookup_keys = path_lookup.keys()
 
