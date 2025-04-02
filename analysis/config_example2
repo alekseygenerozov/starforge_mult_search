@@ -1,0 +1,12 @@
+[params]
+seed = 2
+rmax = 0.5
+snap_idx = 76
+bin1 = 13245844 
+bin2 = 19648925
+ft = 1.0
+savetype = pdf
+ins = 0.3
+ins_loc = lower right
+annot=2
+plimit = 0.5
