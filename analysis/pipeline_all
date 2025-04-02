@@ -11,7 +11,8 @@ CLOUD_TAGS=(
 
 # Common analysis tag
 ANALYSIS_TAG="TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
-CODE_BASE = "/home/aleksey/code/python/starforge_mult_search/"
+#CODE_BASE = "/home/aleksey/code/python/starforge_mult_search/"
+CODE_BASE = "/root/capsule/"
 
 # Create a logs directory
 mkdir -p logs
@@ -23,12 +24,12 @@ for SEED in "${SEEDS[@]}"; do
 done
 
 # Run pipeline_part_1_non_fid in parallel for each cloud tag
-for CLOUD_TAG in "${CLOUD_TAGS[@]}"; do
-    echo "Running pipeline_part_1_non_fid for cloud $CLOUD_TAG..."
-    $CODE_BASE/analysis/pipeline_part_1_non_fid "$CLOUD_TAG" 1 $ANALYSIS_TAG > logs/part1_nonfid_${CLOUD_TAG//\//_}.log 2>&1 &
-done
-
-$CODE_BASE/analysis/pipeline_part_1_v1.2 42 TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p > logs/part1_v1.2.log 2>&1 &
+#for CLOUD_TAG in "${CLOUD_TAGS[@]}"; do
+#    echo "Running pipeline_part_1_non_fid for cloud $CLOUD_TAG..."
+#    $CODE_BASE/analysis/pipeline_part_1_non_fid "$CLOUD_TAG" 1 $ANALYSIS_TAG > logs/part1_nonfid_${CLOUD_TAG//\//_}.log 2>&1 &
+#done
+#
+#$CODE_BASE/analysis/pipeline_part_1_v1.2 42 TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p > logs/part1_v1.2.log 2>&1 &
 
 # Wait for all Part 1 processes to complete
 wait
@@ -50,8 +51,8 @@ python $CODE_BASE/analysis/figures/fig1.py example1 > logs/fig1_1.log 2>&1
 python $CODE_BASE/analysis/figures/fig1.py example2 > logs/fig1_2.log 2>&1
 echo "Figure 1 generated."
 
-python $CODE_BASE/analysis/figures/Tables.py example2 > logs/tables.log 2>&1
-echo "Tables generated."
+#python $CODE_BASE/analysis/figures/Tables.py example2 > logs/tables.log 2>&1
+#echo "Tables generated."
 
 # Generate static figures
 FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5)
