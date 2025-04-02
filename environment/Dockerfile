@@ -1,4 +1,4 @@
-# hash:sha256:b7e70dc6aa724543cfed166f5e4029f8a13b50ad95b63ea29365cb287f051b6b
+# hash:sha256:15bd3fc5a8f8ffdefbdad805ffd2edf8743487c18fb9b441c96584fd6b01fee5
 FROM registry.codeocean.com/codeocean/miniconda3:4.12.0-python3.9-ubuntu20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -11,6 +11,7 @@ RUN pip install -U --no-cache-dir \
     numba==0.57.1 \
     numpy==1.24.4 \
     pandas==2.2.3 \
+    pyarrow==19.0.1 \
     pytreegrav==1.1 \
     scipy==1.6.1 \
     seaborn==0.13.2
