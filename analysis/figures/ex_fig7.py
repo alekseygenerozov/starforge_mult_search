@@ -12,11 +12,11 @@ mhalos_max = [max_w_infinite(subtract_path_1d(path_lookup[uu][:, mtotcol], path_
 mhalos_max = np.array(mhalos_max)
 mstars_final = np.array(mstars_final)
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [1,5]})
-ax1.set_ylim(1.01,3.01)
-ax1.set_yticks([2,3])
+ax1.set_ylim(1.01,2.01)
+ax1.set_yticks([1,2])
 ax2.set_ylim(-0.02,1.01)
-ax1.set_xlim(-0.02, 2)
-ax2.set_xlim(-0.02, 2)
+ax1.set_xlim(-0.02, 20)
+ax2.set_xlim(-0.02, 20)
 ax1.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
 
@@ -41,10 +41,10 @@ fig.subplots_adjust(hspace=0.05)  # adjust space between Axes
 # ax1.ecdf(mhalos_max / mstars_final, color=colorblind_palette[0])
 print(np.median(mhalos_max / mstars_final)**-1.)
 ax2.ecdf(mhalos_max / mstars_final, color=colorblind_palette[0])
-ax1.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 2.01, 0.05), linewidth=4,
+ax1.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 20.01, 0.5), linewidth=4,
          weights=[1 / len(mstars_final) * 10] * len(mstars_final),
         color=colorblind_palette[1])
-ax2.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 2.01, 0.05), linewidth=4,
+ax2.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 20.01, 0.5), linewidth=4,
          weights=[1 / len(mstars_final) * 10] * len(mstars_final),
          color=colorblind_palette[1])
 
