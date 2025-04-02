@@ -13,10 +13,10 @@ colorblind_palette = sns.color_palette("colorblind")
 from analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
 from analysis import analyze_multiples_part2
 from analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
-from labelLine import labelLines
+from analysis.labelLine import labelLines
 
 ##Try to get rid of this import...
-from analysis.sci_analysis import plotting
+from analysis import plotting
 
 from analysis.figures.figure_preamble import *
 #########################################################################################################

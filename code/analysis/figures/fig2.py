@@ -8,9 +8,10 @@ from analysis.analyze_stack import npz_stack
 from analysis.labelLine import labelLines
 
 ##Stacking data
+my_ft = 1.0
 my_tides = False
 suff = "_mult"
-base_new =  "/data/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+base_new =  "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1,2,42)
 
 # Compute ECDF
@@ -19,7 +20,6 @@ def ecdf(data):
     y = np.arange(1, len(data) + 1) / len(data)
     return x, y
 
-my_ft = 1.0
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
 npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]

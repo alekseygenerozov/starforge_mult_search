@@ -35,7 +35,8 @@ def subtract_path(p1, p2):
     return diff
 
 def get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft):
-    with open(base + aa + "/path_lookup.p", "rb") as ff:
+    base_post = base.replace("/data/", "")
+    with open(base_post + aa + "/path_lookup.p", "rb") as ff:
         path_lookup = (pickle.load(ff))
 
     tmp_pos = path_lookup[f"{bin_id1}"][snap_idx, pxcol:vzcol+1]
@@ -243,8 +244,10 @@ ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * co
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 
 #####################################################################################################
-with open(base + aa + "/path_lookup.p", "rb") as ff:
+base_post = base.replace("/data/", "")
+with open(base_post + aa + "/path_lookup.p", "rb") as ff:
     path_lookup = (pickle.load(ff))
+
 # ##Getting com over time for pair -- make sure that the replacement here will not cause errors
 tmp1 = path_lookup[f"{bin_id1}"]
 tmp2 = path_lookup[f"{bin_id2}"]
