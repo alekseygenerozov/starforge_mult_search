@@ -54,7 +54,7 @@ python $CODE_BASE/analysis/figures/Tables.py example2 > logs/tables.log 2>&1
 echo "Tables generated."
 
 # Generate static figures
-FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5)
+FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig34 ex_fig6 ex_fig7 fig5)
 for SCRIPT in "${FIG_SCRIPTS[@]}"; do
     echo "Generating static figure $SCRIPT..."
     python3 $CODE_BASE/analysis/figures/$SCRIPT.py > logs/${SCRIPT}.log 2>&1
