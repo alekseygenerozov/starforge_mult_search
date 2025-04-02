@@ -106,7 +106,7 @@ Multiplicity 3 count: 2\
 Multiplicity 4 count: 6
 
 # Output (demo b) 
-The next part of our demo generates the figures in our paper, as pdf files (e.g. fig1.pdf, fig2.pdf, etc.),
+The next part of our demo generates the figures in our paper, as pdf files (e.g. fig1_example1a.pdf, fig2a.pdf, etc.),
 as well some text output for tabular data in (logs/tables.log and log/fig4.log, which contains the numbers
 going into the schematic in Fig. 4)
 
@@ -119,8 +119,8 @@ high_multiples_analysis.py) and reogranize the data into tables for easier analy
 we describe these scripts' outputs in README_ANALYSIS.md, but the user does not need to interact 
 with these intermediate outputs to reproduce the paper figures.
 2. Scripts that produce Figures in the analysis/figures, using the above data tables. 
-So fig2.py generates figure 2 (fig2.pdf), fig3.py generates figure 3 (fig3.pdf), etc. 
-fig2.py also generates ex_fig5.py, and ex_fig1.py generates the right panel of fig2. (As fig2b.pdf)
+So fig2.py generates figure 2 (fig2a.pdf), fig3.py generates figure 3 (fig3a.pdf, fig3b.pdf), etc. 
+fig2.py also generates ex_fig5.pdf, and ex_fig1.py generates the right panel of fig2. (As fig2b.pdf)
 fig4.py generates the numbers in the schematic in fig. 4, and writes them to logs/fig4.log. 
 3. Tables.py generate the numbers for the fiducial simulations in Tables 1 and writes it to logs/tables.log.
 
