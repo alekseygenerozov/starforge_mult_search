@@ -11,6 +11,7 @@ CLOUD_TAGS=(
 
 # Common analysis tag
 ANALYSIS_TAG="TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
+ANALYSIS_TAGB="TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse.p"
 CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
 
 # Create a logs directory
@@ -21,6 +22,14 @@ for SEED in "${SEEDS[@]}"; do
     echo "Running pipeline_part_1 for seed $SEED..."
     $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAG > logs/part1_seed_${SEED}.log 2>&1 &
 done
+
+# Run pipeline_part_1 in parallel for each seed
+for SEED in "${SEEDS[@]}"; do
+    echo "Running pipeline_part_1 for seed $SEED..."
+    $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAGB > logs/part1_seed_${SEED}.log 2>&1 &
+done
+
+wait
 
 # Run pipeline_part_1_non_fid in parallel for each cloud tag
 for CLOUD_TAG in "${CLOUD_TAGS[@]}"; do
