@@ -8,4 +8,9 @@ RUN pip install -U --no-cache-dir \
     numba==0.57.1 \
     numpy==1.24.4 \
     pytreegrav==1.1 \
-    scipy==1.6.1
+    scipy==1.6.1 \
+    astropy==7.0.0 \
+    hydra==1.3.2 \
+    pandas==2.1.4 \
+    seaborn==0.13.2 \
+    meshoid==1.46.0 \
