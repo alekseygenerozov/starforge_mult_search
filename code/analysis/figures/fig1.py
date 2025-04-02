@@ -160,7 +160,7 @@ v_scale = 100. / cgs.au / 1e4 * cgs.year * v_rescale
 d_cut = rmax
 base = f"/data/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 
-r2 = f"_TidesTrue_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
+r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
 aa = "analyze_multiples_output_" + r2 + "/"
 
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"

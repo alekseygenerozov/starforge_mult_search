@@ -80,15 +80,23 @@ astropy (6.0.1), hydra (1.3.2), meshoid (1.46.1)  [https://github.com/mikegrudic
 pandas (2.2.3), pyarrow (19.0.1), pytreegrav (1.1) [https://github.com/mikegrudic/pytreegrav], SciPy (1.6.1), seaborn (0.13.2)
 
 
-# Installation and Demos
-We provide a code capsule to run a demo of the code directly on Code Ocean, so that local installation is not required. Environment setup on
-Code Ocean takes approximately 20 seconds. 
+# Demos
+Due to computational and memory constraints we cannot provide a capsule that runs all of our analysis end-to-end. As
+a compromise, we provide the following resources
 
-The code capsule include a demo dataset of a single snapshot from a simulation of a
+a) Code to run a demo of the halo and multiple id code on a small dataset from a simulation of a
 smaller, 2x10^3 solar mass cloud.
+b) Pre-computed multiplicity and halo data for our fiducial simulations and scripts to generate the figures in our paper.
 
-The total runtime for the demo is 3 minutes on a 10 core Lenovo E15 laptop and 4 minutes on Code Ocean
+# Runtimes and Installation
+The capsule can be run on Code Ocean, without any local installation. This will run both the demos above.
 
+Environment setup on Code Ocean takes approximately 20 seconds. 
+Loading the capsule files takes approximately 3 minutes (due to the large amount of data in the capsule).
+Demo (a) takes approximately 4 minutes of runtime
+Demo (b) take approximately 13 minutes of runtime
+
+# Output (demo a)
 The demo will produce the output files described in #starforge_mult_search above, as well as a file called 'mult_summary' with
 the multiple statistics in the demo data. The contents should be as below:
 
@@ -97,13 +105,13 @@ Multiplicity 2 count: 17\
 Multiplicity 3 count: 2\
 Multiplicity 4 count: 6
 
-# Reproducing paper results and figures
-Running the full analysis pipeline for the actual simulations data takes several days of compute on an HPC.
-Moreover, it would be impractical to upload the required simulation snapshots (of order 1 TB for each cloud).
+# Output (demo b) 
+The next part of our demo generates the figures in our paper, as pdf files (e.g. fig1.pdf, fig2.pdf, etc.),
+as well some text output for tabular data in (logs/tables.log and log/fig4.log, which contains the numbers
+going into the schematic in Fig. 4)
 
-However, the paper figures can be reproduced in reasonable time (within ~15 minutes on Code Ocean) if the output of the 
-multiple search algorithm has been prepared in advance. We have uploaded this data for the fiducial simulation, so 
-that our figures can be reproduced. The scripts for this part of the analysis are stored in the 
+So that the paper figures can be reproduced in reasonable time (within ~15 minutes on Code Ocean), we have uploaded multiplicity data
+and halo data for the fiducial simulation. The scripts for this part of the analysis are stored in the 
 "analysis" subdirectory. In summary this directory contains the 
 
 1. Scripts that post-process these files (e.g. analyze_multiples.py, analyze_multiples_part2.py,
