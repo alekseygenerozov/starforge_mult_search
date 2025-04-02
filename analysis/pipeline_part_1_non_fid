@@ -1,4 +1,4 @@
-CODE_BASE = "/home/aleksey/code/python/starforge_mult_search/"
+CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
 
 python $CODE_BASE/analysis/analyze_multiples.py cloud_tag=$1 seed=$2 analysis_tag=$3
 python $CODE_BASE/analysis/analyze_multiples_part2.py cloud_tag=$1 seed=$2 analysis_tag=$3
