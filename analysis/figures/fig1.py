@@ -205,8 +205,8 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k")
-ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k")
+ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k", s=40)
+ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k", s=40)
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
