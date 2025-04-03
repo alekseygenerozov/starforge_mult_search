@@ -33,6 +33,7 @@ ax.errorbar(bins_center, n1 / d1, \
             yerr=n1u / d1, marker="s", linestyle="", alpha=0.7, label="Survivors")
 ax.errorbar(bins_center, n2 / d2, \
             yerr=n2u / d2, marker="s", linestyle="", alpha=0.7, label="Non-survivors")
+ax.legend(loc="lower left")
 fig.savefig("ex_fig1.pdf")
 
 fig, ax = plt.subplots()
@@ -42,9 +43,8 @@ ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
 ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n3 / d3, \
-            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7, label="Survivors")
+            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7)
 
 print(n3 /d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
-ax.legend(loc="lower left")
 fig.savefig("fig2b.pdf")
