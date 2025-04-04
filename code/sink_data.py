@@ -32,7 +32,7 @@ def load_data(file, res_limit=0.0):
     # Internal (thermal) energy
     u = f['PartType0']['InternalEnergy'][:] * mask
     v = f['PartType0']['Velocities'] * mask3d
-    b = f['PartType0'][['MagneticField']][:] * mask3d
+    b = f['PartType0']['MagneticField'][:] * mask3d
     #t = f['PartType0']['Temperature'][:] * mask
     # Fraction of molecular material in each cell
     fmol = f['PartType0']['MolecularMassFraction'][:] * mask
