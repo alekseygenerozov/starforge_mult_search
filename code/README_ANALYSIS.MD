@@ -14,7 +14,7 @@ Output files:
   - `LOOKUP_Q`: Mass ratio.
   - `LOOKUP_MPRIM`: Primary mass [Msun].
   - `LOOKUP_MPRIM_ID`: Primary star index.
-  - `LOOKUP_STAR_ORDER`: Rank in multiple (1 = Primary).
+  - `LOOKUP_STAR_ORDER`: Rank in multiple (0 = Primary).
   - Note: If single, `LOOKUP_SMA`, `LOOKUP_ECC`, and `LOOKUP_Q` are -1.
 - `unique_bin_ids_mult.npz`: Unique binary IDs throughout the simulation, including those in higher-order multiples.
 - `fst_mult.npz`: Initial snapshot data for all binary pairs.
