@@ -49,7 +49,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ck2 = np.any(ck2)
 
     pmult_filt[ii] = ~(ck1 or ck2)
-
+np.savez("pmult_before_bin.npz", pmult_filt=pmult_filt)
 #########################################################################################################
 ##Loading data
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
