@@ -42,7 +42,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ibs = my_data["init_bound_snaps"][ii]
     tmp_sel = high_df.query(f"tval < {ibs}")
     mult_ids_set = tmp_sel["mult_ids_set"]
-
+    ##Additional filtering here--only select those cases where multiple is quasi-persistent  based on prior snapshots.
     ck1 = [bin_list[0] in mult_id for mult_id in mult_ids_set]
     ck1 = np.any(ck1)
     ck2 = [bin_list[1] in mult_id for mult_id in mult_ids_set]

@@ -100,7 +100,7 @@ def get_min_dist_binary(path_lookup, tmp_row):
     path_diff_all_order = np.argsort(path_diff_all, axis=1)
     path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
 
-    return path_diff_all
+    return path_diff_all, path_diff_all_order
 
 
 def make_binned_data(absc, ords, bins):
