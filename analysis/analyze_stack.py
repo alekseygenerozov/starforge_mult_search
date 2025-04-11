@@ -154,5 +154,16 @@ def get_snap_info(base, base_sink):
 
     return cadence, snap_interval, start_snap, end_snap
 
+def get_end_time_set(my_set, path_lookup):
+    """
+    Get final time each of star of my_set exists and the maximum mass (primary of that set)...
+    """
+    ps = [path_lookup[str(ss)][:, [0, mcol]] for ss in my_set]
+    ps = np.array(ps)
+
+    ps = np.swapaxes(ps, 0, 1)
+    end_stars_row = ps[~np.isinf(np.mean(ps[:, :, 0], axis=1))][-1]
+    return end_stars_row[0, 0], max(end_stars_row[:, 1])
+
 
 

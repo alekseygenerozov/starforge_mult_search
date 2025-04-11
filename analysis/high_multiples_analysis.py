@@ -10,7 +10,7 @@ import sys
 import tqdm
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, pxcol, pzcol, vxcol, vzcol, mcol
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
 
@@ -246,10 +246,14 @@ def main(params):
         flat_id = params["flat_id"]
         tail_out = "_flat"
 
+
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
     save_path = f"{v_str}/{cloud_tag0}/{sim_tag}/{aa}"
     os.makedirs(save_path, exist_ok=True)
+    with open(save_path + f"/path_lookup.p", "rb") as ff:
+        path_lookup = pickle.load(ff)
+
     for snap in range(start_snap, end_snap + 1, cadence):
         with open(
                 f"{r1}{snap:03d}{r2}", "rb") as ff:
@@ -277,6 +281,8 @@ def main(params):
     mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
     coll_full_df_life["mult_ids_set"] = mult_ids_set.to_list()
     coll_full_df_life["mult"] = coll_full_df_life["mult_ids_set"].apply(lambda ss: len(ss))
+    ##Getting end times for all stars...TO DO: Also store the final primary mass here.
+    coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life["mult_ids_set"].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
     ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
