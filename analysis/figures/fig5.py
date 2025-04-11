@@ -8,6 +8,8 @@ from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from analysis.figures.Tables import my_data
+
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
@@ -95,7 +97,8 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 ##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
-final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
+##Checking if the stars are bound at the last snapshot both exist(!!)
+final_bound_snaps_norm = my_data["final_bound_snaps"] / my_data["end_stars"]
 no_mult_before_bin = pmult_filt
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
 ##to make sense.

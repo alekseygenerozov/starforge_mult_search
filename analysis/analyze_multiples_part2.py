@@ -127,6 +127,8 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
     vangs_prim = np.ones(len(bin_ids)) * np.inf
     mfinal_primary = np.ones(len(bin_ids)) * np.inf
     mfinal_pair = np.ones(len(bin_ids)) * np.inf
+    end_stars = np.ones(len(bin_ids)) * np.inf
+
 
     for ii, uid in enumerate(bin_ids):
         fst_idx = fst[ii]
@@ -168,9 +170,11 @@ def get_energy(bin_ids, fst, lookup_dict, path_lookup):
         m2end = path2[mfilt][-1, mcol]
         mfinal_primary[ii] = max(m1end, m2end)
         mfinal_pair[ii] = m1end + m2end
+        end_stars[ii] = path1[mfilt][-1, 0]
 
     return {"ens": ens, "ens_gas":ens_gas, "same_sys_at_fst":same_sys_at_fst, "bin_at_fst": bin_at_fst,
-            "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary, "mfinal_pair": mfinal_pair}
+            "vangs": vangs, "vangs_prim": vangs_prim, "mfinal_primary": mfinal_primary, "mfinal_pair": mfinal_pair,
+            "end_stars":end_stars}
 
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
@@ -204,6 +208,7 @@ def main(params):
              vangs=en_data["vangs"], vangs_prim=en_data["vangs_prim"],
              mfinal_primary=en_data["mfinal_primary"],
              mfinal_pair=en_data["mfinal_pair"],
+             end_stars=end_data["end_stars"],
              quasi_filter=bound_time_data["quasi_filter"],
              final_bound_snaps_norm=bound_time_data["final_bound_snaps_norm"],
              final_bound_snaps=bound_time_data["final_bound_snaps"],
