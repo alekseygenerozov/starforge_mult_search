@@ -103,13 +103,14 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
         removeNestings(h_copy, tmp_flat)
         ## Can flatten and sort the hierarchy instead...
         sid = rec_sort(h_copy)
+        sid_full = copy.deepcopy(sid)
         if flat_id:
             sid = []
             removeNestings(h_copy, sid)
             sid.sort()
         node = SystemNode(
             data={"id": sid, "orbit": tmp_orb[[0, 1, 10, 11]], "pos": tmp_orb[4:7], "vel": tmp_orb[7:10],
-                  "mult": len(tmp_flat)})
+                  "mult": len(tmp_flat), "hier": sid_full})
         # Extract the last two components from the hierarchy
         p1 = h_copy.pop()
         p2 = h_copy.pop()
@@ -170,6 +171,7 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
         tab_dat.append(tmp_per)
         tab_dat.append(sub_sys)
+        tab_dat.append(str(n1.data["hier"]))
         coll_full.append(tab_dat)
 
         add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
@@ -263,12 +265,18 @@ def main(params):
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss"))
+    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier"))
     coll_full_df.set_index(["id", "t"], inplace=True)
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
+    ##Convenience columns....e.g. Multiplicity
+    mult_ids = coll_full_df_life.index.get_level_values("id")
+    mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+    coll_full_df_life["mult_ids_set"] = mult_ids_set.to_list()
+    coll_full_df_life["mult"] = coll_full_df_life["mult_ids_set"].apply(lambda ss: len(ss))
+    ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
     analysis_suff = "_mult"
