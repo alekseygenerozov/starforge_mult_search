@@ -208,7 +208,7 @@ def main(params):
              vangs=en_data["vangs"], vangs_prim=en_data["vangs_prim"],
              mfinal_primary=en_data["mfinal_primary"],
              mfinal_pair=en_data["mfinal_pair"],
-             end_stars=end_data["end_stars"],
+             end_stars=en_data["end_stars"],
              quasi_filter=bound_time_data["quasi_filter"],
              final_bound_snaps_norm=bound_time_data["final_bound_snaps_norm"],
              final_bound_snaps=bound_time_data["final_bound_snaps"],
