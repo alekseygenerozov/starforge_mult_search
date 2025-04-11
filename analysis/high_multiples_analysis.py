@@ -10,8 +10,9 @@ import sys
 import tqdm
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, pxcol, pzcol, vxcol, vzcol, mcol
 from starforge_mult_search.analysis import cgs_const as cgs
+
 
 class SystemNode:
     """
