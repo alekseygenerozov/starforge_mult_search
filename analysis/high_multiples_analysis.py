@@ -10,7 +10,7 @@ import sys
 import tqdm
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
 
@@ -162,6 +162,29 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     jhat_2 = jhat_2 / np.linalg.norm(jhat_2)
 
     return np.dot(jhat_1, jhat_2)
+
+def get_q_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
+    """
+    Get mass ratios of triple system (with inner binary i1, i2, and outer
+    tertiary i3 from lookup table of positions and velocities (tmp_path_lookup), at
+    snapshot snap. The angular momentum of the tertiary is calculate with respect
+    to the center of mass of the inner binary. This is by default calculated without
+    the halo mass corrections, but if inc_halo=True, the halo masses are included
+    in the calculation of the com...
+    """
+    my_mcol = mcol
+    if inc_halo:
+        my_mcol = mtotcol
+    p1 = tmp_path_lookup[i1][snap]
+    p2 = tmp_path_lookup[i2][snap]
+    p3 = tmp_path_lookup[i3][snap]
+
+    ##Mass ratio of inner binary: min / max < 1 by definition
+    q1 = min(p1[my_mcol], p2[my_mcol]) / max(p1[my_mcol], p2[my_mcol])
+    ##Tertiary / Inner binary.
+    q2 = p3[my_mcol] / (p1[my_mcol] + p2[my_mcol])
+
+    return q1, q2
 
 def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False):
     if n1.data["orbit"] is None:
