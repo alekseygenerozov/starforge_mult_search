@@ -281,7 +281,7 @@ def main(params):
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
     ##Convenience columns....e.g. Multiplicity
     mult_hiers = coll_full_df_life["hier"]
-    mult_ids_list = mult_hiers.to_series().apply(parse_mult_id_list)
+    mult_ids_list = mult_hiers.apply(parse_mult_id_list)
     coll_full_df_life["mult_ids_list"] = mult_ids_list
     coll_full_df_life["mult"] = coll_full_df_life["mult_ids_list"].apply(lambda ss: len(ss))
     ##Getting end times for all stars...TO DO: Also store the final primary mass here.
