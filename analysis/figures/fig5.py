@@ -8,8 +8,6 @@ from scipy.stats import ks_2samp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from analysis.figures.Tables import my_data
-
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
@@ -19,7 +17,6 @@ from labelLine import labelLines
 
 ##Try to get rid of this import...
 from sci_analysis import plotting
-
 from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
 ## Constructing new filter: whether
@@ -76,7 +73,7 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
 
     tmp_times = b1[:,0].astype(int)
     fb, lb = tmp_times[0], tmp_times[-1]
-    path_diff_all = get_min_dist_binary(path_lookup, tmp_row)
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
     try:
         norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
     except IndexError:
@@ -111,7 +108,7 @@ for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
     b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
-    path_diff_all = get_min_dist_binary(path_lookup, tmp_row)
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
     ##Minimum distance for all surviving binaries
     norm_sep[idx] = np.min(path_diff_all[b1[:,0].astype(int)][:,0] / (2 * b1[:, LOOKUP_SMA]))
 #########################################################################################################
