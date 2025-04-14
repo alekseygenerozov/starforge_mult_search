@@ -216,6 +216,9 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
 def parse_mult_id(id_str):
     return set(map(int, id_str.replace("[", "").replace("]", "").split(",")))
 
+def parse_mult_id_list(id_str):
+    return list(map(int, id_str.replace("[", "").replace("]", "").split(",")))
+
 def subset_count(ids1, ids):
     subsets = []
     for row in ids:
@@ -277,12 +280,12 @@ def main(params):
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
     ##Convenience columns....e.g. Multiplicity
-    mult_ids = coll_full_df_life.index.get_level_values("id")
-    mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-    coll_full_df_life["mult_ids_set"] = mult_ids_set.to_list()
-    coll_full_df_life["mult"] = coll_full_df_life["mult_ids_set"].apply(lambda ss: len(ss))
+    mult_hiers = coll_full_df_life["hier"]
+    mult_ids_list = mult_hiers.to_series().apply(parse_mult_id_list)
+    coll_full_df_life["mult_ids_list"] = mult_ids_list
+    coll_full_df_life["mult"] = coll_full_df_life["mult_ids_list"].apply(lambda ss: len(ss))
     ##Getting end times for all stars...TO DO: Also store the final primary mass here.
-    coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life["mult_ids_set"].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
+    coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life["mult_ids_list"].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
     ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
