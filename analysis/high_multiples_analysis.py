@@ -13,8 +13,6 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
-from analysis.figures.fig1 import mtotcol
-
 
 class SystemNode:
     """
@@ -136,16 +134,21 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
     return node, orbs_copy
 
 
-def get_inc_trip(i1, i2, i3, tmp_path_lookup, inc_halo=False):
+def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     """
-    Get relative inclination of triple system from lookup table of positions and velocities.
+    Get relative inclination of triple system (with inner binary i1, i2, and outer
+    tertiary i3 from lookup table of positions and velocities (tmp_path_lookup), at
+    snapshot snap. The angular momentum of the tertiary is calculate with respect
+    to the center of mass of the inner binary. This is by default calculated without
+    the halo mass corrections, but if inc_halo=True, the halo masses are included
+    in the calculation of the com...
     """
     my_mcol = mcol
     if inc_halo:
         my_mcol = mtotcol
-    p1 = tmp_path_lookup[i1][-1]
-    p2 = tmp_path_lookup[i2][-1]
-    p3 = tmp_path_lookup[i3][-1]
+    p1 = tmp_path_lookup[i1][snap]
+    p2 = tmp_path_lookup[i2][snap]
+    p3 = tmp_path_lookup[i3][snap]
     bin_r = p1[pxcol:pzcol + 1] - p2[pxcol:pzcol + 1]
     bin_v = p1[vxcol:vzcol + 1] - p2[vxcol:vzcol + 1]
 

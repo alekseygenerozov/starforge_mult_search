@@ -78,3 +78,4 @@ npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in se
 fates_corr = npz_stack(npzs_list)
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]
+
