@@ -13,6 +13,8 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
+from analysis.figures.fig1 import mtotcol
+
 
 class SystemNode:
     """
@@ -134,17 +136,20 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
     return node, orbs_copy
 
 
-def get_inc_trip(i1, i2, i3, tmp_path_lookup):
+def get_inc_trip(i1, i2, i3, tmp_path_lookup, inc_halo=False):
     """
     Get relative inclination of triple system from lookup table of positions and velocities.
     """
+    my_mcol = mcol
+    if inc_halo:
+        my_mcol = mtotcol
     p1 = tmp_path_lookup[i1][-1]
     p2 = tmp_path_lookup[i2][-1]
     p3 = tmp_path_lookup[i3][-1]
     bin_r = p1[pxcol:pzcol + 1] - p2[pxcol:pzcol + 1]
     bin_v = p1[vxcol:vzcol + 1] - p2[vxcol:vzcol + 1]
 
-    bin_com = (p1[mcol] * p1[pxcol:vzcol + 1] + p2[mcol] * p2[pxcol:vzcol + 1]) / (p1[mcol] + p2[mcol])
+    bin_com = (p1[my_mcol] * p1[pxcol:vzcol + 1] + p2[my_mcol] * p2[pxcol:vzcol + 1]) / (p1[my_mcol] + p2[my_mcol])
     t_r = p3[pxcol:pzcol + 1] - bin_com[:3]
     t_v = p3[vxcol:vzcol + 1] - bin_com[3:]
 
@@ -284,7 +289,8 @@ def main(params):
     mult_ids_list = mult_hiers.apply(parse_mult_id_list)
     coll_full_df_life["mult_ids_list"] = mult_ids_list
     coll_full_df_life["mult"] = coll_full_df_life["mult_ids_list"].apply(lambda ss: len(ss))
-    ##Getting end times for all stars...TO DO: Also store the final primary mass here.
+    ##Getting end times for all stars, and final primary mass for multiple.
+    ##TO DO: Also store version with halo mass.
     coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life["mult_ids_list"].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
     ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
