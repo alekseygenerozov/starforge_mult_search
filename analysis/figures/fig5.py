@@ -19,6 +19,8 @@ from labelLine import labelLines
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
+npzs_list = [base_new + str(seed) + suff_new + f"/fst_mult.npz" for seed in seeds]
+fst = npz_stack(npzs_list)
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
@@ -39,7 +41,9 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         continue
     bin_list = list(row)
     ibs = my_data["init_bound_snaps"][ii]
-    tmp_sel = high_df.query(f"tval < {ibs}")
+    fst = my_data["fst"][ii]
+    # tmp_sel = high_df.query(f"tval < {ibs}")
+    tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
     mult_ids_set = tmp_sel["mult_ids_set"]
     ##Additional filtering here--only select those cases where multiple is quasi-persistent  based on prior snapshots.
     ck1 = [bin_list[0] in mult_id for mult_id in mult_ids_set]
