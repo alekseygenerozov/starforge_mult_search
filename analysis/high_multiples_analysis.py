@@ -316,7 +316,7 @@ def main(params):
     coll_full_df_life = pd.merge(coll_full_df_life, tmp1, left_index=True, right_index=True)
     coll_full_df_life = pd.merge(coll_full_df_life, tmp2, left_index=True, right_index=True)
 
-    coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"})
+    coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"}, inplace=True)
 
 
     ##Convenience columns....e.g. Multiplicity
