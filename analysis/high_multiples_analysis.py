@@ -306,10 +306,19 @@ def main(params):
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier"))
     coll_full_df.set_index(["id", "t"], inplace=True)
+    ##TO DO: Try to homogenize this code...
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
+    tmp1 = coll_full_df_life.groupby("id", group_keys=True)[["tval"]].transform(lambda x: list(range(len(x))))
+    tmp2 = coll_full_df_life.groupby("id")[["p"]].transform(lambda x: (my_data["snap_interval"][0] / x).cumsum())
+    coll_full_df_life = pd.merge(coll_full_df_life, tmp1, left_index=True, right_index=True)
+    coll_full_df_life = pd.merge(coll_full_df_life, tmp2, left_index=True, right_index=True)
+
+    coll_full_df_life.rename(columns={"p_x": "p", "tval_x": "tval", "tval_y": "cumul_snaps", "p_y": "cumul_frac"})
+
+
     ##Convenience columns....e.g. Multiplicity
     mult_hiers = coll_full_df_life["hier"]
     mult_ids_list = mult_hiers.apply(parse_mult_id_list)

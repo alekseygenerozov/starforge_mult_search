@@ -19,8 +19,6 @@ from labelLine import labelLines
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
-npzs_list = [base_new + str(seed) + suff_new + f"/fst_mult.npz" for seed in seeds]
-fst = npz_stack(npzs_list)
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
