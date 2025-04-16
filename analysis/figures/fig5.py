@@ -33,111 +33,127 @@ high_df["mult_ids_set"] = mult_ids_set.to_list()
 tval = high_df.index.get_level_values("t")
 high_df["tval"] = tval
 pmult_filt = np.zeros(len(bin_ids)).astype(bool)
+##ex_time is like a "floor" for the exchange time -- if the pair is bound after this time it is considered an exchange binary(!)
+##Want separate data with the true exchange time...
+ex_time = np.ones(len(bin_ids)) * np.inf
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
     if not quasi_filter[ii]:
         continue
     bin_list = list(row)
     ibs = my_data["init_bound_snaps"][ii]
+    ##Save bound_snaps data to save time(!!)
+    bs = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])[0][:, 0].astype(int)
     fst = my_data["fst"][ii]
     # tmp_sel = high_df.query(f"tval < {ibs}")
-    tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
+    # tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
+    tmp_sel = high_df.loc[(tval >= fst)]
+    bin_exclude = ~tmp_sel["tval"].isin(bs)
+    tmp_sel = tmp_sel.loc[bin_exclude]
     mult_ids_set = tmp_sel["mult_ids_set"]
     ##Additional filtering here--only select those cases where multiple is quasi-persistent  based on prior snapshots.
     ck1 = [bin_list[0] in mult_id for mult_id in mult_ids_set]
-    ck1 = np.any(ck1)
+    # ck1 = np.any(ck1)
     ck2 = [bin_list[1] in mult_id for mult_id in mult_ids_set]
-    ck2 = np.any(ck2)
+    # ck2 = np.any(ck2)
+    tmp_sel2a = tmp_sel.loc[ck1]
+    tmp_sel2b = tmp_sel.loc[ck2]
+    if len(tmp_sel2a) > 0:
+        ex_time[ii] = tmp_sel2a["tval"].min()
+    if len(tmp_sel2b) > 0:
+        ex_time[ii] = min(ex_time[ii], tmp_sel2b["tval"].min())
 
-    pmult_filt[ii] = ~(ck1 or ck2)
-np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt)
+    pmult_filt[ii] = ex_time[ii] >= ibs
+
+np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time)
 #########################################################################################################
-##Loading data
-# npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
-# fates_corr = npz_stack(npzs_list)
-# same_sys_filt = fates_corr["same_sys_filt"]
-# end_states = fates_corr["end_states"]
-# bin_ids = my_data["bin_ids"]
-# quasi_filter = my_data["quasi_filter"]
-# #########################################################################################################
-# ##Ionized binaries and encounters -- those that end up as single stars
-# bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
-# bin_ids_subset = bin_ids_11
-# norm_sep = np.zeros(len(bin_ids_subset))
-# mult_after_destruction = np.zeros(len(bin_ids_subset))
-#
-# for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
-#     bin_list = list(uid)
-#     tmp_row = np.array(bin_list).astype(str)
-#     sys1_info = lookup_dict[bin_list[0]]
-#     sys2_info = lookup_dict[bin_list[1]]
-#     b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
-#
-#     tmp_times = b1[:,0].astype(int)
-#     fb, lb = tmp_times[0], tmp_times[-1]
-#     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
-#     try:
-#         norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
-#     except IndexError:
-#         breakpoint()
-#     try:
-#         mult1 = sys1_info[sys1_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
-#         mult2 = sys2_info[sys2_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
-#     except IndexError:
-#         breakpoint()
-#
-#     mult1 = lookup_star_mult(high_df, bin_list[0], lb + 1, pre_filtered=False)
-#     mult2 = lookup_star_mult(high_df, bin_list[1], lb + 1, pre_filtered=False)
-#     mult_after_destruction[idx] = max(mult1[1], mult2[1])
-#
-# norm_sep_og = np.copy(norm_sep)
-# print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_destruction > 1]) / len(mult_after_destruction)}")
-# #########################################################################################################
-# ##Surviving binaries and encounters -- those that end up as single stars
-# bin_ids = my_data["bin_ids"]
-# quasi_filter = my_data["quasi_filter"]
-# ##Checking if the stars are bound at the last snapshot both exist(!!)
-# final_bound_snaps_norm = my_data["final_bound_snaps"] / my_data["end_stars"]
-# no_mult_before_bin = pmult_filt
-# ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
-# ##to make sense.
-# bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
-# print(len(bin_ids_surv))
-# norm_sep = np.zeros(len(bin_ids_surv))
-# bin_ids_subset = bin_ids_surv
-#
-# for idx, uid in enumerate(bin_ids_subset):
-#     bin_list = list(uid)
-#     tmp_row = np.array(bin_list).astype(str)
-#     b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
-#     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
-#     ##Minimum distance for all surviving binaries
-#     norm_sep[idx] = np.min(path_diff_all[b1[:,0].astype(int)][:,0] / (2 * b1[:, LOOKUP_SMA]))
-# #########################################################################################################
-# fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
-# ax.set_xlim(0.05, 1000)
-# ax.set_xscale("log")
-# ax.set_xlabel("Min[$d_{ext} / (2 a_{bin})$]")
-# ax.set_ylabel("Fraction")
-# pval = ks_2samp(norm_sep, norm_sep_og).pvalue
-# ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
-#
-# plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
-#                        ("Surviving\n(no mult\ninteractions)", "Ionized",  "Min(Lb and Lb+1)", "Lb", "traj_extrap"), ax=ax,
-#                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', None, None, None], linestyles=["--", None, None, None])
-# fig.savefig("fig5a.pdf")
-# #########################################################################################################
-# final_pair_mass_no_halo = my_data["mfinal_pair"]
-#
-# bins = np.arange(-1, 1.21, 0.2)
-# vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & ~(same_sys_filt)])), bins=bins,
-#                        histtype='step')
-# vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_sys_filt)]), bins=bins,
-#                        histtype='step')
-#
-# fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
-# ax.set_ylabel("$N_{surv}$ / $N_{dis}$")
-# ax.set_xlabel("log($m_{pair, f}$ [$M_{\odot}$])")
-# plt.plot(0.5 * (b1[1:] + b1[:-1]), vs_b / vd_b, "s-")
-#
-# fig.savefig("fig5b.pdf")
+#Loading data
+npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
+fates_corr = npz_stack(npzs_list)
+same_sys_filt = fates_corr["same_sys_filt"]
+end_states = fates_corr["end_states"]
+bin_ids = my_data["bin_ids"]
+quasi_filter = my_data["quasi_filter"]
+#########################################################################################################
+##Ionized binaries and encounters -- those that end up as single stars
+bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
+bin_ids_subset = bin_ids_11
+norm_sep = np.zeros(len(bin_ids_subset))
+mult_after_destruction = np.zeros(len(bin_ids_subset))
+
+for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
+    bin_list = list(uid)
+    tmp_row = np.array(bin_list).astype(str)
+    sys1_info = lookup_dict[bin_list[0]]
+    sys2_info = lookup_dict[bin_list[1]]
+    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
+
+    tmp_times = b1[:,0].astype(int)
+    fb, lb = tmp_times[0], tmp_times[-1]
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
+    try:
+        norm_sep[idx] = min(path_diff_all[lb][0], path_diff_all[lb + 1][0]) / (2 * b1[-1, LOOKUP_SMA])
+    except IndexError:
+        breakpoint()
+    try:
+        mult1 = sys1_info[sys1_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
+        mult2 = sys2_info[sys2_info[:,LOOKUP_SNAP]==lb+1][0, LOOKUP_MULT]
+    except IndexError:
+        breakpoint()
+
+    mult1 = lookup_star_mult(high_df, bin_list[0], lb + 1, pre_filtered=False)
+    mult2 = lookup_star_mult(high_df, bin_list[1], lb + 1, pre_filtered=False)
+    mult_after_destruction[idx] = max(mult1[1], mult2[1])
+
+norm_sep_og = np.copy(norm_sep)
+##TO FIX: Not right filtering!
+print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_destruction > 1]) / len(mult_after_destruction)}")
+#########################################################################################################
+##Surviving binaries and encounters -- those that end up as single stars
+bin_ids = my_data["bin_ids"]
+quasi_filter = my_data["quasi_filter"]
+##Checking if the stars are bound at the last snapshot both exist(!!)
+final_bound_snaps_norm = my_data["final_bound_snaps"] / my_data["end_stars"]
+no_mult_before_bin = np.isinf(ex_time) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
+##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
+##to make sense.
+bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
+print(len(bin_ids_surv))
+norm_sep = np.zeros(len(bin_ids_surv))
+bin_ids_subset = bin_ids_surv
+
+for idx, uid in enumerate(bin_ids_subset):
+    bin_list = list(uid)
+    tmp_row = np.array(bin_list).astype(str)
+    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
+    ##Minimum distance for all surviving binaries
+    norm_sep[idx] = np.min(path_diff_all[b1[:,0].astype(int)][:,0] / (2 * b1[:, LOOKUP_SMA]))
+#########################################################################################################
+fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
+ax.set_xlim(0.05, 1000)
+ax.set_xscale("log")
+ax.set_xlabel("Min[$d_{ext} / (2 a_{bin})$]")
+ax.set_ylabel("Fraction")
+pval = ks_2samp(norm_sep, norm_sep_og).pvalue
+ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
+
+plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
+                       ("Surviving\n(no mult\ninteractions)", "Ionized",  "Min(Lb and Lb+1)", "Lb", "traj_extrap"), ax=ax,
+                       levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', None, None, None], linestyles=["--", None, None, None])
+fig.savefig("fig5a.pdf")
+#########################################################################################################
+final_pair_mass_no_halo = my_data["mfinal_pair"]
+
+bins = np.arange(-1, 1.21, 0.2)
+vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & ~(same_sys_filt)])), bins=bins,
+                       histtype='step')
+vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_sys_filt)]), bins=bins,
+                       histtype='step')
+
+fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
+ax.set_ylabel("$N_{surv}$ / $N_{dis}$")
+ax.set_xlabel("log($m_{pair, f}$ [$M_{\odot}$])")
+plt.plot(0.5 * (b1[1:] + b1[:-1]), vs_b / vd_b, "s-")
+
+fig.savefig("fig5b.pdf")
