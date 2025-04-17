@@ -2,6 +2,12 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 from bash_command import bash_command as bc
 import matplotlib.pyplot as plt
 
+import plotly.graph_objects as go
+import plotly.io as pio
+
+import dash
+from dash import dcc, html, Output, Input
+
 def get_com_winf(paths):
     paths2 = np.copy(paths)
     paths2[np.isinf(paths2)] = 0
@@ -28,22 +34,16 @@ def get_com(paths):
 
     return com
 
-def plot_movie(ps, c1, t1, c2, t2, tt, start_time, end_time, com_flag=0, ax1=0, ax2=1, tag="", cols=None, ls=None,
-               base_save="tmp_fig/", annotation=None):
-    bc.bash_command(f"mkdir -p {base_save}")
-    size_scale = 0.02
+
+
+def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annotations, size_mode="mtot", com_flag=0):
+    fig = go.Figure()
+    size_col = mtotcol if size_mode == "mtot" else mcol
+    size_scale = 0.4
+
     paths = np.array([path_lookup[str(pp)] for pp in ps])
     paths_T = np.transpose(paths, axes=(1,0,2))
-    tt = int(tt)
-
-    if start_time < 0:
-        start_time = get_fst(paths)
-    # print(start_time)
-    if cols is None:
-        cols = ["k"] * len(ps)
-    if ls is None:
-        ls = ["-"] * len(ps)
-    # print(start_time)
+    max_sep = 0.04
 
     coms = get_com_winf(paths)
     delta = np.zeros((end_time + 1, 3))
@@ -51,56 +51,77 @@ def plot_movie(ps, c1, t1, c2, t2, tt, start_time, end_time, com_flag=0, ax1=0, 
         delta = np.array([coms[start_time]] * len(delta))
     elif com_flag > 0:
         delta = np.array(coms)
+    xcenter = coms[tt, 0] - delta[tt, 0]
+    ycenter = coms[tt, 1] - delta[tt, 1]
 
-    # for tt in range(start_time, end_time + 1):
-    fig, ax = plt.subplots(constrained_layout=True)
-    ax.set_xlabel("x [pc]")
-    ax.set_ylabel("y [pc]")
-    max_sep = 0.04
-    ax.set_xlim(coms[tt, ax1] - delta[tt, ax1] - 10 * max_sep, coms[tt, ax1] - delta[tt, ax1] + 10 * max_sep)
-    ax.set_ylim(coms[tt, ax2] - delta[tt, ax2] - 10 * max_sep, coms[tt, ax2] - delta[tt, ax2] + 10 * max_sep)
-
-    tmp_hier = ""
-    if annotation is not None:
-        tmp_hier += annotation[tt]
+    # Trails and final positions
     for pidx in range(len(ps)):
-        ax.plot(paths_T[:tt + 1, pidx, pxcol + ax1] - delta[:tt + 1, ax1],
-                paths_T[:tt + 1, pidx, pxcol + ax2] - delta[:tt + 1, ax2],
-                color=cols[pidx])
-        ax.scatter(paths_T[tt, pidx, pxcol + ax1] - delta[tt, ax1], paths_T[tt, pidx, pxcol + ax2] - delta[tt, ax2],
-                marker="s",
-                color=cols[pidx], s=paths_T[tt, pidx, mtotcol] / size_scale)
+        fig.add_trace(go.Scatter(
+            x=paths_T[:tt+1, pidx, pxcol] - delta[:tt+1, 0],
+            y=paths_T[:tt+1, pidx, pxcol+1] - delta[:tt+1, 1],
+            mode="lines",
+            line=dict(color="black"),
+            name=f"Star {ps[pidx]}",
+            showlegend=False
+        ))
+        fig.add_trace(go.Scatter(
+            x=[paths_T[tt, pidx, pxcol] - delta[tt, 0]],
+            y=[paths_T[tt, pidx, pxcol+1] - delta[tt, 1]],
+            mode="markers",
+            marker=dict(
+                symbol="square",
+                size=paths_T[tt, pidx, size_col] / size_scale,
+                color="black"
+            ),
+            showlegend=False
+        ))
 
-    ax.legend(title=tmp_hier, title_fontsize=16)
-
-    ##All companions plotted together with hallow symbols
-    comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
-    comps = comps[(comps!=ps[0]) & (comps!=ps[1])]
-    paths_extra = np.array([path_lookup[str(pp)] for pp in comps])
-    paths_extra_T = np.transpose(paths_extra, axes=(1, 0, 2))
+    # Past/future companions (hollow)
     if len(comps) > 0:
-        ax.scatter(paths_extra_T[tt, :, pxcol + ax1] - delta[tt, ax1], paths_extra_T[tt, :, pxcol + ax2] - delta[tt, ax2],
-                marker="o", linestyle="", alpha=0.5, facecolors='none', edgecolors=colorblind_palette[0], s=paths_extra_T[tt, :, mtotcol] / size_scale)
-    ##Separate style for current companions...
-    t_group = (t1, t2)
-    for ii, cc in enumerate((c1, c2)):
-        comps_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) == tt]
-        if len(comps_curr) > 0:
-            comps_curr = comps_curr[0]
-            comps_curr = comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])]
-            if len(comps_curr) > 0:
-                print(comps_curr)
-                paths_extra = np.array([path_lookup[str(pp)] for pp in comps_curr])
-                paths_extra_T = np.transpose(paths_extra, axes=(1, 0, 2))
-                ax.scatter(paths_extra_T[tt, :, pxcol + ax1] - delta[tt, ax1],
-                           paths_extra_T[tt, :, pxcol + ax2] - delta[tt, ax2],
-                           marker="o", linestyle="", alpha=0.5, facecolors=colorblind_palette[0], edgecolors=colorblind_palette[0],
-                           s=paths_extra_T[tt, :, mtotcol] / size_scale)
+        paths_extra = np.array([path_lookup[str(pp)] for pp in comps])
+        paths_extra_T = np.transpose(paths_extra, axes=(1, 0, 2))
+        fig.add_trace(go.Scatter(
+            x=paths_extra_T[tt, :, pxcol] - delta[tt, 0],
+            y=paths_extra_T[tt, :, pxcol+1] - delta[tt, 1],
+            mode="markers",
+            marker=dict(
+                size=paths_extra_T[tt, :, size_col] / size_scale,
+                color=colorblind_palette[0],
+                opacity=0.5,
+                symbol="circle-open"
+            ),
+            showlegend=False
+        ))
 
+    # Current companions (filled edge)
+    if len(comps_curr_list) > 0:
+        paths_curr = np.array([path_lookup[str(pp)] for pp in comps_curr_list])
+        paths_curr_T = np.transpose(paths_curr, axes=(1, 0, 2))
+        fig.add_trace(go.Scatter(
+            x=paths_curr_T[tt, :, pxcol] - delta[tt, 0],
+            y=paths_curr_T[tt, :, pxcol+1] - delta[tt, 1],
+            mode="markers",
+            marker=dict(
+                size=paths_curr_T[tt, :, size_col] / size_scale,
+                color=colorblind_palette[0],
+                line=dict(color=colorblind_palette[0], width=1)
+            ),
+            showlegend=False
+        ))
 
-
-    ##Separate style for other stars--use flag for this.
-    fig.savefig(f"tmp_{tt:03d}.png")
+    # Axes and annotation
+    fig.update_layout(
+        xaxis=dict(
+            title="x [pc]",
+            range=[xcenter - 10*max_sep, xcenter + 10*max_sep]
+        ),
+        yaxis=dict(
+            title="y [pc]",
+            range=[ycenter - 10*max_sep, ycenter + 10*max_sep]
+        ),
+        title=annotations[tt]
+    )
+    return fig
 
 def movie(df, tmp_bin_idx, tt, case_label=None):
     unique_binaries = df.index.get_level_values("binary").unique()
@@ -109,13 +130,27 @@ def movie(df, tmp_bin_idx, tt, case_label=None):
     ps = my_bin.index.to_list()
     tmp_end_snap = int(lookup_dict[ps[0]][0, -1])
 
-    comps1 = my_bin.iloc[0]["comps"]
-    comps2 = my_bin.iloc[1]["comps"]
+    c1 = my_bin.iloc[0]["comps"]
+    c2 = my_bin.iloc[1]["comps"]
     times1 = my_bin.iloc[0]["times"]
     times2 = my_bin.iloc[1]["times"]
     hiers1 = my_bin.iloc[0]["hiers"]
     hiers2 = my_bin.iloc[1]["hiers"]
     first_star_snap = int(min(min(times1), min(times2)))
+
+    comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
+    comps = comps[(comps != ps[0]) & (comps != ps[1])]
+
+    comps_curr = []
+    t_group = (times1, times2)
+    for ii, cc in enumerate((c1, c2)):
+        tmp_comps_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) == tt]
+        if len(tmp_comps_curr) > 0:
+            comps_curr.append(tmp_comps_curr[0])
+
+    if len(comps_curr) > 0:
+        comps_curr = np.concatenate(comps_curr)
+        comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
 
     annotations1 = [""] * 490
     for ii, ttt in enumerate(times1):
@@ -128,9 +163,41 @@ def movie(df, tmp_bin_idx, tt, case_label=None):
     annotations = [f"{annotations1[ii]}\n{annotations2[ii]}" for ii in range(len(annotations1))]
     if case_label is None:
         case_label = tmp_bin_idx
-    plot_movie(ps, comps1, times1, comps2, times2, tt, first_star_snap, tmp_end_snap, annotation=annotations,
-               base_save=f"exchange_followup/case_bi{case_label}")
+    fig = plotly_snapshot(tt, ps, comps, comps_curr, first_star_snap, tmp_end_snap, annotations=annotations, com_flag=0)
+    return fig
+
+
+# === Initialize app ===
+app = dash.Dash(__name__)
+
+# === Layout ===
+app.layout = html.Div([
+    html.H2("Binary Snapshot Viewer"),
+    dcc.Slider(
+        id="time-slider",
+        min=0,
+        max=489,
+        step=1,
+        value=300,
+        tooltip={"placement": "bottom", "always_visible": True},
+    ),
+    dcc.Graph(id="snapshot-graph")
+])
+
+@app.callback(
+    Output("snapshot-graph", "figure"),
+    Input("time-slider", "value")
+)
+def update_figure(tt):
+    df = pd.read_hdf("binary_data.h5", key="data")
+    fig = movie(df, 72, tt)
+    return fig
+
 
 if __name__=="__main__":
-    df = pd.read_hdf("binary_data.h5", key="data")
-    movie(df, 72, 300)
+    app.run(debug=True)
+    # df = pd.read_hdf("binary_data.h5", key="data")
+    # ##All companions plotted together with hallow symbols
+    #
+    #
+    # movie(df, 72, 300)
