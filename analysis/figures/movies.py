@@ -6,7 +6,37 @@ import plotly.graph_objects as go
 import plotly.io as pio
 
 import dash
-from dash import dcc, html, Output, Input
+from dash import dcc, html, Output, Input, State
+
+tmp_bin_idx = 72
+df = pd.read_hdf("binary_data.h5", key="data")
+unique_binaries = df.index.get_level_values("binary").unique()
+my_bin = df.loc[unique_binaries[tmp_bin_idx]]
+print(my_bin)
+ps = my_bin.index.to_list()
+tmp_end_snap = int(lookup_dict[ps[0]][0, -1])
+
+c1 = my_bin.iloc[0]["comps"]
+c2 = my_bin.iloc[1]["comps"]
+times1 = my_bin.iloc[0]["times"]
+times2 = my_bin.iloc[1]["times"]
+hiers1 = my_bin.iloc[0]["hiers"]
+hiers2 = my_bin.iloc[1]["hiers"]
+first_star_snap = int(min(min(times1), min(times2)))
+
+comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
+comps = comps[(comps != ps[0]) & (comps != ps[1])]
+
+annotations1 = [""] * 490
+for ii, ttt in enumerate(times1):
+    annotations1[int(ttt)] = hiers1[ii]
+
+annotations2 = [""] * 490
+for ii, ttt in enumerate(times2):
+    annotations2[int(ttt)] = hiers2[ii]
+
+annotations = [f"{annotations1[ii]}\n{annotations2[ii]}" for ii in range(len(annotations1))]
+
 
 def get_com_winf(paths):
     paths2 = np.copy(paths)
@@ -39,11 +69,12 @@ def get_com(paths):
 def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annotations, size_mode="mtot", com_flag=0):
     fig = go.Figure()
     size_col = mtotcol if size_mode == "mtot" else mcol
-    size_scale = 0.4
+    size_scale = 0.0003
 
     paths = np.array([path_lookup[str(pp)] for pp in ps])
     paths_T = np.transpose(paths, axes=(1,0,2))
     max_sep = 0.04
+    print(paths_T.shape)
 
     coms = get_com_winf(paths)
     delta = np.zeros((end_time + 1, 3))
@@ -56,21 +87,21 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
 
     # Trails and final positions
     for pidx in range(len(ps)):
-        fig.add_trace(go.Scatter(
-            x=paths_T[:tt+1, pidx, pxcol] - delta[:tt+1, 0],
-            y=paths_T[:tt+1, pidx, pxcol+1] - delta[:tt+1, 1],
-            mode="lines",
-            line=dict(color="black"),
-            name=f"Star {ps[pidx]}",
-            showlegend=False
-        ))
+        # fig.add_trace(go.Scatter(
+        #     x=paths_T[:tt+1, pidx, pxcol] - delta[:tt+1, 0],
+        #     y=paths_T[:tt+1, pidx, pxcol+1] - delta[:tt+1, 1],
+        #     mode="lines",
+        #     line=dict(color="black"),
+        #     name=f"Star {ps[pidx]}",
+        #     showlegend=False
+        # ))
         fig.add_trace(go.Scatter(
             x=[paths_T[tt, pidx, pxcol] - delta[tt, 0]],
             y=[paths_T[tt, pidx, pxcol+1] - delta[tt, 1]],
             mode="markers",
             marker=dict(
                 symbol="square",
-                size=paths_T[tt, pidx, size_col] / size_scale,
+                size=3. * np.log10(paths_T[tt, pidx, size_col] / size_scale),
                 color="black"
             ),
             showlegend=False
@@ -80,32 +111,47 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     if len(comps) > 0:
         paths_extra = np.array([path_lookup[str(pp)] for pp in comps])
         paths_extra_T = np.transpose(paths_extra, axes=(1, 0, 2))
+
+        names = [f"Star {sid}" for sid in comps]
+        masses = paths_extra_T[tt, :, size_col]
+        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
+
         fig.add_trace(go.Scatter(
             x=paths_extra_T[tt, :, pxcol] - delta[tt, 0],
             y=paths_extra_T[tt, :, pxcol+1] - delta[tt, 1],
             mode="markers",
             marker=dict(
-                size=paths_extra_T[tt, :, size_col] / size_scale,
-                color=colorblind_palette[0],
+                size=3. * np.log10(paths_extra_T[tt, :, size_col] / size_scale),
+                color=[colorblind_palette[0]] * len(paths_extra_T),
                 opacity=0.5,
                 symbol="circle-open"
             ),
+            text=hover_texts,
+            hoverinfo="text",
             showlegend=False
         ))
 
     # Current companions (filled edge)
     if len(comps_curr_list) > 0:
+        print(comps_curr_list)
         paths_curr = np.array([path_lookup[str(pp)] for pp in comps_curr_list])
         paths_curr_T = np.transpose(paths_curr, axes=(1, 0, 2))
+
+        names = [f"Star {sid}" for sid in comps_curr_list]
+        masses = paths_curr_T[tt, :, size_col]
+        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
+
         fig.add_trace(go.Scatter(
             x=paths_curr_T[tt, :, pxcol] - delta[tt, 0],
             y=paths_curr_T[tt, :, pxcol+1] - delta[tt, 1],
             mode="markers",
             marker=dict(
-                size=paths_curr_T[tt, :, size_col] / size_scale,
-                color=colorblind_palette[0],
+                size=3. * np.log10(paths_curr_T[tt, :, size_col] / size_scale),
+                color=[colorblind_palette[0]] * len(paths_extra_T),
                 line=dict(color=colorblind_palette[0], width=1)
             ),
+            text=hover_texts,
+            hoverinfo="text",
             showlegend=False
         ))
 
@@ -123,24 +169,8 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     )
     return fig
 
-def movie(df, tmp_bin_idx, tt, case_label=None):
-    unique_binaries = df.index.get_level_values("binary").unique()
-    my_bin = df.loc[unique_binaries[tmp_bin_idx]]
-    print(my_bin)
-    ps = my_bin.index.to_list()
-    tmp_end_snap = int(lookup_dict[ps[0]][0, -1])
-
-    c1 = my_bin.iloc[0]["comps"]
-    c2 = my_bin.iloc[1]["comps"]
-    times1 = my_bin.iloc[0]["times"]
-    times2 = my_bin.iloc[1]["times"]
-    hiers1 = my_bin.iloc[0]["hiers"]
-    hiers2 = my_bin.iloc[1]["hiers"]
-    first_star_snap = int(min(min(times1), min(times2)))
-
-    comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
-    comps = comps[(comps != ps[0]) & (comps != ps[1])]
-
+def movie(tt, case_label=None):
+    ################# Above do not update to save time!!!##########################################################
     comps_curr = []
     t_group = (times1, times2)
     for ii, cc in enumerate((c1, c2)):
@@ -152,15 +182,6 @@ def movie(df, tmp_bin_idx, tt, case_label=None):
         comps_curr = np.concatenate(comps_curr)
         comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
 
-    annotations1 = [""] * 490
-    for ii, ttt in enumerate(times1):
-        annotations1[int(ttt)] = hiers1[ii]
-
-    annotations2 = [""] * 490
-    for ii, ttt in enumerate(times2):
-        annotations2[int(ttt)] = hiers2[ii]
-
-    annotations = [f"{annotations1[ii]}\n{annotations2[ii]}" for ii in range(len(annotations1))]
     if case_label is None:
         case_label = tmp_bin_idx
     fig = plotly_snapshot(tt, ps, comps, comps_curr, first_star_snap, tmp_end_snap, annotations=annotations, com_flag=0)
@@ -173,25 +194,43 @@ app = dash.Dash(__name__)
 # === Layout ===
 app.layout = html.Div([
     html.H2("Binary Snapshot Viewer"),
-    dcc.Slider(
-        id="time-slider",
-        min=0,
-        max=489,
+    html.Div([
+    html.Button("←", id="step-back", n_clicks=0),
+    dcc.Input(
+        id="time-input",
+        type="number",
+        min=first_star_snap,
+        max=tmp_end_snap,
+        value=first_star_snap,
         step=1,
-        value=300,
-        tooltip={"placement": "bottom", "always_visible": True},
+        style={"width": "80px"}
     ),
+    html.Button("→", id="step-forward", n_clicks=0),
+    ], style={"display": "flex", "alignItems": "center", "gap": "10px"}),
     dcc.Graph(id="snapshot-graph")
 ])
 
 @app.callback(
     Output("snapshot-graph", "figure"),
-    Input("time-slider", "value")
+    Output("time-input", "value"),
+    Input("step-back", "n_clicks"),
+    Input("step-forward", "n_clicks"),
+    Input("time-input", "value"),
+    State("time-input", "value"),
 )
-def update_figure(tt):
-    df = pd.read_hdf("binary_data.h5", key="data")
-    fig = movie(df, 72, tt)
-    return fig
+def update_figure(n_back, n_forward, input_value, current_value):
+    ctx = dash.callback_context
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if triggered_id == "step-back":
+        new_t = max(current_value - 1, first_star_snap)
+    elif triggered_id == "step-forward":
+        new_t = min(current_value + 1, tmp_end_snap)
+    else:
+        new_t = input_value
+
+    fig = movie(new_t)
+    return fig, new_t
 
 
 if __name__=="__main__":

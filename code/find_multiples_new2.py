@@ -84,6 +84,18 @@ def PE(xc, mc, hc):
     phic = pytreegrav.Potential(xc, mc, hc, G=sfc.GN, theta=0.5, method='bruteforce') # G in code units
     return 0.5 * (phic*mc).sum()
 
+# Calculate kinetic energy of a set of cells, include internal energy
+def KE(xc, mc, vc, uc):
+    """ xc - array of positions
+        mc - array of masses
+        vc - array of velocities
+        uc - array of internal energies
+    """
+    ## velocity w.r.t. com velocity
+    v_bulk = np.average(vc, weights=mc, axis=0)
+    v_well = vc - v_bulk
+    vSqr = np.sum(v_well ** 2, axis=1)
+    return (mc * (vSqr / 2 + uc)).sum()
 
 def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     """
@@ -114,6 +126,7 @@ def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
 
     ##Kinetic and potential energies
     ke = 0.5*m1*v12 + 0.5*m2*v22
+    # print(ke, KE([p1, p2], [m1, m2], [v1, v2], [0, 0]))
     ##Potential energy ##TRY REPLACING WITH FUNCTIONALITY FROM PYTREEGRAV...
     # pe = G*m1*m2/dp
     ##Flipped p2_com and p1_com -- does not matter because we are only considering two-body systems...
