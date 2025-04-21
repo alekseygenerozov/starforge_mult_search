@@ -8,34 +8,9 @@ import plotly.io as pio
 import dash
 from dash import dcc, html, Output, Input, State
 
-tmp_bin_idx = 72
+##We can store data in a better organized way(!!!)
 df = pd.read_hdf("binary_data.h5", key="data")
 unique_binaries = df.index.get_level_values("binary").unique()
-my_bin = df.loc[unique_binaries[tmp_bin_idx]]
-print(my_bin)
-ps = my_bin.index.to_list()
-tmp_end_snap = int(lookup_dict[ps[0]][0, -1])
-
-c1 = my_bin.iloc[0]["comps"]
-c2 = my_bin.iloc[1]["comps"]
-times1 = my_bin.iloc[0]["times"]
-times2 = my_bin.iloc[1]["times"]
-hiers1 = my_bin.iloc[0]["hiers"]
-hiers2 = my_bin.iloc[1]["hiers"]
-first_star_snap = int(min(min(times1), min(times2)))
-
-comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
-comps = comps[(comps != ps[0]) & (comps != ps[1])]
-
-annotations1 = [""] * 490
-for ii, ttt in enumerate(times1):
-    annotations1[int(ttt)] = hiers1[ii]
-
-annotations2 = [""] * 490
-for ii, ttt in enumerate(times2):
-    annotations2[int(ttt)] = hiers2[ii]
-
-annotations = [f"{annotations1[ii]}\n{annotations2[ii]}" for ii in range(len(annotations1))]
 
 
 def get_com_winf(paths):
@@ -65,17 +40,17 @@ def get_com(paths):
     return com
 
 
-
-def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annotations, size_mode="mtot", com_flag=0):
+##Many arguments can be combined -- just pass the whole dataframe(!)
+def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annotations, size_mode="mtot", com_flag=0,
+                    max_sep=0.04):
     fig = go.Figure()
     size_col = mtotcol if size_mode == "mtot" else mcol
     size_scale = 0.0003
 
     paths = np.array([path_lookup[str(pp)] for pp in ps])
     paths_T = np.transpose(paths, axes=(1,0,2))
-    max_sep = 0.04
-    print(paths_T.shape)
 
+    ##mcol of mtotcol should also affect the center of mass calculation...
     coms = get_com_winf(paths)
     delta = np.zeros((end_time + 1, 3))
     if com_flag == 1:
@@ -122,7 +97,7 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_extra_T[tt, :, size_col] / size_scale),
-                color=[colorblind_palette[0]] * len(paths_extra_T),
+                color="black",
                 opacity=0.5,
                 symbol="circle-open"
             ),
@@ -147,8 +122,8 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_curr_T[tt, :, size_col] / size_scale),
-                color=[colorblind_palette[0]] * len(paths_extra_T),
-                line=dict(color=colorblind_palette[0], width=1)
+                color="red",
+                line=dict(color="red", width=1)
             ),
             text=hover_texts,
             hoverinfo="text",
@@ -159,32 +134,25 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     fig.update_layout(
         xaxis=dict(
             title="x [pc]",
-            range=[xcenter - 10*max_sep, xcenter + 10*max_sep]
+            range=[xcenter - 10*max_sep, xcenter + 10*max_sep],
         ),
         yaxis=dict(
             title="y [pc]",
-            range=[ycenter - 10*max_sep, ycenter + 10*max_sep]
+            range=[ycenter - 10*max_sep, ycenter + 10*max_sep],
         ),
-        title=annotations[tt]
+        title=annotations[tt],
+        height=600,
+        width=600
     )
     return fig
 
-def movie(tt, case_label=None):
+##Many arguments can be combined -- just pass the dataframe...
+def movie(ps, tt, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, max_sep):
     ################# Above do not update to save time!!!##########################################################
-    comps_curr = []
-    t_group = (times1, times2)
-    for ii, cc in enumerate((c1, c2)):
-        tmp_comps_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) == tt]
-        if len(tmp_comps_curr) > 0:
-            comps_curr.append(tmp_comps_curr[0])
-
-    if len(comps_curr) > 0:
-        comps_curr = np.concatenate(comps_curr)
-        comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
-
-    if case_label is None:
-        case_label = tmp_bin_idx
-    fig = plotly_snapshot(tt, ps, comps, comps_curr, first_star_snap, tmp_end_snap, annotations=annotations, com_flag=0)
+    # if case_label is None:
+    #     case_label = tmp_bin_idx
+    fig = plotly_snapshot(tt, ps, comps, comps_curr, first_star_snap, tmp_end_snap, annotations=annotations, com_flag=0,
+                          max_sep=max_sep)
     return fig
 
 
@@ -194,14 +162,28 @@ app = dash.Dash(__name__)
 # === Layout ===
 app.layout = html.Div([
     html.H2("Binary Snapshot Viewer"),
+    html.Div(
+        [dcc.Input(id="bin-input",
+        type="number",
+        min=0,
+        max=100,
+        value=21)
+        ]
+    ),
+    html.Div(
+        [dcc.Input(id="max-sep",
+                   type="number",
+                   value=0.04)
+         ]
+    ),
     html.Div([
     html.Button("←", id="step-back", n_clicks=0),
     dcc.Input(
         id="time-input",
         type="number",
-        min=first_star_snap,
-        max=tmp_end_snap,
-        value=first_star_snap,
+        min=0,
+        max=490,
+        value=422,
         step=1,
         style={"width": "80px"}
     ),
@@ -210,15 +192,61 @@ app.layout = html.Div([
     dcc.Graph(id="snapshot-graph")
 ])
 
+
+##Make sure we get only indices that we actually want here e.g. the excahnges(!)
 @app.callback(
     Output("snapshot-graph", "figure"),
     Output("time-input", "value"),
     Input("step-back", "n_clicks"),
     Input("step-forward", "n_clicks"),
+    Input("bin-input", "value"),
     Input("time-input", "value"),
+    Input("max-sep", "value"),
     State("time-input", "value"),
 )
-def update_figure(n_back, n_forward, input_value, current_value):
+def update_figure(n_back, n_forward, bin_input, input_value, max_sep, current_value):
+    ##Index of binary -- Could do either (i) Index within the full list of binaries or (ii) Index among binaries of interest.
+    tmp_bin_idx = bin_input
+    my_bin = df.loc[unique_binaries[tmp_bin_idx]]
+    print(my_bin)
+    ps = my_bin.index.to_list()
+    tmp_end_snap = int(lookup_dict[ps[0]][0, -1])
+
+    ##Can we avoid splitting the data up???
+    c1 = my_bin.iloc[0]["comps"]
+    c2 = my_bin.iloc[1]["comps"]
+    times1 = my_bin.iloc[0]["times"]
+    times2 = my_bin.iloc[1]["times"]
+    hiers1 = my_bin.iloc[0]["hiers"]
+    hiers2 = my_bin.iloc[1]["hiers"]
+    first_star_snap = int(min(min(times1), min(times2)))
+
+
+    comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
+    comps = comps[(comps != ps[0]) & (comps != ps[1])]
+
+    comps_curr = []
+    t_group = (times1, times2)
+    for ii, cc in enumerate((c1, c2)):
+        tmp_comps_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) == input_value]
+        if len(tmp_comps_curr) > 0:
+            comps_curr.append(tmp_comps_curr[0])
+
+    if len(comps_curr) > 0:
+        comps_curr = np.concatenate(comps_curr)
+        comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
+
+
+    annotations1 = [""] * 490
+    for ii, ttt in enumerate(times1):
+        annotations1[int(ttt)] = hiers1[ii]
+
+    annotations2 = [""] * 490
+    for ii, ttt in enumerate(times2):
+        annotations2[int(ttt)] = hiers2[ii]
+
+    annotations = [f"{annotations1[ii]}\n{annotations2[ii]}" for ii in range(len(annotations1))]
+
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
@@ -227,9 +255,9 @@ def update_figure(n_back, n_forward, input_value, current_value):
     elif triggered_id == "step-forward":
         new_t = min(current_value + 1, tmp_end_snap)
     else:
-        new_t = input_value
+        new_t = int(my_data["init_bound_snaps"][tmp_bin_idx]) - 10
 
-    fig = movie(new_t)
+    fig = movie(ps, new_t, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, float(max_sep))
     return fig, new_t
 
 
