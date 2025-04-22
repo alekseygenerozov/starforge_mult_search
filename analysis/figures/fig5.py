@@ -64,6 +64,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         ex_time[ii] = min(ex_time[ii], tmp_sel2b["tval"].min())
 
     pmult_filt[ii] = ex_time[ii] >= ibs
+    breakpoint()
 
 np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time)
 #########################################################################################################
