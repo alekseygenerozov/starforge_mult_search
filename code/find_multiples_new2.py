@@ -185,7 +185,6 @@ def get_energy(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
 
     return pe, ke
 
-
 def select_in_subregion(x, Ngrid1D=1):
     """
     Partitions array of 3D positions into subregions

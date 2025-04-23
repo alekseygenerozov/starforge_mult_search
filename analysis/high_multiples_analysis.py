@@ -9,7 +9,7 @@ import pickle
 import sys
 import tqdm
 
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
+from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, KE
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
@@ -74,7 +74,36 @@ def removeNestings(l, output):
         else:
             output.append(i)
 
-def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
+def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
+    p1_flat = []
+    p2_flat = []
+
+    high_multiples_analysis.removeNestings(np.atleast_1d(p1), p1_flat)
+    high_multiples_analysis.removeNestings(np.atleast_1d(p2), p2_flat)
+
+    pos_flat1 = [p_dict[pp] for pp in p1_flat]
+    v_flat1 = [v_dict[pp] for pp in p1_flat]
+    m_flat1 = [m_dict[pp] for pp in p1_flat]
+    h_flat1 = [h_dict[pp] for pp in p1_flat]
+
+    pos_flat1 = np.average(pos_flat1, weights=m_flat1, axis=0)
+    v_flat1 = np.average(v_flat1, weights=m_flat1, axis=0)
+    h_flat1 = np.sum(h_flat1)
+
+
+    pos_flat2 = [p_dict[pp] for pp in p2_flat]
+    v_flat2 = [v_dict[pp] for pp in p2_flat]
+    m_flat2 = [m_dict[pp] for pp in p2_flat]
+    h_flat2 = [h_dict[pp] for pp in p2_flat]
+
+    pos_flat2 = np.average(pos_flat2, weights=m_flat2, axis=0)
+    v_flat2 = np.average(v_flat2, weights=m_flat2, axis=0)
+    h_flat2 = np.sum(h_flat2)
+
+    return PE([pos_flat1, pos_flat2], [m_flat1, m_flat2], [h_flat1, h_flat2]), KE([pos_flat1, pos_flat2], [m_flat1, m_flat2], [v_flat1, v_flat2], [0, 0])
+
+
+def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
     """
     Recursively builds a hierarchy tree from the input hierarchy and orbit data.
 
@@ -83,6 +112,7 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
     :param p_dict: Dictionary of particle positions in the system
     :param v_dict: Dictionary of particle velocities in the system
     :param m_dict: Dictionary of particle masses in the system
+    :param h_dict: Dictionary of particle softening lengths
     :param flat_id: Make ids hierarchy agnostic. If True then systems with the same stars, but different hierarchies
      will have the same id. False by default.
 
@@ -115,17 +145,20 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, flat_id=False):
         # Extract the last two components from the hierarchy
         p1 = h_copy.pop()
         p2 = h_copy.pop()
+        tmp_pe, tmp_ke = get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict)
+        node.data["pe"] = tmp_pe
+        node.data["ke"] = tmp_ke
 
         # Handle nested structures recursively
         if isinstance(p1, list):
-            child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
+            child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
             node.add_child(child1)
         else:
             node.add_child(
                 SystemNode(data={"id": p1, "orbit": None, "pos": p_dict[p1], "vel": v_dict[p1], "mass": m_dict[p1]}))
 
         if isinstance(p2, list):
-            child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, flat_id=flat_id)
+            child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
             node.add_child(child2)
         else:
             node.add_child(
@@ -299,8 +332,10 @@ def main(params):
                 p_dict = {ss.ids[ii]: ss.sub_pos[ii] for ii in range(len(ss.ids))}
                 v_dict = {ss.ids[ii]: ss.sub_vel[ii] for ii in range(len(ss.ids))}
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
+                h_dict = {ss.ids[ii]: ss.sub_soft[ii] for ii in range(len(ss.ids))}
 
-                n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, flat_id=flat_id)
+
+                n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
