@@ -78,8 +78,8 @@ def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
     p1_flat = []
     p2_flat = []
 
-    high_multiples_analysis.removeNestings(np.atleast_1d(p1), p1_flat)
-    high_multiples_analysis.removeNestings(np.atleast_1d(p2), p2_flat)
+    removeNestings(np.atleast_1d(p1), p1_flat)
+    removeNestings(np.atleast_1d(p2), p2_flat)
 
     pos_flat1 = [p_dict[pp] for pp in p1_flat]
     v_flat1 = [v_dict[pp] for pp in p1_flat]
