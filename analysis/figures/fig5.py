@@ -62,8 +62,8 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     # ck2 = np.any(ck2)
     tmp_sel2a = tmp_sel.loc[ck1]
     tmp_sel2b = tmp_sel.loc[ck2]
-    potential_ck(tmp_sel2a, bin_list[0], bin_list[1])
-    potential_ck(tmp_sel2b, bin_list[1], bin_list[0])
+    # potential_ck(tmp_sel2a, bin_list[0], bin_list[1])
+    # potential_ck(tmp_sel2b, bin_list[1], bin_list[0])
     soft_times = get_soft_times(bin_list[0], bin_list[1], path_lookup)
 
     tmp_sel2a = tmp_sel2a.loc[~np.isin(tmp_sel2a["tval"], soft_times)]
