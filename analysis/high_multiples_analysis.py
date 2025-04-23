@@ -78,8 +78,8 @@ def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
     p1_flat = []
     p2_flat = []
 
-    removeNestings(np.atleast_1d(p1), p1_flat)
-    removeNestings(np.atleast_1d(p2), p2_flat)
+    removeNestings([p1], p1_flat)
+    removeNestings([p2], p2_flat)
 
     pos_flat1 = [p_dict[pp] for pp in p1_flat]
     v_flat1 = [v_dict[pp] for pp in p1_flat]
@@ -90,7 +90,6 @@ def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
     v_flat1 = np.average(v_flat1, weights=m_flat1, axis=0)
     h_flat1 = np.sum(h_flat1)
 
-
     pos_flat2 = [p_dict[pp] for pp in p2_flat]
     v_flat2 = [v_dict[pp] for pp in p2_flat]
     m_flat2 = [m_dict[pp] for pp in p2_flat]
@@ -100,7 +99,10 @@ def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
     v_flat2 = np.average(v_flat2, weights=m_flat2, axis=0)
     h_flat2 = np.sum(h_flat2)
 
-    return PE([pos_flat1, pos_flat2], [m_flat1, m_flat2], [h_flat1, h_flat2]), KE([pos_flat1, pos_flat2], [m_flat1, m_flat2], [v_flat1, v_flat2], [0, 0])
+    m_flat1 = np.sum(m_flat1)
+    m_flat2 = np.sum(m_flat2)
+    return (PE(np.array([pos_flat1, pos_flat2]), np.array([m_flat1, m_flat2]), np.array([h_flat1, h_flat2])),
+            KE(np.array([pos_flat1, pos_flat2]), np.array([m_flat1, m_flat2]), np.array([v_flat1, v_flat2]), np.array([0, 0])))
 
 
 def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
@@ -237,6 +239,10 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(tmp_per)
         tab_dat.append(sub_sys)
         tab_dat.append(str(n1.data["hier"]))
+        tab_dat.append(n1.data["pe"])
+        tab_dat.append(n1.data["ke"])
+        tab_dat.append(tmp_orb[2])
+        tab_dat.append(tmp_orb[3])
         coll_full.append(tab_dat)
 
         add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
@@ -339,7 +345,7 @@ def main(params):
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier"))
+    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2"))
     coll_full_df.set_index(["id", "t"], inplace=True)
     ##TO DO: Try to homogenize this code...
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
