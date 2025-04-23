@@ -36,6 +36,8 @@ pmult_filt = np.zeros(len(bin_ids)).astype(bool)
 ##ex_time is like a "floor" for the exchange time -- if the pair is bound after this time it is considered an exchange binary(!)
 ##Want separate data with the true exchange time...
 ex_time = np.ones(len(bin_ids)) * np.inf
+ex_time_max = np.ones(len(bin_ids)) * np.inf
+
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
     if not quasi_filter[ii]:
@@ -47,7 +49,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     fst = my_data["fst"][ii]
     # tmp_sel = high_df.query(f"tval < {ibs}")
     # tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
-    tmp_sel = high_df.loc[(tval >= fst)]
+    tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
     mult_ids_set = tmp_sel["mult_ids_set"]
@@ -60,13 +62,14 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     tmp_sel2b = tmp_sel.loc[ck2]
     if len(tmp_sel2a) > 0:
         ex_time[ii] = tmp_sel2a["tval"].min()
+        ex_time_max[ii] = tmp_sel2a["tval"].max()
     if len(tmp_sel2b) > 0:
         ex_time[ii] = min(ex_time[ii], tmp_sel2b["tval"].min())
+        ex_time_max[ii] = min(ex_time_max[ii], tmp_sel2b["tval"].max())
 
     pmult_filt[ii] = ex_time[ii] >= ibs
-    breakpoint()
 
-np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time)
+np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max)
 #########################################################################################################
 #Loading data
 npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
