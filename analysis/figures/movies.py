@@ -282,7 +282,7 @@ app.layout = html.Div([
     html.Div(
         [dbc.Label("(Right plot) Set scale relative to binary separation:"), dcc.Input(id="max-sep-rel",
                    type="number",
-                   value=0)
+                   value=5)
          ]
     ),
     html.Div([

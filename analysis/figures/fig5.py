@@ -50,6 +50,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     # tmp_sel = high_df.query(f"tval < {ibs}")
     # tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
     tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
+    ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
     mult_ids_set = tmp_sel["mult_ids_set"]
@@ -60,6 +61,8 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     # ck2 = np.any(ck2)
     tmp_sel2a = tmp_sel.loc[ck1]
     tmp_sel2b = tmp_sel.loc[ck2]
+    potential_ck(tmp_sel2a, bin_list[0], bin_list[1])
+    potential_ck(tmp_sel2b, bin_list[1], bin_list[0])
     if len(tmp_sel2a) > 0:
         ex_time[ii] = tmp_sel2a["tval"].min()
         ex_time_max[ii] = tmp_sel2a["tval"].max()
