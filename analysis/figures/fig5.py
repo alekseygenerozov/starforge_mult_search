@@ -10,7 +10,7 @@ import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary
+from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary,get_soft_times
 from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
 from labelLine import labelLines
@@ -18,6 +18,7 @@ from labelLine import labelLines
 ##Try to get rid of this import...
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
+
 #########################################################################################################
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
@@ -63,6 +64,10 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     tmp_sel2b = tmp_sel.loc[ck2]
     potential_ck(tmp_sel2a, bin_list[0], bin_list[1])
     potential_ck(tmp_sel2b, bin_list[1], bin_list[0])
+    soft_times = get_soft_times(bin_list[0], bin_list[1], path_lookup)
+
+    tmp_sel2a = tmp_sel2a.loc[~np.isin(tmp_sel2a["tval"], soft_times)]
+    tmp_sel2b = tmp_sel2b.loc[~np.isin(tmp_sel2b["tval"], soft_times)]
     if len(tmp_sel2a) > 0:
         ex_time[ii] = tmp_sel2a["tval"].min()
         ex_time_max[ii] = tmp_sel2a["tval"].max()

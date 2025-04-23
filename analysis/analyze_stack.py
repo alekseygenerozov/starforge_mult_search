@@ -102,7 +102,6 @@ def get_min_dist_binary(path_lookup, tmp_row):
 
     return path_diff_all, path_diff_all_order
 
-
 def make_binned_data(absc, ords, bins):
     """
     Binning of (boolean) ords according to absc and bins
@@ -120,6 +119,13 @@ def make_binned_data(absc, ords, bins):
 
     return binned_num, binned_numu, binned_den
 
+def get_soft_times(id1, id2, path_lookup):
+    d12 = subtract_path(path_lookup[f"{id1}"][:, pxcol:pzcol+1], path_lookup[f"{id2}"][:, pxcol:pzcol+1])
+    d12 = np.sum(d12 * d12, axis=1)**.5
+    hmax = np.max((path_lookup[f"{id1}"][:, hcol], path_lookup[f"{id2}"][:, hcol]), axis=0)
+    soft_times = np.where(d12 < hmax)[0]
+
+    return soft_times
 
 def get_fpaths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     """
