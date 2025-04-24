@@ -50,8 +50,10 @@ with open("path_lookup_stacked.p", "rb") as ff:
 ex_time_max = np.load("pmult_before_bin_1.0.npz")["ex_time_max"]
 ex_filt = ~np.isinf(ex_time_max)
 ex_filt = ex_filt & my_data["quasi_filter"]
-
 ex_index = np.where(ex_filt)[0]
+# ex_filt = ~np.load("pmult_before_bin_1.0.npz")["pmult_filt"]
+# ex_filt = ex_filt & my_data["quasi_filter"]
+# ex_index = np.where(ex_filt)[0]
 #################################################################################
 def rec_sort(my_list):
     my_list_ = copy.deepcopy(my_list)
@@ -371,8 +373,11 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
         new_t = max(current_value - 1, first_star_snap)
     elif triggered_id == "step-forward":
         new_t = min(current_value + 1, tmp_end_snap)
+    elif triggered_id == "bin-input":
+        # new_t = max(int(ex_time_max[tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
+        new_t = max(int(my_data["init_bound_snaps"][tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
     else:
-        new_t = max(int(ex_time_max[tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
+        new_t = current_value
 
     comps_curr = []
     t_group = (times1, times2)

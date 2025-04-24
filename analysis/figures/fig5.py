@@ -126,7 +126,8 @@ bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 ##Checking if the stars are bound at the last snapshot both exist(!!)
 final_bound_snaps_norm = my_data["final_bound_snaps"] / my_data["end_stars"]
-no_mult_before_bin = np.isinf(ex_time) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
+##May also filter out cases where "exchange" occurs after the initial formation -- but then we may be putting in the answer with our sample selection...
+no_mult_before_bin = (pmult_filt) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
 ##to make sense.
 bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]

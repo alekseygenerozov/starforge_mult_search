@@ -102,6 +102,37 @@ def get_min_dist_binary(path_lookup, tmp_row):
 
     return path_diff_all, path_diff_all_order
 
+def get_closest_star_time_series(path_lookup, my_key):
+    p1_raw = path_lookup[my_key]
+    path_lookup_keys = np.array(list(path_lookup.keys()))
+
+    path_diff_all = []
+    for ii, uu in enumerate(path_lookup_keys):
+        ##Exclude the star itself
+        if uu==my_key:
+            continue
+        ##Filtering out other seeds? Could be done more robustly/elegantly
+        if len(path_lookup[uu]) != len(p1_raw):
+            continue
+
+        ##Displacement from binary com
+        path_diff = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff = np.sum(path_diff * path_diff, axis=1)**.5
+        path_diff_all.append(path_diff)
+
+    path_diff_all = np.array(path_diff_all).T
+    path_diff_all_order = np.argsort(path_diff_all, axis=1)
+    path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+
+    keys = path_lookup_keys[path_lookup_keys!=my_key][path_diff_all_order[:,0]]
+    closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], path_diff_all[ii,0]] for ii in range(len(keys))]
+    closest_comp = np.array(closest_comp)
+    filt = ~np.isinf(closest_comp[:,-1].astype(float))
+
+    return closest_comp[filt]
+
+
+
 def make_binned_data(absc, ords, bins):
     """
     Binning of (boolean) ords according to absc and bins
