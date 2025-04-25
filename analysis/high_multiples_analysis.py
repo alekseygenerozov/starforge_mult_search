@@ -371,7 +371,6 @@ def main(params):
     tmp2 = coll_full_df_life.groupby(["id", "segment"])[["p"]].transform(lambda x: (snap_interval / x).cumsum())
     coll_full_df_life["cumul_snaps_cont"] = tmp1
     coll_full_df_life["cumul_frac_cont"] = tmp2
-    breakpoint()
 
     ##Convenience columns....e.g. Multiplicity
     mult_hiers = coll_full_df_life["hier"]
