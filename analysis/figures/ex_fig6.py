@@ -51,6 +51,7 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
     star_mult_label_final[ii] = max(tmp_mults)
 #########################################################################################################
 single_filter = (star_mult_label_final==1)
+np.savez("single_filter.npz", np.transpose((star_ids, single_filter)))
 single_final_masses = star_final_mass[single_filter]
 all_masses = star_final_mass#[star_mult_label_final!=-1]
 from_bins_filt = np.isin(star_ids[single_filter].astype(int), bin_ids_quasi_list)
@@ -76,6 +77,8 @@ mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_mult.append(int(star_id) in mult_ids_set)
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
+np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult)))
+
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################

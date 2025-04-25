@@ -374,8 +374,8 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     elif triggered_id == "step-forward":
         new_t = min(current_value + 1, tmp_end_snap)
     elif triggered_id == "bin-input":
-        # new_t = max(int(ex_time_max[tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
-        new_t = max(int(my_data["init_bound_snaps"][tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
+        new_t = max(int(ex_time_max[tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
+        # new_t = max(int(my_data["init_bound_snaps"][tmp_bin_idx]) - 10, my_data["fst"][tmp_bin_idx])
     else:
         new_t = current_value
 

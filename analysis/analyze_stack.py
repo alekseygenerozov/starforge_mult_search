@@ -2,6 +2,8 @@ from collections import defaultdict
 import glob
 import numpy as np
 
+from numba import njit
+
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
 LOOKUP_MULT = 3
@@ -43,6 +45,7 @@ def npz_stack(npz_list):
 
     return concatenated_data_dict
 
+# @njit
 def subtract_path(p1, p2):
     """
     Function to get displacement of 2 stars accounting for infinity placeholders
@@ -53,6 +56,26 @@ def subtract_path(p1, p2):
     diff[filt] = p1[filt] - p2[filt]
 
     return diff
+
+@njit
+def subtract_path_opt(p1, p2):
+    """
+    Efficiently compute p1 - p2, skipping rows where either is [inf, inf, inf]
+    """
+    n = p1.shape[0]
+    # diff = np.empty((n, 3))
+    d = np.empty(n)
+
+    for i in range(n):
+        if np.isinf(p1[i, 0]) or np.isinf(p2[i, 0]):
+            d[i] = np.inf
+        else:
+            dx = p1[i, 0] - p2[i, 0]
+            dy = p1[i, 1] - p2[i, 1]
+            dz = p1[i, 2] - p2[i, 2]
+            d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
+    return d
+
 
 def subtract_path_1d(p1, p2):
     assert len(p1)==len(p2)
@@ -104,34 +127,63 @@ def get_min_dist_binary(path_lookup, tmp_row):
 
 def get_closest_star_time_series(path_lookup, my_key):
     p1_raw = path_lookup[my_key]
+    ##Filtering out other seeds? Could be done more robustly/elegantly
     path_lookup_keys = np.array(list(path_lookup.keys()))
+    nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
+    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
 
     path_diff_all = []
     for ii, uu in enumerate(path_lookup_keys):
         ##Exclude the star itself
         if uu==my_key:
             continue
-        ##Filtering out other seeds? Could be done more robustly/elegantly
-        if len(path_lookup[uu]) != len(p1_raw):
-            continue
 
-        ##Displacement from binary com
-        path_diff = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
-        path_diff = np.sum(path_diff * path_diff, axis=1)**.5
+        ##Getting separations for all particles...
+        path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
         path_diff_all.append(path_diff)
-
     path_diff_all = np.array(path_diff_all).T
-    path_diff_all_order = np.argsort(path_diff_all, axis=1)
-    path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+    # path_diff_all_order = np.argsort(path_diff_all, axis=1)
+    # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+    closest_idx = np.argmin(path_diff_all, axis=1)
+    closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
 
-    keys = path_lookup_keys[path_lookup_keys!=my_key][path_diff_all_order[:,0]]
-    closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], path_diff_all[ii,0]] for ii in range(len(keys))]
+    keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
+    closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
     closest_comp = np.array(closest_comp)
     filt = ~np.isinf(closest_comp[:,-1].astype(float))
 
     return closest_comp[filt]
 
-
+# def get_closest_star_time_series_T(path_lookup, my_key, t):
+#     p1_raw = path_lookup[my_key]
+#     if np.isinf(p1_raw[t, 0]):
+#         return "blank", np.inf
+#     path_lookup_keys = np.array(list(path_lookup.keys()))
+#     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
+#     path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+#
+#     pos_all = np.array([path_lookup[kk][t, pxcol:pzcol+1] for kk in path_lookup_keys])
+#     delta = pos_all - p1_raw[t][pxcol:pzcol+1]
+#     delta = np.sum(delta * delta, axis=1)**.5
+#     order = np.argsort(delta)
+#
+#     return path_lookup_keys[order[1]], delta[order[1]]
+#
+# def get_closest_star_time_series_exp(path_lookup, my_key):
+#     p1_raw = path_lookup[my_key]
+#
+#     path_lookup_keys = np.array(list(path_lookup.keys()))
+#     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
+#     path_lookup_keys = path_lookup_keys[nsnaps == len(p1_raw)]
+#
+#     pos_all = np.array([path_lookup[kk][:, pxcol:pzcol + 1] for kk in path_lookup_keys])
+#     delta = pos_all - p1_raw[:, pxcol:pzcol + 1]
+#     delta = np.sum(delta * delta, axis=2) ** .5
+#     delta = delta.T
+#     order = np.argsort(delta, axis=1)
+#
+#     return path_lookup_keys[order[:, 1]], np.take_along_axis(delta, order, axis=1)[:, 1]
 
 def make_binned_data(absc, ords, bins):
     """

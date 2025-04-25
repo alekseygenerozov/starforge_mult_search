@@ -307,6 +307,12 @@ def filter_top_level(my_df):
 
     return my_df.loc[my_counts==1]
 
+def assign_contiguous_segments(group, cadence=1):
+    diffs = np.diff(group.index.get_level_values("t"))
+    segment_ids = np.zeros(len(group), dtype=int)
+    segment_ids[1:] = np.cumsum(diffs != cadence)
+    return pd.Series(segment_ids, index=group.index, name="segment")
+
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
     base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
@@ -347,18 +353,25 @@ def main(params):
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2"))
     coll_full_df.set_index(["id", "t"], inplace=True)
-    ##TO DO: Try to homogenize this code...
+    ##TO DO: Try to homogenize this code...##Require contiguous intervals here(!!)
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
+    ##Getting cumulative number of snapshots and orbits
     tmp1 = coll_full_df_life.groupby("id", group_keys=True)[["tf"]].transform(lambda x: list(range(len(x))))
     tmp2 = coll_full_df_life.groupby("id")[["p"]].transform(lambda x: (snap_interval / x).cumsum())
     coll_full_df_life = pd.merge(coll_full_df_life, tmp1, left_index=True, right_index=True)
     coll_full_df_life = pd.merge(coll_full_df_life, tmp2, left_index=True, right_index=True)
 
     coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"}, inplace=True)
-
+    ##Get orbits and bound snapshots by segments...
+    coll_full_df_life["segment"] = high_df.groupby("id", group_keys=False).apply(lambda x: assign_contiguous_segments(x, cadence=cadence))
+    tmp1 = coll_full_df_life.groupby(["id", "segment"])[["tf"]].transform(lambda x: list(range(len(x))))
+    tmp2 = coll_full_df_life.groupby(["id", "segment"])[["p"]].transform(lambda x: (snap_interval / x).cumsum())
+    coll_full_df_life["cumul_snaps_cont"] = tmp1
+    coll_full_df_life["cumul_frac_cont"] = tmp2
+    breakpoint()
 
     ##Convenience columns....e.g. Multiplicity
     mult_hiers = coll_full_df_life["hier"]
@@ -371,30 +384,30 @@ def main(params):
     ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
-    analysis_suff = "_mult"
-    bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
-    ##Getting state of binaries at end of simulation using tabulated persistent multiples
-    f1 = coll_full_df_life["frac_of_orbit"]
-    n1 = coll_full_df_life["nbound_snaps"]
-    tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
-    end_states = []
-    same_sys_filt = np.empty(len(bin_ids)).astype(bool)
-    with open(save_path + f"/lookup_dict.p", "rb") as ff:
-        lookup_dict = pickle.load(ff)
-
-    for ii, row in tqdm.tqdm(enumerate(bin_ids)):
-        bin_list = list(row)
-        id1 = bin_list[0]
-        id2 = bin_list[1]
-        end_time1 = lookup_dict[id1][-1, 0]
-        end_time2 = lookup_dict[id2][-1, 0]
-
-        end_time = min(end_time1, end_time2)
-        es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
-        end_states.append(es)
-        same_sys_filt[ii] = ss
-
-    np.savez(save_path + "/fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+    # analysis_suff = "_mult"
+    # bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
+    # ##Getting state of binaries at end of simulation using tabulated persistent multiples
+    # f1 = coll_full_df_life["frac_of_orbit"]
+    # n1 = coll_full_df_life["nbound_snaps"]
+    # tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
+    # end_states = []
+    # same_sys_filt = np.empty(len(bin_ids)).astype(bool)
+    # with open(save_path + f"/lookup_dict.p", "rb") as ff:
+    #     lookup_dict = pickle.load(ff)
+    #
+    # for ii, row in tqdm.tqdm(enumerate(bin_ids)):
+    #     bin_list = list(row)
+    #     id1 = bin_list[0]
+    #     id2 = bin_list[1]
+    #     end_time1 = lookup_dict[id1][-1, 0]
+    #     end_time2 = lookup_dict[id2][-1, 0]
+    #
+    #     end_time = min(end_time1, end_time2)
+    #     es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
+    #     end_states.append(es)
+    #     same_sys_filt[ii] = ss
+    #
+    # np.savez(save_path + "/fates_corr.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
 if __name__ == "__main__":
     main()
