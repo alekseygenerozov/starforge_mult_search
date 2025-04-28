@@ -42,7 +42,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         comps_b_times[ii] = (comps_b["tval"].values)
         comps_b_ids_flat[ii] = (comps_b["mult_ids_list"].values)
 
-
+##Fix the name here!!!
 comp = dict(comps_a_ids=comps_a_ids, comps_a_times=comps_a_times, comps_a_ids_flat=comps_a_ids_flat,
          comp_b_ids=comps_b_ids, comps_b_times=comps_b_times, comps_b_ids_flat=comps_b_ids_flat)
 with open("companions.p", "wb") as ff:

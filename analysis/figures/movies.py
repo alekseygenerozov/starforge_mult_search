@@ -137,9 +137,10 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     names = [f"Star {sid}" for sid in ps]
     masses = paths_T[tt, :, size_col]
     hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
-    fig.add_trace(go.Scatter(
+    fig.add_trace(go.Scatter3D(
         x=(paths_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-        y=(paths_T[tt, :, pxcol + 1] - delta[tt, 1]) * unit,
+        y=(paths_T[tt, :, pycol] - delta[tt, 1]) * unit,
+        z=(paths_T[tt, :, pzcol] - delta[tt, 2]) * unit,
         mode="markers",
         marker=dict(
             symbol="square",
@@ -184,9 +185,10 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
         masses = paths_extra_T[tt, :, size_col]
         hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
 
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scatter3D(
             x=(paths_extra_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-            y=(paths_extra_T[tt, :, pxcol+1] - delta[tt, 1]) * unit,
+            y=(paths_extra_T[tt, :, pycol] - delta[tt, 1]) * unit,
+            z=(paths_extra_T[tt, :, pzcol] - delta[tt, 2]) * unit,
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_extra_T[tt, :, size_col] / size_scale),
@@ -209,9 +211,10 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
         masses = paths_curr_T[tt, :, size_col]
         hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
 
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scatter3D(
             x=(paths_curr_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-            y=(paths_curr_T[tt, :, pxcol+1] - delta[tt, 1]) * unit,
+            y=(paths_curr_T[tt, :, pycol] - delta[tt, 1]) * unit,
+            z=(paths_curr_T[tt, :, pzcol] - delta[tt, 2]) * unit,
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_curr_T[tt, :, size_col] / size_scale),
