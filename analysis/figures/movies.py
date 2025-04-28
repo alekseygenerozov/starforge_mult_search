@@ -48,6 +48,7 @@ with open("path_lookup_stacked.p", "rb") as ff:
     path_lookup = pickle.load(ff)
 
 ex_time_max = np.load("pmult_before_bin_1.0.npz")["ex_time_max"]
+ex_time_max_end = np.load("pmult_before_bin_1.0.npz")["ex_time_max_end"]
 ex_filt = ~np.isinf(ex_time_max)
 ex_filt = ex_filt & my_data["quasi_filter"]
 ex_index = np.where(ex_filt)[0]
@@ -108,7 +109,7 @@ def max_pairwise_dist(pos_list):
 
 ##Many arguments can be combined -- just pass the whole dataframe(!)
 def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annotations, size_mode="mtot", com_flag=0,
-                    max_sep=10000, max_sep_rel=0, halo_col=True):
+                    max_sep=10000, max_sep_rel=0, halo_col=True, ex_time_start=np.inf, ex_time_end=np.inf):
     fig = go.Figure()
     size_col = mtotcol if halo_col else mcol
     size_scale = 0.0003
@@ -222,14 +223,19 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     xcenter = (coms[tt, 0] - delta[tt, 0]) * unit
     ycenter = (coms[tt, 1] - delta[tt, 1]) * unit
     # Axes and annotation
+    col_axis = "black"
+    if (tt >= ex_time_start) & (tt <= ex_time_end):
+        col_axis = "red"
     fig.update_layout(
         xaxis=dict(
             title="x [au]",
             range=[(xcenter - max_sep), (xcenter + max_sep)],
+            color=col_axis
         ),
         yaxis=dict(
             title="y [au]",
             range=[(ycenter - max_sep), (ycenter + max_sep)],
+            color=col_axis
         ),
         title=annotations[tt],
         height=600,
@@ -252,12 +258,12 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     return fig, fig2
 
 ##Many arguments can be combined -- just pass the dataframe...
-def movie(ps, tt, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, max_sep, max_sep_rel, halo_col):
+def movie(ps, tt, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, max_sep, max_sep_rel, halo_col, ex_time_start, ex_time_end):
     ################# Above do not update to save time!!!##########################################################
     # if case_label is None:
     #     case_label = tmp_bin_idx
     fig, fig2 = plotly_snapshot(tt, ps, comps, comps_curr, first_star_snap, tmp_end_snap, annotations=annotations, com_flag=2,
-                          max_sep=max_sep, max_sep_rel=max_sep_rel, halo_col=halo_col)
+                          max_sep=max_sep, max_sep_rel=max_sep_rel, halo_col=halo_col, ex_time_start=ex_time_start, ex_time_end=ex_time_end)
     return fig, fig2
 
 
@@ -353,6 +359,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     hiers2 = my_bin.iloc[1]["hiers"]
     first_star_snap = int(min(min(times1), min(times2)))
 
+    ##Get only quasi-persistent companions(!!!)
     comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
     comps = comps[(comps != ps[0]) & (comps != ps[1])]
 
@@ -391,8 +398,9 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
         comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
 
     ##Refactor -- too many arguments...
-    ##Just start at the first snapshot together?? -- Otherwise does not make sense...
-    fig, fig2 = movie(ps, new_t, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, float(max_sep), float(max_sep_rel), halo_toggle)
+    ##Need to pass the time interval over which exchange occurs...
+    fig, fig2 = movie(ps, new_t, comps, comps_curr, annotations, first_star_snap, tmp_end_snap, float(max_sep), float(max_sep_rel), halo_toggle,
+                      ex_time_max[tmp_bin_idx], ex_time_max_end[tmp_bin_idx])
     return fig, fig2, new_t
 
 

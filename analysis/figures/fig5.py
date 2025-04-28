@@ -25,7 +25,8 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data["quasi_filter"]
 high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults.pq") for seed in seeds])
-high_df = high_df.loc[(high_df["cumul_frac_cont"] >= 1) & (high_df["cumul_snaps_cont"] > 1)]
+###Need to fix these columns(!!!) -- Don't want cumulative sum--want totals by segment[?]
+high_df = high_df.loc[(high_df["frac_of_orbit_seg"] >= 1) & (high_df["nbound_snaps_seg"] > 1)]
 
 mult_ids = high_df.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
@@ -37,47 +38,62 @@ pmult_filt = np.zeros(len(bin_ids)).astype(bool)
 ##ex_time is like a "floor" for the exchange time -- if the pair is bound after this time it is considered an exchange binary(!)
 ##Want separate data with the true exchange time...
 ex_time = np.ones(len(bin_ids)) * np.inf
+ex_time_end = np.ones(len(bin_ids)) * np.inf
 ex_time_max = np.ones(len(bin_ids)) * np.inf
+ex_time_max_end = np.ones(len(bin_ids)) * np.inf
 
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
     if not quasi_filter[ii]:
         continue
     bin_list = list(row)
-    ibs = my_data["init_bound_snaps"][ii]
     ##Save bound_snaps data to save time(!!)
-    bs = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])[0][:, 0].astype(int)
+    ##Use high_df table to get more stringent binary snapshots(!!!)
+    curr_bin_list = list(bin_ids[ii])
+    curr_bin_list.sort()
+    ##Persistence filter for binaries is not as strict -- so some binaries may not be in (filtered) table.
+    try:
+        bin_sel = high_df.loc[str(curr_bin_list)]
+    except KeyError:
+        continue
+    bs = bin_sel["tval"].to_numpy()
+    ibs = bs[0]
+
     fst = my_data["fst"][ii]
-    # tmp_sel = high_df.query(f"tval < {ibs}")
-    # tmp_sel = high_df.loc[(tval < ibs) & (tval >= fst)]
     tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
     ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
     mult_ids_set = tmp_sel["mult_ids_set"]
-    ##Additional filtering here--only select those cases where multiple is quasi-persistent  based on prior snapshots.
+    ##Additional filtering here--only select those cases where multiple is quasi-persistent based on prior snapshots.
     ck1 = [bin_list[0] in mult_id for mult_id in mult_ids_set]
     # ck1 = np.any(ck1)
     ck2 = [bin_list[1] in mult_id for mult_id in mult_ids_set]
     # ck2 = np.any(ck2)
     tmp_sel2a = tmp_sel.loc[ck1]
     tmp_sel2b = tmp_sel.loc[ck2]
+
     # potential_ck(tmp_sel2a, bin_list[0], bin_list[1])
     # potential_ck(tmp_sel2b, bin_list[1], bin_list[0])
     soft_times = get_soft_times(bin_list[0], bin_list[1], path_lookup)
 
-    tmp_sel2a = tmp_sel2a.loc[~np.isin(tmp_sel2a["tval"], soft_times)]
-    tmp_sel2b = tmp_sel2b.loc[~np.isin(tmp_sel2b["tval"], soft_times)]
+    # tmp_sel2a = tmp_sel2a.loc[~np.isin(tmp_sel2a["tval"], soft_times)]
+    # tmp_sel2b = tmp_sel2b.loc[~np.isin(tmp_sel2b["tval"], soft_times)]
+    ##Need to fix ex_time[?] Do we really want the minimum here??
     if len(tmp_sel2a) > 0:
         ex_time[ii] = tmp_sel2a["tval"].min()
         ex_time_max[ii] = tmp_sel2a["tval"].max()
     if len(tmp_sel2b) > 0:
         ex_time[ii] = min(ex_time[ii], tmp_sel2b["tval"].min())
         ex_time_max[ii] = min(ex_time_max[ii], tmp_sel2b["tval"].max())
+    if ~np.isinf(ex_time[ii]):
+        ex_time_end[ii] = bs[bs > ex_time[ii]][0]
+        ex_time_max_end[ii] = bs[bs > ex_time_max[ii]][0]
 
     pmult_filt[ii] = ex_time[ii] >= ibs
 
-np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max)
+np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
+         ex_time_end=ex_time_end, ex_time_max_end=ex_time_max_end)
 #########################################################################################################
 #Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
 #persistence filters.

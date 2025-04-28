@@ -353,7 +353,7 @@ def main(params):
 
     coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2"))
     coll_full_df.set_index(["id", "t"], inplace=True)
-    ##TO DO: Try to homogenize this code...##Require contiguous intervals here(!!)
+    ##TO DO: Try to homogenize this code...##group_keys is true by default, so it may be unnecessary.
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
     nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
@@ -367,10 +367,14 @@ def main(params):
     coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"}, inplace=True)
     ##Get orbits and bound snapshots by segments...
     coll_full_df_life["segment"] = coll_full_df_life.groupby("id", group_keys=False).apply(lambda x: assign_contiguous_segments(x, cadence=cadence))
-    tmp1 = coll_full_df_life.groupby(["id", "segment"])[["tf"]].transform(lambda x: list(range(len(x))))
-    tmp2 = coll_full_df_life.groupby(["id", "segment"])[["p"]].transform(lambda x: (snap_interval / x).cumsum())
-    coll_full_df_life["cumul_snaps_cont"] = tmp1
-    coll_full_df_life["cumul_frac_cont"] = tmp2
+    # tmp1 = coll_full_df_life.groupby(["id", "segment"])[["tf"]].transform(lambda x: list(range(len(x))))
+    # tmp2 = coll_full_df_life.groupby(["id", "segment"])[["p"]].transform(lambda x: (snap_interval / x).cumsum())
+    # coll_full_df_life["cumul_snaps_cont"] = tmp1
+    # coll_full_df_life["cumul_frac_cont"] = tmp2
+    frac_of_orbit = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit_seg")
+    nbound_snaps = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: len(x)).rename("nbound_snaps_seg")
+    coll_full_df_life = coll_full_df_life.join(frac_of_orbit, on=["id", "segment"])
+    coll_full_df_life = coll_full_df_life.join(nbound_snaps, on=["id", "segment"])
 
     ##Convenience columns....e.g. Multiplicity
     mult_hiers = coll_full_df_life["hier"]
