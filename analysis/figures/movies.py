@@ -348,16 +348,28 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     print(my_bin)
     ps = my_bin.index.to_list()
     tmp_end_snap = int(my_data["final_bound_snaps"][tmp_bin_idx]) + 2
-    tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
+    ##What was the point of this???
+    # tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
+    first_star_snap = min(lookup_dict[ps[0]][0, 0], int(lookup_dict[ps[1]][0, 0]))
+    ##Getting only persistent companions
+    with open("companions.p", "rb") as ff:
+        comps_dict = pickle.load(ff)
+        c1 = comps_dict["comps_a_ids_flat"]
+        c2 = comps_dict["comps_b_ids_flat"]
+        times1 = comps_dict["comps_a_times"]
+        times2 = comps_dict["comps_b_times"]
+        hiers1 = comps_dict["comps_a_ids"]
+        hiers2 = comps_dict["comps_b_times"]
+
 
     ##Can we avoid splitting the data up???
-    c1 = my_bin.iloc[0]["comps"]
-    c2 = my_bin.iloc[1]["comps"]
-    times1 = my_bin.iloc[0]["times"]
-    times2 = my_bin.iloc[1]["times"]
-    hiers1 = my_bin.iloc[0]["hiers"]
-    hiers2 = my_bin.iloc[1]["hiers"]
-    first_star_snap = int(min(min(times1), min(times2)))
+    # c1 = my_bin.iloc[0]["comps"]
+    # c2 = my_bin.iloc[1]["comps"]
+    # times1 = my_bin.iloc[0]["times"]
+    # times2 = my_bin.iloc[1]["times"]
+    # hiers1 = my_bin.iloc[0]["hiers"]
+    # hiers2 = my_bin.iloc[1]["hiers"]
+    # first_star_snap = int(min(min(times1), min(times2)))
 
     ##Get only quasi-persistent companions(!!!)
     comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
