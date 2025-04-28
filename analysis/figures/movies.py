@@ -55,6 +55,9 @@ ex_index = np.where(ex_filt)[0]
 # ex_filt = ~np.load("pmult_before_bin_1.0.npz")["pmult_filt"]
 # ex_filt = ex_filt & my_data["quasi_filter"]
 # ex_index = np.where(ex_filt)[0]
+
+with open("companions.p", "rb") as ff:
+    comps_dict = pickle.load(ff)
 #################################################################################
 def rec_sort(my_list):
     my_list_ = copy.deepcopy(my_list)
@@ -352,15 +355,13 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     # tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
     first_star_snap = min(lookup_dict[ps[0]][0, 0], int(lookup_dict[ps[1]][0, 0]))
     ##Getting only persistent companions
-    with open("companions.p", "rb") as ff:
-        comps_dict = pickle.load(ff)
-        c1 = comps_dict["comps_a_ids_flat"]
-        c2 = comps_dict["comps_b_ids_flat"]
-        times1 = comps_dict["comps_a_times"]
-        times2 = comps_dict["comps_b_times"]
-        hiers1 = comps_dict["comps_a_ids"]
-        hiers2 = comps_dict["comps_b_times"]
 
+    c1 = comps_dict["comps_a_ids_flat"][tmp_bin_idx]
+    c2 = comps_dict["comps_b_ids_flat"][tmp_bin_idx]
+    times1 = comps_dict["comps_a_times"][tmp_bin_idx]
+    times2 = comps_dict["comps_b_times"][tmp_bin_idx]
+    hiers1 = comps_dict["comps_a_ids"][tmp_bin_idx]
+    hiers2 = comps_dict["comps_b_ids"][tmp_bin_idx]
 
     ##Can we avoid splitting the data up???
     # c1 = my_bin.iloc[0]["comps"]
@@ -377,11 +378,11 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
 
     annotations1 = [""] * 490
     for ii, ttt in enumerate(times1):
-        annotations1[int(ttt)] = rec_sort(hiers1[ii])
+        annotations1[int(ttt)] = hiers1[ii]
 
     annotations2 = [""] * 490
     for ii, ttt in enumerate(times2):
-        annotations2[int(ttt)] = rec_sort(hiers2[ii])
+        annotations2[int(ttt)] = hiers2[ii]
 
     annotations = [f"{ps[0]} {ps[1]}" + "<br>" + f"{annotations1[ii]}"+ "<br>" + f"{annotations2[ii]}" for ii in range(len(annotations1))]
 
