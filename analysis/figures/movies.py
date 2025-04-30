@@ -137,7 +137,7 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
     names = [f"Star {sid}" for sid in ps]
     masses = paths_T[tt, :, size_col]
     hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
-    fig.add_trace(go.Scatter3D(
+    fig.add_trace(go.Scatter3d(
         x=(paths_T[tt, :, pxcol] - delta[tt, 0]) * unit,
         y=(paths_T[tt, :, pycol] - delta[tt, 1]) * unit,
         z=(paths_T[tt, :, pzcol] - delta[tt, 2]) * unit,
@@ -185,7 +185,7 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
         masses = paths_extra_T[tt, :, size_col]
         hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
 
-        fig.add_trace(go.Scatter3D(
+        fig.add_trace(go.Scatter3d(
             x=(paths_extra_T[tt, :, pxcol] - delta[tt, 0]) * unit,
             y=(paths_extra_T[tt, :, pycol] - delta[tt, 1]) * unit,
             z=(paths_extra_T[tt, :, pzcol] - delta[tt, 2]) * unit,
@@ -211,7 +211,7 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
         masses = paths_curr_T[tt, :, size_col]
         hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
 
-        fig.add_trace(go.Scatter3D(
+        fig.add_trace(go.Scatter3d(
             x=(paths_curr_T[tt, :, pxcol] - delta[tt, 0]) * unit,
             y=(paths_curr_T[tt, :, pycol] - delta[tt, 1]) * unit,
             z=(paths_curr_T[tt, :, pzcol] - delta[tt, 2]) * unit,
@@ -228,38 +228,78 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
 
     xcenter = (coms[tt, 0] - delta[tt, 0]) * unit
     ycenter = (coms[tt, 1] - delta[tt, 1]) * unit
+    zcenter = (coms[tt, 2] - delta[tt, 2]) * unit
     # Axes and annotation
     col_axis = "black"
     if (tt >= ex_time_start) & (tt <= ex_time_end):
         col_axis = "red"
-    fig.update_layout(
+    fig.update_layout(height=600, width=600, title=annotations[tt], scene=dict(
+        camera=dict(
+            eye=dict(x=0, y=0, z=2)  # "eye" is the camera position
+        ),
+        aspectmode='manual',
+        aspectratio=dict(x=1, y=1, z=1),
         xaxis=dict(
             title="x [au]",
             range=[(xcenter - max_sep), (xcenter + max_sep)],
-            color=col_axis
+            color=col_axis,
+            autorange=False
         ),
         yaxis=dict(
             title="y [au]",
             range=[(ycenter - max_sep), (ycenter + max_sep)],
-            color=col_axis
+            color=col_axis,
+            autorange=False
         ),
-        title=annotations[tt],
-        height=600,
-        width=600
-    )
+        zaxis=dict(
+            title="z [au]",
+            range=[(zcenter - max_sep), (zcenter + max_sep)],
+            color=col_axis,
+            autorange=False
+        ),
+    ))
     fig2 = go.Figure(fig)
-    fig2.update_layout(
+    fig2.update_layout(height=600, width=600, title=annotations[tt], scene=dict(
+        camera=dict(
+            eye=dict(x=0, y=0, z=2)  # "eye" is the camera position
+        ),
+        aspectmode='manual',
+        aspectratio=dict(x=1, y=1, z=1),
         xaxis=dict(
             title="x [au]",
             range=[(xcenter - max_sep_b), (xcenter + max_sep_b)],
+            color=col_axis,
+            autorange=False
         ),
         yaxis=dict(
             title="y [au]",
             range=[(ycenter - max_sep_b), (ycenter + max_sep_b)],
+            color=col_axis,
+            autorange=False
         ),
-        height=600,
-        width=600
-    )
+        zaxis=dict(
+            title="z [au]",
+            range=[(zcenter - max_sep_b), (zcenter + max_sep_b)],
+            color=col_axis,
+            autorange=False
+        ),
+    ))
+    # fig2.update_layout(
+    #     xaxis=dict(
+    #         title="x [au]",
+    #         range=[(xcenter - max_sep_b), (xcenter + max_sep_b)],
+    #     ),
+    #     yaxis=dict(
+    #         title="y [au]",
+    #         range=[(ycenter - max_sep_b), (ycenter + max_sep_b)],
+    #     ),
+    #     zaxis=dict(
+    #         title="z [au]",
+    #         range=[(zcenter - max_sep_b), (zcenter + max_sep_b)],
+    #     ),
+    #     height=600,
+    #     width=600
+    # )
 
     return fig, fig2
 
@@ -364,7 +404,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     times1 = comps_dict["comps_a_times"][tmp_bin_idx]
     times2 = comps_dict["comps_b_times"][tmp_bin_idx]
     hiers1 = comps_dict["comps_a_ids"][tmp_bin_idx]
-    hiers2 = comps_dict["comps_b_ids"][tmp_bin_idx]
+    hiers2 = comps_dict["comp_b_ids"][tmp_bin_idx]
 
     ##Can we avoid splitting the data up???
     # c1 = my_bin.iloc[0]["comps"]

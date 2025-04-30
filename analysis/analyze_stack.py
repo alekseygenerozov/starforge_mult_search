@@ -155,6 +155,30 @@ def get_closest_star_time_series(path_lookup, my_key):
 
     return closest_comp[filt]
 
+##Only do 1 seed at a time
+# def get_closest_star_time_series_transposed(path_lookup_time, my_key):
+#     p1_raw = path_lookup[my_key]
+    ##Filtering out other seeds? Could be done more robustly/elegantly
+    #
+    # path_diff_all = []
+    # for ii, uu in enumerate(path_lookup_keys):
+    #     ##Getting separations for all particles...
+    #     path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+    #     # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
+    #     path_diff_all.append(path_diff)
+    # path_diff_all = np.array(path_diff_all).T
+    # # path_diff_all_order = np.argsort(path_diff_all, axis=1)
+    # # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+    # closest_idx = np.argmin(path_diff_all, axis=1)
+    # closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
+    #
+    # keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
+    # closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
+    # closest_comp = np.array(closest_comp)
+    # filt = ~np.isinf(closest_comp[:,-1].astype(float))
+
+    # return closest_comp[filt]
+
 # def get_closest_star_time_series_T(path_lookup, my_key, t):
 #     p1_raw = path_lookup[my_key]
 #     if np.isinf(p1_raw[t, 0]):

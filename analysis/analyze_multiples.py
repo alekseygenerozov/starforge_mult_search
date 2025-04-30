@@ -34,6 +34,7 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
     """
     lookup = []
     for ss in range(start_snap, end_snap + 1, cadence):
+        ##Try removing this try...except skipping missing files could be bad for subsequent analysis(!)
         try:
             with open(r1 + "{0:03d}".format(ss) + r2, "rb") as ff:
                 cl = pickle.load(ff)
