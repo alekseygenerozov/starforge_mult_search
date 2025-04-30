@@ -79,13 +79,17 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
 
     # tmp_sel2a = tmp_sel2a.loc[~np.isin(tmp_sel2a["tval"], soft_times)]
     # tmp_sel2b = tmp_sel2b.loc[~np.isin(tmp_sel2b["tval"], soft_times)]
-    ##Need to fix ex_time[?] Do we really want the minimum here??
     if len(tmp_sel2a) > 0:
-        ex_time[ii] = tmp_sel2a["tval"].min()
-        ex_time_max[ii] = tmp_sel2a["tval"].max()
+        mult_a_times = tmp_sel2a["tval"]
+        bs_after_mult = bs[bs > mult_a_times.min()][0]
+        ex_time[ii] = mult_a_times[mult_a_times < bs_after_mult].max()
+        ex_time_max[ii] = mult_a_times.max()
     if len(tmp_sel2b) > 0:
-        ex_time[ii] = min(ex_time[ii], tmp_sel2b["tval"].min())
-        ex_time_max[ii] = min(ex_time_max[ii], tmp_sel2b["tval"].max())
+        mult_b_times = tmp_sel2b["tval"]
+        bs_after_mult = bs[bs > mult_b_times.min()][0]
+        ex_time_b = mult_b_times[mult_b_times < bs_after_mult].max()
+        ex_time[ii] = min(ex_time[ii], ex_time_b)
+        ex_time_max[ii] = min(ex_time_max[ii], mult_b_times.max())
     if ~np.isinf(ex_time[ii]):
         ex_time_end[ii] = bs[bs > ex_time[ii]][0]
         ex_time_max_end[ii] = bs[bs > ex_time_max[ii]][0]
