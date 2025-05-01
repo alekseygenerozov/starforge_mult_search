@@ -1,3 +1,4 @@
+import copy
 import pickle
 import tqdm
 
@@ -18,6 +19,15 @@ from labelLine import labelLines
 ##Try to get rid of this import...
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
+
+
+def get_bound_snaps_adjust(bin_list, high_df):
+    ##Use high_df table to get more stringent binary snapshots(!!!)
+    curr_bin_list = copy.copy(bin_list)
+    curr_bin_list.sort()
+    bin_sel = high_df.loc[str(curr_bin_list)]
+
+    return bin_sel
 
 #########################################################################################################
 ## Constructing new filter: whether
@@ -41,6 +51,8 @@ ex_time = np.ones(len(bin_ids)) * np.inf
 ex_time_end = np.ones(len(bin_ids)) * np.inf
 ex_time_max = np.ones(len(bin_ids)) * np.inf
 ex_time_max_end = np.ones(len(bin_ids)) * np.inf
+bins_first_bound = np.ones(len(bin_ids)) * np.inf
+bins_last_bound = np.ones(len(bin_ids)) * np.inf
 
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
@@ -59,6 +71,8 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     #     continue
     bs = bin_sel["tval"].to_numpy()
     ibs = bs[0]
+    bins_first_bound[ii] = bs[0]
+    bins_last_bound[ii] = bs[-1]
 
     fst = my_data["fst"][ii]
     tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
@@ -108,26 +122,27 @@ fates_corr = npz_stack(npzs_list)
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]
 bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
 #########################################################################################################
 ##Ionized binaries and encounters -- those that end up as single stars
 bin_ids_11 = bin_ids[quasi_filter &  (end_states=="1 1")]
 bin_ids_subset = bin_ids_11
 norm_sep = np.zeros(len(bin_ids_subset))
 mult_after_destruction = np.zeros(len(bin_ids_subset))
+# bins_first_bound_subset = bins_first_bound[quasi_filter &  (end_states=="1 1")]
+# bins_last_bound_subset = bins_last_bound[quasi_filter &  (end_states=="1 1")]
 
 for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
     sys1_info = lookup_dict[bin_list[0]]
     sys2_info = lookup_dict[bin_list[1]]
-    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
 
-    tmp_times = b1[:,0].astype(int)
-    fb, lb = tmp_times[0], tmp_times[-1]
     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
+    bin_sel = get_bound_snaps_adjust(bin_list, high_df)
+    lb = int(bin_sel["tval"].iloc[-1])
+    lsma = bin_sel["a"].iloc[-1]
     try:
-        norm_sep[idx] = min(path_diff_all[lb], path_diff_all[lb + 1]) / (2 * b1[-1, LOOKUP_SMA])
+        norm_sep[idx] = min(path_diff_all[lb], path_diff_all[lb + 1]) / (2 * lsma)
     except IndexError:
         breakpoint()
     try:
@@ -146,14 +161,14 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 #########################################################################################################
 ##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
 ##Checking if the stars are bound at the last snapshot both exist(!!)
-final_bound_snaps_norm = my_data["final_bound_snaps"] / my_data["end_stars"]
+final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
 ##May also filter out cases where "exchange" occurs after the initial formation -- but then we may be putting in the answer with our sample selection...
 no_mult_before_bin = (pmult_filt) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
 ##to make sense.
 bin_ids_surv = bin_ids[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
+# bins_last_bound_subset = bins_first_bound[quasi_filter & (final_bound_snaps_norm==1) & (no_mult_before_bin)]
 print(len(bin_ids_surv))
 norm_sep = np.zeros(len(bin_ids_surv))
 bin_ids_subset = bin_ids_surv
@@ -161,10 +176,10 @@ bin_ids_subset = bin_ids_surv
 for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
-    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(lookup_dict[bin_list[0]], lookup_dict[bin_list[1]])
+    bin_sel = get_bound_snaps_adjust(bin_list, high_df)
     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
     ##Minimum distance for all surviving binaries
-    norm_sep[idx] = np.min(path_diff_all[b1[:,0].astype(int)] / (2 * b1[:, LOOKUP_SMA]))
+    norm_sep[idx] = np.min(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
 #########################################################################################################
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
 ax.set_xlim(0.05, 1000)
