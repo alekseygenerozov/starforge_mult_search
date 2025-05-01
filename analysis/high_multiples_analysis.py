@@ -13,6 +13,7 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, 
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
+from bash_command import bash_command as bc
 
 class SystemNode:
     """
@@ -390,6 +391,8 @@ def main(params):
     analysis_suff = "_mult"
     ##Maybe we should do both versions here -- with and without segment...
     bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
+    my_data = np.load(save_path + f"/dat_coll{analysis_suff}.npz", allow_pickle=True)
+
     with open(save_path + f"/lookup_dict.p", "rb") as ff:
         lookup_dict = pickle.load(ff)
     ##Getting state of binaries at end of simulation using tabulated persistent multiples
@@ -413,13 +416,19 @@ def main(params):
 
     np.savez(save_path + f"/fates_corr{tail_out}_seg.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
-    bin_list = coll_full_df_life[coll_full_df_life["mult"]==2]
+    bin_list = tmp_sel[tmp_sel["mult"]==2]
+    bin_set = set(bin_list.index.get_level_values(level="id"))
     quasi_filter_contig = np.zeros(len(bin_ids)).astype(bool)
+
+    ##Adding contiguous persistence filter for binaries.
     for ii, row in enumerate(bin_ids):
         tmp_id = list(row)
         tmp_id.sort()
-        tmp_id = bin_list.loc[str(tmp_id)]
-        quasi_filter_contig[ii] = (len(tmp_id) > 0)
+        quasi_filter_contig[ii] = (str(tmp_id) in bin_set)
+    my_data = dict(my_data)
+    my_data["quasi_filter_seg"] = quasi_filter_contig
+    bc.bash_command("cp " + save_path + f"/dat_coll{analysis_suff}.npz " + save_path + f"/dat_coll{analysis_suff}_bk.npz")
+    np.savez(save_path + f"/dat_coll{analysis_suff}.npz", **my_data)
     ######################################################################################################
     f1 = coll_full_df_life["frac_of_orbit"]
     n1 = coll_full_df_life["nbound_snaps"]
@@ -438,15 +447,6 @@ def main(params):
         es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
         end_states.append(es)
         same_sys_filt[ii] = ss
-
-    bin_list = coll_full_df_life[coll_full_df_life["mult"]==2]
-    quasi_filter_ck = np.zeros(len(bin_ids)).astype(bool)
-    for ii, row in enumerate(bin_ids):
-        tmp_id = list(row)
-        tmp_id.sort()
-        tmp_id = bin_list.loc[str(tmp_id)]
-        quasi_filter_ck[ii] = (len(tmp_id) > 0)
-        assert quasi_filter_ck[ii] == my_data["quasi_filter"][ii]
 
     np.savez(save_path + f"/fates_corr{tail_out}.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 

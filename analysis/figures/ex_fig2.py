@@ -23,8 +23,8 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)
 first_mult = np.ones(len(lookup_dict_keys)) * np.inf
-f1 = coll_full_df_life[f"frac_of_orbit{config_suff}"]
-n1 = coll_full_df_life[f"nbound_snaps{config_suff}"]
+f1 = coll_full_df_life[f"frac_of_orbit{contig_suff}"]
+n1 = coll_full_df_life[f"nbound_snaps{contig_suff}"]
 ##Selecting persistent multiples
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
 ##Filter for selecting first instance of each index

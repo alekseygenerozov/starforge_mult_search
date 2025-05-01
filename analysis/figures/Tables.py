@@ -5,7 +5,7 @@ import pandas as pd
 
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult
 from starforge_mult_search.analysis.high_multiples_analysis import filter_top_level
-from starforge_mult_search.analysis.figures.figure_preamble import flat_suff, config_suff
+from starforge_mult_search.analysis.figures.figure_preamble import flat_suff, contig_suff
 
 pd.set_option("display.precision", 2)
 # Data for the DataFrame
@@ -89,7 +89,7 @@ for ii in range(len(base_new_all)):
         grand_total_bins_b += tot2
 
         coll_full_df_life = pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq")
-        coll_full_df_life = coll_full_df_life.loc[(coll_full_df_life[f"frac_of_orbit{config_suff}"] >= 1) & (coll_full_df_life[f"nbound_snaps{config_suff}"] > 1)]
+        coll_full_df_life = coll_full_df_life.loc[(coll_full_df_life[f"frac_of_orbit{contig_suff}"] >= 1) & (coll_full_df_life[f"nbound_snaps{contig_suff}"] > 1)]
         high_df_final = coll_full_df_life[(coll_full_df_life["tf"]==coll_full_df_life.index.get_level_values("t"))]
         high_df_final = filter_top_level(high_df_final)
         nmults = len(high_df_final)

@@ -112,18 +112,21 @@ def get_min_dist_binary(path_lookup, tmp_row):
             continue
 
         ##Displacement from binary com
-        path_diff1 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
-        path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
-        path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
+        path_diff1 = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
+        path_diff2 = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)
 
     path_diff_all = np.array(path_diff_all).T
-    path_diff_all_order = np.argsort(path_diff_all, axis=1)
-    path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+    closest_idx = np.argmin(path_diff_all, axis=1)
+    closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
 
-    return path_diff_all, path_diff_all_order
+    # path_diff_all_order = np.argsort(path_diff_all, axis=1)
+    # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+
+    return closest_val, closest_idx
 
 def get_closest_star_time_series(path_lookup, my_key):
     p1_raw = path_lookup[my_key]

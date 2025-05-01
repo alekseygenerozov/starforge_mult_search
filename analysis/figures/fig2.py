@@ -6,7 +6,7 @@ colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
-from starforge_mult_search.analysis.figures.figure_preamble import config_suff
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff
 
 ##Stacking data
 my_tides = False

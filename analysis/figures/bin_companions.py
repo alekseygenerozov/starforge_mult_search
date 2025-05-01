@@ -10,7 +10,7 @@ def removeNestings_wrap(l):
 high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
 tval = high_df.index.get_level_values("t")
 high_df["tval"] = tval
-high_df = high_df.loc[(high_df[f"frac_of_orbit{config_suff}"] >= 1) & (high_df[f"nbound_snaps{config_suff}"] > 1)]
+high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f"nbound_snaps{contig_suff}"] > 1)]
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
