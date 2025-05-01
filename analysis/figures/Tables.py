@@ -5,6 +5,7 @@ import pandas as pd
 
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult
 from starforge_mult_search.analysis.high_multiples_analysis import filter_top_level
+from starforge_mult_search.analysis.figures.figure_preamble import flat_suff, config_suff
 
 pd.set_option("display.precision", 2)
 # Data for the DataFrame
@@ -13,14 +14,17 @@ pd.set_option("display.precision", 2)
 my_ft = 1.0
 my_tides = False
 
-base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
-        "M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
-        "M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
-        "M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
-        "M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
-        "v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+# base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
+#         "M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
+#         "M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
+#         "M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
+#         "M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
+#         "v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+#                 ]
+# seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (42,)]
+base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
                 ]
-seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (42,)]
+seeds_all =[ (1, 2, 42),]
 grand_total_stars = 0
 grand_total_bins_a = 0
 grand_total_bins_b = 0
@@ -44,14 +48,14 @@ for ii in range(len(base_new_all)):
     for seed in seeds:
         print(base_new, seed)
         my_data = np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)
-        final_sys_filter =  np.load(base_new + str(seed) + suff_new + f"/fates_corr.npz", allow_pickle=True)["same_sys_filt"]
+        final_sys_filter =  np.load(base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz", allow_pickle=True)["same_sys_filt"]
         with open(base_new + str(seed) + suff_new + "/path_lookup.p", "rb") as ff:
             tmp_path_pickle = pickle.load(ff)
             tmp_nstar = len(tmp_path_pickle.keys())
         grand_total_stars += tmp_nstar
 
         bin_ids = my_data["bin_ids"]
-        quasi_filter = my_data["quasi_filter"]
+        quasi_filter = my_data[f"quasi_filter{contig_suff}"]
         ss_fst = my_data["same_sys_at_fst"].astype(bool)
         tot1 = len(bin_ids[quasi_filter])
         tot2 = len(bin_ids[quasi_filter & final_sys_filter])
@@ -84,16 +88,16 @@ for ii in range(len(base_new_all)):
         grand_total_bins_a += tot1
         grand_total_bins_b += tot2
 
-        coll_full_df_life = pd.read_parquet(base_new + str(seed) + suff_new + f"/mults_flat.pq")
-        coll_full_df_life = coll_full_df_life.loc[(coll_full_df_life["frac_of_orbit"] >= 1) & (coll_full_df_life["nbound_snaps"] > 1)]
+        coll_full_df_life = pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq")
+        coll_full_df_life = coll_full_df_life.loc[(coll_full_df_life[f"frac_of_orbit{config_suff}"] >= 1) & (coll_full_df_life[f"nbound_snaps{config_suff}"] > 1)]
         high_df_final = coll_full_df_life[(coll_full_df_life["tf"]==coll_full_df_life.index.get_level_values("t"))]
         high_df_final = filter_top_level(high_df_final)
         nmults = len(high_df_final)
         grand_total_mults += nmults
         #
         high_df_final = coll_full_df_life[(coll_full_df_life["tf"] == coll_full_df_life.index.get_level_values("t"))]
-        final_sys_filter = np.load(base_new + str(seed) + suff_new + f"/fates_corr.npz")["same_sys_filt"]
-        tmp_bin_list = my_data["bin_ids"][my_data["quasi_filter"] & final_sys_filter]
+        final_sys_filter = np.load(base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz")["same_sys_filt"]
+        tmp_bin_list = my_data["bin_ids"][my_data[f"quasi_filter{contig_suff}"] & final_sys_filter]
         tmp_mult_coll = []
         tmp_ids = high_df_final.index.get_level_values(level="id")
         nmismatch = 0

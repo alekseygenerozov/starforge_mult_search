@@ -6,6 +6,7 @@ colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
+from starforge_mult_search.analysis.figures.figure_preamble import config_suff
 
 ##Stacking data
 my_tides = False
@@ -32,11 +33,11 @@ npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seed
 comp = npz_stack(npzs_list)
 
 # Load data
-quasi_filter = base_data["quasi_filter"]
+quasi_filter = base_data[f"quasi_filter{contig_suff}"]
 ens = base_data["ens"]
 ens_gas = base_data["ens_gas"]
 
-comp_quasi_filter = comp["quasi_filter"]
+comp_quasi_filter = comp[f"quasi_filter{contig_suff}"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 

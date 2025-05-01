@@ -33,6 +33,10 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 ##Stacking data
 my_ft = 1.0
 my_tides = False
+##Flag for using flat multiple hierarchies
+flat_suff = ""
+##Flag for using contiguous segments
+contig_suff = "_seg"
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1, 2, 42)
 seeds_idx = (0, 1, 2)
@@ -50,7 +54,7 @@ seeds_lookup_idx = np.concatenate([[seeds_idx[seed_idx]] * len(
     np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)["bin_ids"]) for seed_idx, seed
                                    in enumerate(seeds)])
 my_data = npz_stack(npzs_list)
-coll_full_df_life = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults_flat.pq") for seed in seeds])
+coll_full_df_life = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
 
 path_lookup = {}
 spin_lookup = {}
@@ -74,7 +78,7 @@ for seed in seeds:
 
 snap_interval = my_data["snap_interval"][0]
 ##Getting the final multiplicity of the binary stars, and whether they are in the same multiple system at the end.
-npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
+npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz" for seed in seeds]
 fates_corr = npz_stack(npzs_list)
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]

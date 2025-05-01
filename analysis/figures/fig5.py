@@ -23,10 +23,10 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
-high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults.pq") for seed in seeds])
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
+high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
 ###Need to fix these columns(!!!) -- Don't want cumulative sum--want totals by segment[?]
-high_df = high_df.loc[(high_df["frac_of_orbit_seg"] >= 1) & (high_df["nbound_snaps_seg"] > 1)]
+high_df = high_df.loc[(high_df[f"frac_of_orbit{config_suff}"] >= 1) & (high_df[f"nbound_snaps{config_suff}"] > 1)]
 
 mult_ids = high_df.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
@@ -102,7 +102,7 @@ np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time
 #########################################################################################################
 #Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
 #persistence filters.
-# npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr.npz" for seed in seeds]
+# npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz" for seed in seeds]
 # fates_corr = npz_stack(npzs_list)
 # same_sys_filt = fates_corr["same_sys_filt"]
 # end_states = fates_corr["end_states"]

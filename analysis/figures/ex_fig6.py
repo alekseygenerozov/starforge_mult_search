@@ -23,7 +23,7 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 bin_ids_quasi_list = np.array([list(row) for row in bin_ids[quasi_filter]]).ravel()
 #########################################################################################################
 star_ids = np.array(list(path_lookup.keys()))
@@ -42,7 +42,7 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
     star_end_snap = int(star_times[-1])
 
     tmp_sel = coll_full_df_life.xs(star_end_snap, level="t")
-    tmp_sel = tmp_sel.loc[(tmp_sel["nbound_snaps"]>1) & (tmp_sel["frac_of_orbit"] >= 1)]
+    tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{config_suff}"]>1) & (tmp_sel[f"frac_of_orbit{config_suff}"] >= 1)]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     mults_with_star = tmp_sel.loc[star_in_mult]
     if len(mults_with_star)==0:
@@ -61,8 +61,8 @@ print(f"Frac from bin: {len(single_final_masses[from_bins_filt]) / len(single_fi
 print(f"Frac from bin (ms > 1 Msun): {len(single_final_masses[(from_bins_filt) & (single_final_masses > 1)]) / len(single_final_masses[(single_final_masses > 1)])}")
 ##Get the number that were in *persistent multiples*
 #########################################################################################################
-f1 = coll_full_df_life["frac_of_orbit"]
-n1 = coll_full_df_life["nbound_snaps"]
+f1 = coll_full_df_life[f"frac_of_orbit{config_suff}"]
+n1 = coll_full_df_life[f"nbound_snaps{config_suff}"]
 def parse_mult_id(id_str):
     return list(map(int, id_str.replace("[", "").replace("]", "").split(",")))
 

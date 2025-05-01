@@ -7,12 +7,12 @@ def removeNestings_wrap(l):
     return output
 
 ##Table of higher multiples
-high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults.pq") for seed in seeds])
+high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
 tval = high_df.index.get_level_values("t")
 high_df["tval"] = tval
-high_df = high_df.loc[(high_df["frac_of_orbit_seg"] >= 1) & (high_df["nbound_snaps_seg"] > 1)]
+high_df = high_df.loc[(high_df[f"frac_of_orbit{config_suff}"] >= 1) & (high_df[f"nbound_snaps{config_suff}"] > 1)]
 bin_ids = my_data["bin_ids"]
-quasi_filter = my_data["quasi_filter"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
 comps_a_ids = [[]  for _ in range(len(bin_ids))]
 comps_a_times = [[]  for _ in range(len(bin_ids))]

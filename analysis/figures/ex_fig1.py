@@ -8,16 +8,17 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 bins = np.linspace(-1, 2, 6)
 bins_center = 0.5 * (bins[1:] + bins[:-1])
 same_sys_at_ist = my_data["same_sys_at_fst"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
-tmp_filt_part1 = (my_data["quasi_filter"]) & (same_sys_filt)
+tmp_filt_part1 = (quasi_filter) & (same_sys_filt)
 absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
 n1, n1u, d1 = make_binned_data(absc, ords, bins)
 
-tmp_filt_part1 = (my_data["quasi_filter"]) & ~(same_sys_filt)
+tmp_filt_part1 = (quasi_filter) & ~(same_sys_filt)
 absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
 n2, n2u, d2 = make_binned_data(absc, ords, bins)
 
-tmp_filt_part1 = (my_data["quasi_filter"])
+tmp_filt_part1 = (quasi_filter)
 absc, ords = np.log10(my_data["mfinal_primary"][tmp_filt_part1]), same_sys_at_ist.astype(int)[tmp_filt_part1]
 n3, n3u, d3 = make_binned_data(absc, ords, bins)
 

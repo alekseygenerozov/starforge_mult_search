@@ -23,7 +23,7 @@ bins = np.arange(-1,1.01,0.1)
 
 vangs = my_data["vangs"]
 vangs_prim = my_data["vangs_prim"]
-quasi_filter = my_data["quasi_filter"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
 n, bins, patches = ax.hist(vangs[quasi_filter], bins=bins, histtype='step', label="Cluster Frame", linewidth=4, density=True)
 bar_color = patches[0].get_edgecolor()
@@ -66,7 +66,7 @@ for sidx, seed in enumerate(seeds):
 from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
 
 delta_snap = my_data["delta_snap"]
-quasi_filter = my_data["quasi_filter"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
 ax.set_ylabel("Fraction (Cumulative)")

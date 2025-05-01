@@ -25,7 +25,7 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 #########################################################################################################
 end_states = fates_corr["end_states"]
 same_sys_filt = fates_corr["same_sys_filt"]
-quasi_filter = my_data["quasi_filter"]
+quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 #########################################################################################################
 d1 = len(end_states[quasi_filter])
 #########################################################################################################
