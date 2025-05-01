@@ -412,6 +412,14 @@ def main(params):
         same_sys_filt[ii] = ss
 
     np.savez(save_path + f"/fates_corr{tail_out}_seg.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+
+    bin_list = coll_full_df_life[coll_full_df_life["mult"]==2]
+    quasi_filter_contig = np.zeros(len(bin_ids)).astype(bool)
+    for ii, row in enumerate(bin_ids):
+        tmp_id = list(row)
+        tmp_id.sort()
+        tmp_id = bin_list.loc[str(tmp_id)]
+        quasi_filter_contig[ii] = (len(tmp_id) > 0)
     ######################################################################################################
     f1 = coll_full_df_life["frac_of_orbit"]
     n1 = coll_full_df_life["nbound_snaps"]
@@ -430,6 +438,15 @@ def main(params):
         es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
         end_states.append(es)
         same_sys_filt[ii] = ss
+
+    bin_list = coll_full_df_life[coll_full_df_life["mult"]==2]
+    quasi_filter_ck = np.zeros(len(bin_ids)).astype(bool)
+    for ii, row in enumerate(bin_ids):
+        tmp_id = list(row)
+        tmp_id.sort()
+        tmp_id = bin_list.loc[str(tmp_id)]
+        quasi_filter_ck[ii] = (len(tmp_id) > 0)
+        assert quasi_filter_ck[ii] == my_data["quasi_filter"][ii]
 
     np.savez(save_path + f"/fates_corr{tail_out}.npz", end_states=end_states, same_sys_filt=same_sys_filt)
 
