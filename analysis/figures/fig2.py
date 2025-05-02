@@ -6,7 +6,7 @@ colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
-from starforge_mult_search.analysis.figures.figure_preamble import contig_suff
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, smao
 
 ##Stacking data
 my_tides = False
@@ -21,13 +21,13 @@ def ecdf(data):
     return x, y
 
 my_ft = 1.0
-suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
+suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
 npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
 base_data = npz_stack(npzs_list)
 
 my_ft = 8.0
-suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
+suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
 npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
 comp = npz_stack(npzs_list)

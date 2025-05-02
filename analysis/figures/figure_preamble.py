@@ -1,11 +1,18 @@
 import pickle
+import os
 
 import numpy as np
+from omegaconf import OmegaConf
 import pandas as pd
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
+
+default_config = OmegaConf.create({
+    "contig_suff": "False",
+    "flat_suff": "_flat",
+    "smao":"False"})
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -30,20 +37,30 @@ mcol = np.where(sink_cols == "m")[0][0]
 mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
 
+user_config_path = "fig_config.yaml"
+if os.path.exists(user_config_path):
+    user_config = OmegaConf.load(user_config_path)
+    config = OmegaConf.merge(default_config, user_config)
+else:
+    config = default_config
+
+
 ##Stacking data
 my_ft = 1.0
 my_tides = False
 ##Flag for using flat multiple hierarchies
-flat_suff = ""
+flat_suff = config["flat_suff"]
 ##Flag for using contiguous segments
-contig_suff = "_seg"
+contig_suff = config["contig_suff"]
+smao = config["smao"]
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1, 2, 42)
 seeds_idx = (0, 1, 2)
 end_snaps = np.array((464, 423, 489))
 start_snaps = np.array((44, 48, 48))
 
-suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
+
+suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
 suff = "_mult"
 npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]

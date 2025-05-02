@@ -5,7 +5,7 @@ import pandas as pd
 
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult
 from starforge_mult_search.analysis.high_multiples_analysis import filter_top_level
-from starforge_mult_search.analysis.figures.figure_preamble import flat_suff, contig_suff
+from starforge_mult_search.analysis.figures.figure_preamble import flat_suff, contig_suff, smao
 
 pd.set_option("display.precision", 2)
 # Data for the DataFrame
@@ -33,7 +33,7 @@ grand_total_mults_b = 0
 ##For all clouds...
 for ii in range(len(base_new_all)):
     base_new = base_new_all[ii]
-    suff_new = f"/analyze_multiples_output__Tides{my_tides}_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
+    suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
     npzs_list = []
     seeds = seeds_all[ii]
     suff = "_mult"
