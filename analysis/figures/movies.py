@@ -1,4 +1,4 @@
-# from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, my_data, lookup_dict, path_lookup, my_ft
 # from bash_command import bash_command as bc
 import astropy.constants as const
 import copy
@@ -36,25 +36,22 @@ mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
 
 
-df = pd.read_hdf("binary_data.h5", key="data")
-unique_binaries = df.index.get_level_values("binary").unique()
-with open("dat_stacked.p", "rb") as ff:
-    my_data = pickle.load(ff)
+# df = pd.read_hdf("binary_data.h5", key="data")
+# unique_binaries = df.index.get_level_values("binary").unique()
+# with open("dat_stacked.p", "rb") as ff:
+#     my_data = pickle.load(ff)
+#
+# with open("lookup_dict_stacked.p", "rb") as ff:
+#     lookup_dict = pickle.load(ff)
+#
+# with open("path_lookup_stacked.p", "rb") as ff:
+#     path_lookup = pickle.load(ff)
 
-with open("lookup_dict_stacked.p", "rb") as ff:
-    lookup_dict = pickle.load(ff)
-
-with open("path_lookup_stacked.p", "rb") as ff:
-    path_lookup = pickle.load(ff)
-
-ex_time_max = np.load("pmult_before_bin_1.0.npz")["ex_time_max"]
-ex_time_max_end = np.load("pmult_before_bin_1.0.npz")["ex_time_max_end"]
+ex_time_max = np.load(f"pmult_before_bin_{my_ft}.npz")["ex_time_max"]
+ex_time_max_end = np.load(f"pmult_before_bin_{my_ft}.npz")["ex_time_max_end"]
 ex_filt = ~np.isinf(ex_time_max)
-ex_filt = ex_filt & my_data["quasi_filter"]
+ex_filt = ex_filt & my_data[f"quasi_filter{contig_suff}"]
 ex_index = np.where(ex_filt)[0]
-# ex_filt = ~np.load("pmult_before_bin_1.0.npz")["pmult_filt"]
-# ex_filt = ex_filt & my_data["quasi_filter"]
-# ex_index = np.where(ex_filt)[0]
 
 with open("companions.p", "rb") as ff:
     comps_dict = pickle.load(ff)
@@ -390,9 +387,11 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     ##Only looking at subset of exchange binaries for now
     ##TO DO: Develop ability to look at all binaries.
     tmp_bin_idx = ex_index[bin_input]
-    my_bin = df.loc[unique_binaries[tmp_bin_idx]]
-    print(my_bin)
-    ps = my_bin.index.to_list()
+    my_bin = my_data["bin_ids"][bin_input]
+    # print(my_bin)
+    ps = list(my_bin)
+    breakpoint()
+
     tmp_end_snap = int(my_data["final_bound_snaps"][tmp_bin_idx]) + 2
     ##What was the point of this???
     # tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
@@ -405,15 +404,6 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     times2 = comps_dict["comps_b_times"][tmp_bin_idx]
     hiers1 = comps_dict["comps_a_ids"][tmp_bin_idx]
     hiers2 = comps_dict["comp_b_ids"][tmp_bin_idx]
-
-    ##Can we avoid splitting the data up???
-    # c1 = my_bin.iloc[0]["comps"]
-    # c2 = my_bin.iloc[1]["comps"]
-    # times1 = my_bin.iloc[0]["times"]
-    # times2 = my_bin.iloc[1]["times"]
-    # hiers1 = my_bin.iloc[0]["hiers"]
-    # hiers2 = my_bin.iloc[1]["hiers"]
-    # first_star_snap = int(min(min(times1), min(times2)))
 
     ##Get only quasi-persistent companions(!!!)
     comps = np.concatenate((np.unique(np.concatenate(c1)), np.unique(np.concatenate(c2))))
