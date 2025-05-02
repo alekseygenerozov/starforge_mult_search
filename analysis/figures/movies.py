@@ -387,7 +387,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     ##Only looking at subset of exchange binaries for now
     ##TO DO: Develop ability to look at all binaries.
     tmp_bin_idx = ex_index[bin_input]
-    my_bin = my_data["bin_ids"][bin_input]
+    my_bin = my_data["bin_ids"][tmp_bin_idx]
     # print(my_bin)
     ps = list(my_bin)
 
@@ -450,7 +450,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
 
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8051)
     # df = pd.read_hdf("binary_data.h5", key="data")
     # ##All companions plotted together with hallow symbols
     #
