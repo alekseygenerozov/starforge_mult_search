@@ -1,7 +1,8 @@
 from collections import defaultdict
+import copy
 import glob
-import numpy as np
 
+import numpy as np
 from numba import njit
 
 LOOKUP_SNAP = 0
@@ -258,8 +259,6 @@ def get_snap_info(base, base_sink):
     Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),
     start_snap (first snapshot number), end_snap (last snapshot number)
     """
-
-
     snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
     snaps = np.array(snaps).astype(int)
     cadence = np.diff(np.sort(snaps))[0]
@@ -281,5 +280,11 @@ def get_end_time_set(my_set, path_lookup):
     end_stars_row = ps[~np.isinf(np.mean(ps[:, :, 0], axis=1))][-1]
     return end_stars_row[0, 0], max(end_stars_row[:, 1])
 
+def get_bound_snaps_adjust(bin_list, high_df):
+    ##Use high_df table to get more stringent binary snapshots(!!!)
+    curr_bin_list = copy.copy(bin_list)
+    curr_bin_list.sort()
+    bin_sel = high_df.loc[str(curr_bin_list)]
 
+    return bin_sel
 

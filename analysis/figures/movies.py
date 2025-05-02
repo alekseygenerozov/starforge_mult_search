@@ -1,18 +1,21 @@
-from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, flat_suff, my_data, lookup_dict, path_lookup, my_ft
 # from bash_command import bash_command as bc
-import astropy.constants as const
 import copy
+import pickle
+import warnings
+
+import astropy.constants as const
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pickle
 import plotly.graph_objects as go
 import plotly.io as pio
-
 import dash
 from dash import dcc, html, Output, Input, State
 import dash_bootstrap_components as dbc
 
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, flat_suff, my_data, lookup_dict, path_lookup, my_ft
+from starforge_mult_search.analysis.figures.figure_preamble import coll_full_df_life as high_df
+from starforge_mult_search.analysis.analyze_stack import get_bound_snaps_adjust
 
 pc=const.pc.cgs.value
 au=const.au.cgs.value
@@ -20,6 +23,9 @@ au=const.au.cgs.value
 unit = pc / au
 
 ##Preliminaries -- parsing data
+high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f"nbound_snaps{contig_suff}"] > 1)]
+tval = high_df.index.get_level_values("t")
+high_df["tval"] = tval
 ###############################################################################
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
 sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
@@ -71,12 +77,18 @@ def rec_sort(my_list):
 
 
 def get_com_winf(paths):
+    ##If particles don't exist set all path variables to 0 (i.e. non-existent particles will not affect the com).
     paths2 = np.copy(paths)
     paths2[np.isinf(paths2)] = 0
 
     tmp_ms = paths2[:, :, mcol]
+    ##Have to do this reshaping for the division...
     tmp_ms.shape = (len(tmp_ms), -1, 1)
-    com = path_divide_3d(np.sum((tmp_ms * paths2[:, :, pxcol:pzcol + 1]), axis=0), np.sum(tmp_ms, axis=0))
+    ##Time series of total mass of particles
+    tot_mass = np.sum(tmp_ms, axis=0)
+    ##If the total mass is 0 number of particles is 0, replace mass with infinity to flag these times should be filtered from the division
+    tot_mass[tot_mass==0] = np.inf
+    com = path_divide_3d(np.sum((tmp_ms * paths2[:, :, pxcol:pzcol + 1]), axis=0), tot_mass)
 
     return com
 
@@ -85,7 +97,12 @@ def path_divide_3d(p1, p2):
     diff = np.ones((len(p1), 3)) * np.inf
     filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
     print(p1[filt].shape, p2[filt].shape)
-    diff[filt] = p1[filt] / p2[filt]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        try:
+            diff[filt] = p1[filt] / p2[filt]
+        except RuntimeWarning:
+            breakpoint()
 
     return diff
 
@@ -124,6 +141,8 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
         delta = np.array([coms[start_time]] * len(delta))
     elif com_flag > 0:
         delta = np.array(coms)
+    if np.isinf(delta[tt, 0]):
+        return
 
     ##If max_sep_rel is specified then
     pos_list = np.array([paths[tmp, tt, pxcol:pxcol + 2] for tmp in range(len(ps))])
@@ -133,11 +152,14 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
 
     names = [f"Star {sid}" for sid in ps]
     masses = paths_T[tt, :, size_col]
-    hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
+    xs = (paths_T[tt, :, pxcol] - delta[tt, 0]) * unit
+    ys = (paths_T[tt, :, pycol] - delta[tt, 1]) * unit
+    zs = (paths_T[tt, :, pzcol] - delta[tt, 2]) * unit
+    hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉<br>x={xx:.2f} y={yy:.2f} z={zz:.2f}" for name, mass, xx, yy, zz in zip(names, masses, xs, ys, zs)]
     fig.add_trace(go.Scatter3d(
-        x=(paths_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-        y=(paths_T[tt, :, pycol] - delta[tt, 1]) * unit,
-        z=(paths_T[tt, :, pzcol] - delta[tt, 2]) * unit,
+        x=xs,
+        y=ys,
+        z=zs,
         mode="markers",
         marker=dict(
             symbol="square",
@@ -180,12 +202,17 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
 
         names = [f"Star {sid}" for sid in comps]
         masses = paths_extra_T[tt, :, size_col]
-        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
+        xs = (paths_extra_T[tt, :, pxcol] - delta[tt, 0]) * unit
+        ys = (paths_extra_T[tt, :, pycol] - delta[tt, 1]) * unit
+        zs = (paths_extra_T[tt, :, pzcol] - delta[tt, 2]) * unit
+        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉<br>x={xx:.2f} y={yy:.2f} z={zz:.2f}" for name, mass, xx, yy, zz
+                       in zip(names, masses, xs, ys, zs)]
+        # hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
 
         fig.add_trace(go.Scatter3d(
-            x=(paths_extra_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-            y=(paths_extra_T[tt, :, pycol] - delta[tt, 1]) * unit,
-            z=(paths_extra_T[tt, :, pzcol] - delta[tt, 2]) * unit,
+            x=xs,
+            y=ys,
+            z=zs,
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_extra_T[tt, :, size_col] / size_scale),
@@ -206,12 +233,15 @@ def plotly_snapshot(tt, ps, comps, comps_curr_list, start_time, end_time, annota
 
         names = [f"Star {sid}" for sid in comps_curr_list]
         masses = paths_curr_T[tt, :, size_col]
-        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉" for name, mass in zip(names, masses)]
-
+        xs = (paths_curr_T[tt, :, pxcol] - delta[tt, 0]) * unit
+        ys = (paths_curr_T[tt, :, pycol] - delta[tt, 1]) * unit
+        zs = (paths_curr_T[tt, :, pzcol] - delta[tt, 2]) * unit
+        hover_texts = [f"{name}<br>Mass: {mass:.2f} M☉<br>x={xx:.2f} y={yy:.2f} z={zz:.2f}" for name, mass, xx, yy, zz
+                       in zip(names, masses, xs, ys, zs)]
         fig.add_trace(go.Scatter3d(
-            x=(paths_curr_T[tt, :, pxcol] - delta[tt, 0]) * unit,
-            y=(paths_curr_T[tt, :, pycol] - delta[tt, 1]) * unit,
-            z=(paths_curr_T[tt, :, pzcol] - delta[tt, 2]) * unit,
+            x=xs,
+            y=ys,
+            z=zs,
             mode="markers",
             marker=dict(
                 size=3. * np.log10(paths_curr_T[tt, :, size_col] / size_scale),
@@ -348,6 +378,18 @@ app.layout = html.Div([
                 inline=True
             )
         ], className="mb-1"),
+    html.Div([
+        dbc.Label("Include FUTURE companions?"),
+        dbc.RadioItems(
+            id='comp_toggle',
+            options=[
+                {'label': 'Include', 'value': True},
+                {'label': 'Exclude', 'value': False}
+            ],
+            value=True,
+            inline=True
+        )
+    ], className="mb-1"),
     html.Div([dbc.Label("Time:"),
     html.Button("←", id="step-back", n_clicks=0),
     dcc.Input(
@@ -381,9 +423,10 @@ app.layout = html.Div([
     Input("max-sep", "value"),
     Input("max-sep-rel", "value"),
     Input("halo_toggle", "value"),
+    Input("comp_toggle", "value"),
     State("time-input", "value"),
 )
-def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_rel, halo_toggle, current_value):
+def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_rel, halo_toggle, comp_toggle, current_value):
     ##Only looking at subset of exchange binaries for now
     ##TO DO: Develop ability to look at all binaries.
     tmp_bin_idx = ex_index[bin_input]
@@ -391,8 +434,9 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     my_bin = my_data["bin_ids"][tmp_bin_idx]
     # print(my_bin)
     ps = list(my_bin)
+    bin_sel = get_bound_snaps_adjust(ps, high_df)
 
-    tmp_end_snap = min(int(my_data["final_bound_snaps"][tmp_bin_idx]) + 2, int(my_data["end_stars"][tmp_bin_idx]))
+    tmp_end_snap = min(int(bin_sel["tval"].iloc[-1]) + 2, int(my_data["end_stars"][tmp_bin_idx]))
     ##What was the point of this???
     # tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
     first_star_snap = min(lookup_dict[ps[0]][0, 0], int(lookup_dict[ps[1]][0, 0]))
@@ -433,15 +477,24 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
         new_t = current_value
 
     comps_curr = []
+    comps_prev_curr = []
     t_group = (times1, times2)
     for ii, cc in enumerate((c1, c2)):
         tmp_comps_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) == new_t]
+        tmp_comps_prev_curr = np.array(cc, dtype=object)[np.array(t_group[ii]) <= new_t]
         if len(tmp_comps_curr) > 0:
             comps_curr.append(tmp_comps_curr[0])
+            comps_prev_curr.append(tmp_comps_prev_curr[0])
 
     if len(comps_curr) > 0:
         comps_curr = np.concatenate(comps_curr)
         comps_curr = np.unique(comps_curr[(comps_curr!=ps[0]) & (comps_curr!=ps[1])])
+        ##Current and previous companions
+        comps_prev_curr = np.concatenate(comps_prev_curr)
+        comps_prev_curr = np.unique(comps_prev_curr[(comps_prev_curr!=ps[0]) & (comps_prev_curr!=ps[1])])
+
+    if not comp_toggle:
+        comps = comps_prev_curr
 
     ##Refactor -- too many arguments...
     ##Need to pass the time interval over which exchange occurs...

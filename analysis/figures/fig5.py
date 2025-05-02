@@ -11,7 +11,7 @@ import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary,get_soft_times
+from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary,get_soft_times,get_bound_snaps_adjust
 from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
 from labelLine import labelLines
@@ -20,22 +20,12 @@ from labelLine import labelLines
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-
-def get_bound_snaps_adjust(bin_list, high_df):
-    ##Use high_df table to get more stringent binary snapshots(!!!)
-    curr_bin_list = copy.copy(bin_list)
-    curr_bin_list.sort()
-    bin_sel = high_df.loc[str(curr_bin_list)]
-
-    return bin_sel
-
 #########################################################################################################
 ## Constructing new filter: whether
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
-###Need to fix these columns(!!!) -- Don't want cumulative sum--want totals by segment[?]
 high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f"nbound_snaps{contig_suff}"] > 1)]
 
 mult_ids = high_df.index.get_level_values("id")
