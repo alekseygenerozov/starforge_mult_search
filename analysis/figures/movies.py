@@ -390,9 +390,8 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     my_bin = my_data["bin_ids"][bin_input]
     # print(my_bin)
     ps = list(my_bin)
-    breakpoint()
 
-    tmp_end_snap = int(my_data["final_bound_snaps"][tmp_bin_idx]) + 2
+    tmp_end_snap = min(int(my_data["final_bound_snaps"][tmp_bin_idx]) + 2, int(my_data["end_stars"][tmp_bin_idx]))
     ##What was the point of this???
     # tmp_end_snap = min(int(lookup_dict[ps[0]][0, -1]), tmp_end_snap)
     first_star_snap = min(lookup_dict[ps[0]][0, 0], int(lookup_dict[ps[1]][0, 0]))
