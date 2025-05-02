@@ -1,4 +1,4 @@
-from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, my_data, lookup_dict, path_lookup, my_ft
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, flat_suff, my_data, lookup_dict, path_lookup, my_ft
 # from bash_command import bash_command as bc
 import astropy.constants as const
 import copy
@@ -47,13 +47,13 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 # with open("path_lookup_stacked.p", "rb") as ff:
 #     path_lookup = pickle.load(ff)
 
-ex_time_max = np.load(f"pmult_before_bin_{my_ft}.npz")["ex_time_max"]
-ex_time_max_end = np.load(f"pmult_before_bin_{my_ft}.npz")["ex_time_max_end"]
+ex_time_max = np.load(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz")["ex_time_max"]
+ex_time_max_end = np.load(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz")["ex_time_max_end"]
 ex_filt = ~np.isinf(ex_time_max)
 ex_filt = ex_filt & my_data[f"quasi_filter{contig_suff}"]
 ex_index = np.where(ex_filt)[0]
 
-with open("companions.p", "rb") as ff:
+with open(f"companions{flat_suff}{contig_suff}.p", "rb") as ff:
     comps_dict = pickle.load(ff)
 #################################################################################
 def rec_sort(my_list):
@@ -387,6 +387,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
     ##Only looking at subset of exchange binaries for now
     ##TO DO: Develop ability to look at all binaries.
     tmp_bin_idx = ex_index[bin_input]
+    # tmp_bin_idx = bin_input
     my_bin = my_data["bin_ids"][tmp_bin_idx]
     # print(my_bin)
     ps = list(my_bin)

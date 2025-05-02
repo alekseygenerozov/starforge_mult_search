@@ -45,6 +45,6 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
 ##Fix the name here!!!
 comp = dict(comps_a_ids=comps_a_ids, comps_a_times=comps_a_times, comps_a_ids_flat=comps_a_ids_flat,
          comp_b_ids=comps_b_ids, comps_b_times=comps_b_times, comps_b_ids_flat=comps_b_ids_flat)
-##TODO: Tag this with analysis tags contig_suff and flat_suff
-with open("companions.p", "wb") as ff:
+##Tagged with analysis tags contig_suff and flat_suff
+with open(f"companions{flat_suff}{contig_suff}.p", "wb") as ff:
     pickle.dump(comp, ff)

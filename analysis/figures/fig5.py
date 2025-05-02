@@ -112,7 +112,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     pmult_filt[ii] = ex_time[ii] >= ibs
 
 ##Need to get time of the first exchange as well -- this is not quite ex_time
-np.savez(f"pmult_before_bin_{my_ft}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
+np.savez(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
          ex_time_end=ex_time_end, ex_time_max_end=ex_time_max_end)
 #########################################################################################################
 #Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
