@@ -152,6 +152,7 @@ def get_closest_star_time_series(path_lookup, my_key):
     # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
+    del path_diff_all
 
     keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
     closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
@@ -184,20 +185,20 @@ def get_closest_star_time_series(path_lookup, my_key):
 
     # return closest_comp[filt]
 
-# def get_closest_star_time_series_T(path_lookup, my_key, t):
-#     p1_raw = path_lookup[my_key]
-#     if np.isinf(p1_raw[t, 0]):
-#         return "blank", np.inf
-#     path_lookup_keys = np.array(list(path_lookup.keys()))
-#     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
-#     path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
-#
-#     pos_all = np.array([path_lookup[kk][t, pxcol:pzcol+1] for kk in path_lookup_keys])
-#     delta = pos_all - p1_raw[t][pxcol:pzcol+1]
-#     delta = np.sum(delta * delta, axis=1)**.5
-#     order = np.argsort(delta)
-#
-#     return path_lookup_keys[order[1]], delta[order[1]]
+def get_closest_star_time_series_T(path_lookup, my_key, t):
+    p1_raw = path_lookup[my_key]
+    if np.isinf(p1_raw[t, 0]):
+        return "blank", np.inf
+    path_lookup_keys = np.array(list(path_lookup.keys()))
+    nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
+    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+
+    pos_all = np.array([path_lookup[kk][t, pxcol:pzcol+1] for kk in path_lookup_keys])
+    delta = pos_all - p1_raw[t][pxcol:pzcol+1]
+    delta = np.sum(delta * delta, axis=1)**.5
+    order = np.argsort(delta)
+
+    return path_lookup_keys[order[1]], delta[order[1]]
 #
 # def get_closest_star_time_series_exp(path_lookup, my_key):
 #     p1_raw = path_lookup[my_key]
