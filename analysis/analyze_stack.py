@@ -123,6 +123,7 @@ def get_min_dist_binary(path_lookup, tmp_row):
     path_diff_all = np.array(path_diff_all).T
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
+    del path_diff_all
 
     # path_diff_all_order = np.argsort(path_diff_all, axis=1)
     # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
