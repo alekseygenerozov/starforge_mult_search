@@ -9,6 +9,7 @@ colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 
+##Keep the default parameters the same as the submitted paper...
 default_config = OmegaConf.create({
     "contig_suff": "",
     "flat_suff": "_flat",

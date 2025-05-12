@@ -58,18 +58,23 @@ def subtract_path(p1, p2):
 
     return diff
 
+##Use different variable instead of mtot here...
 @njit
 def get_peri(x, y, z, vx, vy, vz, mtot):
     """
     Compute 2-body pericenter--Given coordinates of relative positions and velocities.
     """
+    GN = 4.301e3
+
     sep = np.sqrt(x * x + y * y + z * z)
     vrel = np.sqrt(vx * vx + vy * vy + vz * vz)
-    en = -sfc.GN * mtot / (sep) + 0.5 * vrel * vrel
+    ##Account for softening here
+    en = -GN * mtot / (sep) + 0.5 * vrel * vrel
     ell = np.cross((x, y, z), (vx, vy, vz))
     ell = np.sqrt(ell[0] * ell[0] + ell[1] * ell[1] + ell[2] * ell[2])
 
-    return -sfc.GN * mtot / (2. * en) * (1. - np.sqrt(1. + 2. * en * ell**2. / (sfc.GN * mtot)**2.))
+    ##This formula must also be adjusted for softening--solve numerically, but watch out for multiple roots
+    return -GN * mtot / (2. * en) * (1. - np.sqrt(1. + 2. * en * ell**2. / (GN * mtot)**2.))
 
 @njit
 def subtract_path_opt(p1, p2):
@@ -94,12 +99,32 @@ def subtract_path_opt(p1, p2):
             dvz = p1[i, 5] - p2[i, 5]
             mtot = p1[i, 6] + p2[i, 6]
             angs[i] = dx * dvx + dy * dvy + dz * dvz
+            ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
+            ##Need ability to do both forward and backward integration...
             if (i > 0) and (angs[i] * angs[i-1] < 0):
                 d[i] = get_peri(dx, dy, dz, dvx, dvy, dvz, mtot)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
 
+@njit
+def subtract_path_opt_vanilla(p1, p2):
+    """
+    Efficiently compute p1 - p2, skipping rows where either is [inf, inf, inf]
+    """
+    n = p1.shape[0]
+    # diff = np.empty((n, 3))
+    d = np.empty(n)
+
+    for i in range(n):
+        if np.isinf(p1[i, 0]) or np.isinf(p2[i, 0]):
+            d[i] = np.inf
+        else:
+            dx = p1[i, 0] - p2[i, 0]
+            dy = p1[i, 1] - p2[i, 1]
+            dz = p1[i, 2] - p2[i, 2]
+            d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
+    return d
 
 def subtract_path_1d(p1, p2):
     assert len(p1)==len(p2)
