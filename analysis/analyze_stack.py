@@ -153,13 +153,41 @@ def get_closest_star_time_series(path_lookup, my_key):
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
     del path_diff_all
-
     keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
     closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
     closest_comp = np.array(closest_comp)
     filt = ~np.isinf(closest_comp[:,-1].astype(float))
 
     return closest_comp[filt]
+
+def get_closest_star_time_series_mem_opt(path_lookup, my_key):
+    p1_raw = path_lookup[my_key]
+    ##Filtering out other seeds? Could be done more robustly/elegantly
+    path_lookup_keys = np.array(list(path_lookup.keys()))
+    nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
+    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+
+    # path_diff_all = []
+    min_dists = np.full(len(p1_raw), np.inf)
+    min_keys = np.full(len(p1_raw), "", dtype=object)
+    for ii, uu in enumerate(path_lookup_keys):
+        ##Exclude the star itself
+        if uu==my_key:
+            continue
+        path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        update_mask = path_diff < min_dists
+
+        min_dists[update_mask] = path_diff[update_mask]
+        min_keys[update_mask] = uu
+
+    # print(min_keys)
+    closest_comp = [
+        [my_key, min_keys[ii], path_lookup[min_keys[ii]][ii, mcol], path_lookup[min_keys[ii]][ii, mtotcol], min_dists[ii]]
+        for ii in range(len(min_keys)) if not np.isinf(min_dists[ii])
+    ]
+
+    return np.array(closest_comp)
+
 
 ##Only do 1 seed at a time
 # def get_closest_star_time_series_transposed(path_lookup_time, my_key):

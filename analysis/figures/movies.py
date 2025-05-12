@@ -504,7 +504,7 @@ def update_figure(n_back, n_forward, bin_input, input_value, max_sep, max_sep_re
 
 
 if __name__=="__main__":
-    app.run(debug=True, port=8051)
+    app.run(debug=True, port=8050)
     # df = pd.read_hdf("binary_data.h5", key="data")
     # ##All companions plotted together with hallow symbols
     #
