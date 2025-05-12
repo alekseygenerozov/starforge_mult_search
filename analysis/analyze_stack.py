@@ -59,6 +59,19 @@ def subtract_path(p1, p2):
     return diff
 
 @njit
+def get_peri(x, y, z, vx, vy, vz, mtot):
+    """
+    Compute 2-body pericenter--Given coordinates of relative positions and velocities.
+    """
+    sep = np.sqrt(x * x + y * y + z * z)
+    vrel = np.sqrt(vx * vx + vy * vy + vz * vz)
+    en = -sfc.GN * mtot / (sep) + 0.5 * vrel * vrel
+    ell = np.cross((x, y, z), (vx, vy, vz))
+    ell = np.sqrt(ell[0] * ell[0] + ell[1] * ell[1] + ell[2] * ell[2])
+
+    return -sfc.GN * mtot / (2. * en) * (1. - np.sqrt(1. + 2. * en * ell**2. / (sfc.GN * mtot)**2.))
+
+@njit
 def subtract_path_opt(p1, p2):
     """
     Efficiently compute p1 - p2, skipping rows where either is [inf, inf, inf]
@@ -66,15 +79,25 @@ def subtract_path_opt(p1, p2):
     n = p1.shape[0]
     # diff = np.empty((n, 3))
     d = np.empty(n)
+    angs = np.empty(n)
 
     for i in range(n):
         if np.isinf(p1[i, 0]) or np.isinf(p2[i, 0]):
             d[i] = np.inf
+            angs[i] = 0
         else:
             dx = p1[i, 0] - p2[i, 0]
             dy = p1[i, 1] - p2[i, 1]
             dz = p1[i, 2] - p2[i, 2]
-            d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
+            dvx = p1[i, 3] - p2[i, 3]
+            dvy = p1[i, 4] - p2[i, 4]
+            dvz = p1[i, 5] - p2[i, 5]
+            mtot = p1[i, 6] + p2[i, 6]
+            angs[i] = dx * dvx + dy * dvy + dz * dvz
+            if (i > 0) and (angs[i] * angs[i-1] < 0):
+                d[i] = get_peri(dx, dy, dz, dvx, dvy, dvz, mtot)
+            else:
+                d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
 
 
@@ -144,7 +167,9 @@ def get_closest_star_time_series(path_lookup, my_key):
             continue
 
         ##Getting separations for all particles...
-        path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol]]
+        tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol]]
+        path_diff = subtract_path_opt(tmp_path1, tmp_path2)
         # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
         path_diff_all.append(path_diff)
     path_diff_all = np.array(path_diff_all).T
