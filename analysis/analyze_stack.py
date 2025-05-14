@@ -60,7 +60,7 @@ def subtract_path(p1, p2):
 
 ##Use different variable instead of mtot here...
 @njit
-def get_peri(x, y, z, vx, vy, vz, mtot):
+def get_peri(x, y, z, vx, vy, vz, mtot, eps):
     """
     Compute 2-body pericenter--Given coordinates of relative positions and velocities.
     """
@@ -75,6 +75,63 @@ def get_peri(x, y, z, vx, vy, vz, mtot):
 
     ##This formula must also be adjusted for softening--solve numerically, but watch out for multiple roots
     return -GN * mtot / (2. * en) * (1. - np.sqrt(1. + 2. * en * ell**2. / (GN * mtot)**2.))
+
+@njit
+def phi_softened(r, mtot, eps):
+    GN = 4.301e3
+    return -GN * mtot / np.sqrt(r * r + eps * eps)
+
+@njit
+def eff_pot(r, L2, mtot, eps):
+    return 0.5 * L2 / (r * r) + phi_softened(r, mtot, eps)
+
+@njit
+def root_function(r, E, L2, mtot, eps):
+    return E - eff_pot(r, L2, mtot, eps)
+
+@njit
+def bisect_root(E, L2, mtot, eps, a, b):
+    tol = 1e-6
+    maxiter = 100
+    fa = root_function(a, E, L2, mtot, eps)
+    fb = root_function(b, E, L2, mtot, eps)
+
+    if fa * fb > 0:
+        return np.nan  # No bracketed root
+
+    for _ in range(maxiter):
+        c = 0.5 * (a + b)
+        fc = root_function(c, E, L2, mtot, eps)
+
+        if np.abs(fc) < tol or (b - a) < tol:
+            return c
+
+        if fa * fc < 0:
+            b = c
+            fb = fc
+        else:
+            a = c
+            fa = fc
+
+    return 0.5 * (a + b)
+
+@njit
+def get_peri_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
+    r0 = np.sqrt(x * x + y * y + z * z)
+    v2 = vx * vx + vy * vy + vz * vz
+    phi = phi_softened(r0, mtot, eps)
+    E = 0.5 * v2 + phi
+
+    # Angular momentum squared
+    Lx = y * vz - z * vy
+    Ly = z * vx - x * vz
+    Lz = x * vy - y * vx
+    L2 = Lx * Lx + Ly * Ly + Lz * Lz
+
+    rmin = 1e-8  # Avoid divide-by-zero
+    rmax = r0    # Assume current sep is outside pericenter
+
+    return bisect_root(E, L2, mtot, eps, rmin, rmax)
 
 @njit
 def subtract_path_opt(p1, p2):
@@ -102,7 +159,7 @@ def subtract_path_opt(p1, p2):
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
             if (i > 0) and (angs[i] * angs[i-1] < 0):
-                d[i] = get_peri(dx, dy, dz, dvx, dvy, dvz, mtot)
+                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, 0)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
