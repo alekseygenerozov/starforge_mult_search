@@ -5,6 +5,8 @@ import glob
 import numpy as np
 from numba import njit
 
+from pytreegrav.kernel import PotentialKernel
+
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
 LOOKUP_MULT = 3
@@ -79,7 +81,7 @@ def get_peri(x, y, z, vx, vy, vz, mtot, eps):
 @njit
 def phi_softened(r, mtot, eps):
     GN = 4.301e3
-    return -GN * mtot / np.sqrt(r * r + eps * eps)
+    return -GN * mtot * PotentialKernel(r, eps)
 
 @njit
 def eff_pot(r, L2, mtot, eps):
@@ -155,11 +157,12 @@ def subtract_path_opt(p1, p2):
             dvy = p1[i, 4] - p2[i, 4]
             dvz = p1[i, 5] - p2[i, 5]
             mtot = p1[i, 6] + p2[i, 6]
+            eps = max(p1[i, 7], p2[i, 7])
             angs[i] = dx * dvx + dy * dvy + dz * dvz
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
             if (i > 0) and (angs[i] * angs[i-1] < 0):
-                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, 0)
+                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, eps)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
@@ -249,8 +252,8 @@ def get_closest_star_time_series(path_lookup, my_key):
             continue
 
         ##Getting separations for all particles...
-        tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol]]
-        tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol]]
+        tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
+        tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
         path_diff = subtract_path_opt(tmp_path1, tmp_path2)
         # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
         path_diff_all.append(path_diff)
