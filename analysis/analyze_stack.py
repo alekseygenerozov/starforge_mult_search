@@ -168,7 +168,7 @@ def subtract_path_opt(p1, p2):
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
             if (i > 0) and (angs[i] * angs[i-1] < 0):
-                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, 0)
+                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
