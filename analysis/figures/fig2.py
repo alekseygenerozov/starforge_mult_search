@@ -6,12 +6,10 @@ colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
-from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, smao
+from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, smao, my_tides, base_new
 
 ##Stacking data
-my_tides = False
 suff = "_mult"
-base_new =  "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1,2,42)
 
 # Compute ECDF

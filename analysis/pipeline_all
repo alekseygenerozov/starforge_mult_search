@@ -84,7 +84,12 @@ wait
 ##Have to ensure the correct path in the figure preamble...
 python $CODE_BASE/analysis/fig_base/fig_preamble.py
 cd `cat fig_dir`
+cp fig_config.yaml `cat fig_dir`
+cp config_example1 `cat fig_dir`
+cp config_example2 `cat fig_dir`
+ln -s ../M2e4_R10
 mkdir logs
+
 
 python $CODE_BASE/analysis/figures/fig1.py example1 > logs/fig1_1.log 2>&1
 python $CODE_BASE/analysis/figures/fig1.py example2 > logs/fig1_2.log 2>&1

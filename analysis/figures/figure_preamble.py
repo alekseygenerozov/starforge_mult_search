@@ -46,9 +46,17 @@ else:
     config = default_config
 
 
-##Stacking data
+##Hard-coded parameters for figures
 my_ft = 1.0
 my_tides = False
+##Setting up figure directory...
+fdir = f"fig_Tides{my_tides}_smao{config.smao}_{my_ft}_c{config.contig_suff}_fl{config.flat_suff}"
+if not os.path_exists(fdir):
+    os.mkdir(fdir)
+# os.popen(f'cp fig_config.yaml {fdir}')
+with open("fig_dir", "w") as ff:
+    ff.write(fdir)
+
 ##Flag for using flat multiple hierarchies
 flat_suff = config["flat_suff"]
 ##Flag for using contiguous segments
