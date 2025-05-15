@@ -38,8 +38,8 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
         try:
             with open(r1 + "{0:03d}".format(ss) + r2, "rb") as ff:
                 cl = pickle.load(ff)
-        except FileNotFoundError:
-            continue
+        except:
+            print(f"Trouble reading snapshot {ss} {r1} {r2}")
         ids_a = np.array([sys1.ids for sys1 in cl.systems], dtype=object)
         tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
 
