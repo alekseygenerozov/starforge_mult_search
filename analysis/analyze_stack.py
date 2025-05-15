@@ -149,8 +149,8 @@ def subtract_path_opt(p1, p2):
     """
     n = p1.shape[0]
     # diff = np.empty((n, 3))
-    d = np.empty(n)
-    angs = np.empty(n)
+    d = np.ones(n) * np.inf
+    angs = np.zeros(n)
 
     # First pass: compute angs and mark invalid entries
     for i in range(n):
@@ -165,7 +165,7 @@ def subtract_path_opt(p1, p2):
             dvz = p1[i, 5] - p2[i, 5]
             angs[i] = dx * dvx + dy * dvy + dz * dvz
 
-    for i in range(n - 1):
+    for i in range(n):
         if np.isinf(p1[i, 0]) or np.isinf(p2[i, 0]):
             d[i] = np.inf
         else:
@@ -179,7 +179,7 @@ def subtract_path_opt(p1, p2):
             eps = max(p1[i, 7], p2[i, 7])
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
-            if (i > 0) and (angs[i] * angs[i+1] < 0):
+            if (i < n) and (angs[i] * angs[i+1] < 0):
                 d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
