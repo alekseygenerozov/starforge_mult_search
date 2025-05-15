@@ -4,6 +4,7 @@ import glob
 
 import numpy as np
 from numba import njit
+from scipy.interpolate import interp1d
 
 from pytreegrav.kernel import PotentialKernel
 
@@ -303,6 +304,19 @@ def get_closest_star_time_series_mem_opt(path_lookup, my_key):
     ]
 
     return np.array(closest_comp)
+
+def get_t90(path_lookup, my_key):
+    p1_raw = path_lookup[my_key]
+    p1_raw = p1_raw[~np.isinf(p1_raw[:,0])]
+
+    m_end = p1_raw[-1, mcol]
+    m_series = p1_raw[:, mcol]
+    t_series = p1_raw[:, 0]
+    idx_crit = np.where(m_series < 0.9 * m_end)[0]
+    if len(idx_crit)==0:
+        return t_series[0], 0
+    else:
+        return interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])
 
 
 ##Only do 1 seed at a time
