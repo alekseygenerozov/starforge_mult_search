@@ -165,10 +165,9 @@ def subtract_path_opt(p1, p2):
             dvz = p1[i, 5] - p2[i, 5]
             angs[i] = dx * dvx + dy * dvy + dz * dvz
 
-    for i in range(n):
+    for i in range(n - 1):
         if np.isinf(p1[i, 0]) or np.isinf(p2[i, 0]):
             d[i] = np.inf
-            angs[i] = 0
         else:
             dx = p1[i, 0] - p2[i, 0]
             dy = p1[i, 1] - p2[i, 1]
@@ -178,7 +177,6 @@ def subtract_path_opt(p1, p2):
             dvz = p1[i, 5] - p2[i, 5]
             mtot = p1[i, 6] + p2[i, 6]
             eps = max(p1[i, 7], p2[i, 7])
-            # angs[i] = dx * dvx + dy * dvy + dz * dvz
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
             if (i > 0) and (angs[i] * angs[i+1] < 0):
