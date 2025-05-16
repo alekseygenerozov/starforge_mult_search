@@ -51,10 +51,10 @@ my_ft = 1.0
 my_tides = False
 ##Setting up figure directory...
 fdir = f"fig_Tides{my_tides}_smao{config.smao}_{my_ft}_c{config.contig_suff}_fl{config.flat_suff}"
-if not os.path_exists(fdir):
+if not os.path.exists(fdir):
     os.mkdir(fdir)
 # os.popen(f'cp fig_config.yaml {fdir}')
-with open("fig_dir", "w") as ff:
+with open("figdir", "w") as ff:
     ff.write(fdir)
 
 ##Flag for using flat multiple hierarchies

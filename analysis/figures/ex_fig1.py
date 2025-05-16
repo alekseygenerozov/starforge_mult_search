@@ -43,7 +43,7 @@ ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
 ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n3 / d3, \
-            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7, label="Survivors")
+            yerr=n3u / d3, marker="s", linestyle="", alpha=0.7)
 
 print(n3 /d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
