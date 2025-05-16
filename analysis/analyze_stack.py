@@ -239,9 +239,9 @@ def get_min_dist_binary(path_lookup, tmp_row):
             continue
 
         ##Displacement from binary com
-        path_diff1 = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff1 = subtract_path_opt_vanilla(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        path_diff2 = subtract_path_opt_vanilla(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
         # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)
@@ -255,6 +255,38 @@ def get_min_dist_binary(path_lookup, tmp_row):
     # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
 
     return closest_val, closest_idx
+
+def get_min_dist_binary_og(path_lookup, tmp_row):
+    """
+    Get time series of separations between binary and other stars
+    """
+    p1_raw = path_lookup[tmp_row[0]]
+    p2_raw = path_lookup[tmp_row[1]]
+    path_lookup_keys = path_lookup.keys()
+
+    path_diff_all = []
+    for ii, uu in enumerate(path_lookup_keys):
+        #Want only closest approach of stars external to the binary.
+        if uu in tmp_row:
+            continue
+        ##Filtering out other seeds? Could be done more robustly/elegantly
+        if len(path_lookup[uu]) != len(p1_raw):
+            continue
+
+        ##Displacement from binary com
+        path_diff1 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
+        path_diff2 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
+        path_diff = np.min((path_diff1, path_diff2), axis=0)
+        path_diff_all.append(path_diff)
+
+    path_diff_all = np.array(path_diff_all).T
+    path_diff_all_order = np.argsort(path_diff_all, axis=1)
+    path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+
+    return path_diff_all
+
 
 def get_closest_star_time_series(path_lookup, my_key):
     p1_raw = path_lookup[my_key]

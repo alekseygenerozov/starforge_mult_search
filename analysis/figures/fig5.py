@@ -65,7 +65,9 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     bins_last_bound[ii] = bs[-1]
 
     fst = my_data["fst"][ii]
-    tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
+    # tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
+    tmp_sel = high_df.loc[(tval < bs[0])]
+
     ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
@@ -99,7 +101,10 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         ex_time_end[ii] = bs[bs > ex_time[ii]][0]
         ex_time_max_end[ii] = bs[bs > ex_time_max[ii]][0]
 
-    pmult_filt[ii] = ex_time[ii] >= ibs
+    ck1 = np.any(ck1)
+    ck2 = np.any(ck2)
+    # pmult_filt[ii] = ex_time[ii] >= ibs
+    pmult_filt[ii] = ~(ck1 or ck2)
 
 ##Need to get time of the first exchange as well -- this is not quite ex_time
 np.savez(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
