@@ -288,7 +288,7 @@ def get_min_dist_binary_og(path_lookup, tmp_row):
     return path_diff_all
 
 
-def get_closest_star_time_series(path_lookup, my_key):
+def get_closest_star_time_series(path_lookup, my_key, two_body=False):
     p1_raw = path_lookup[my_key]
     ##Filtering out other seeds? Could be done more robustly/elegantly
     path_lookup_keys = np.array(list(path_lookup.keys()))
@@ -304,7 +304,10 @@ def get_closest_star_time_series(path_lookup, my_key):
         ##Getting separations for all particles...
         tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
         tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
-        path_diff = subtract_path_opt(tmp_path1, tmp_path2)
+        if two_body:
+            path_diff = subtract_path_opt(tmp_path1, tmp_path2)
+        else:
+            path_diff = subtract_path_opt_vanilla(tmp_path1, tmp_path2)
         # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
         path_diff_all.append(path_diff)
     path_diff_all = np.array(path_diff_all).T

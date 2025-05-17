@@ -133,9 +133,14 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     sys2_info = lookup_dict[bin_list[1]]
 
     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
-    bin_sel = get_bound_snaps_adjust(bin_list, high_df)
-    lb = int(bin_sel["tval"].iloc[-1])
-    lsma = bin_sel["a"].iloc[-1]
+    # bin_sel = get_bound_snaps_adjust(bin_list, high_df)
+    # lb = int(bin_sel["tval"].iloc[-1])
+    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
+
+    tmp_times = b1[:,0].astype(int)
+    fb, lb = tmp_times[0], tmp_times[-1]
+    # lsma = bin_sel["a"].iloc[-1]
+    lsma = b1[-1, LOOKUP_SMA]
     try:
         norm_sep[idx] = min(path_diff_all[lb], path_diff_all[lb + 1]) / (2 * lsma)
     except IndexError:
@@ -157,7 +162,8 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 ##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
 ##Checking if the stars are bound at the last snapshot both exist(!!)
-final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
+# final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
+final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
 ##May also filter out cases where "exchange" occurs after the initial formation -- but then we may be putting in the answer with our sample selection...
 no_mult_before_bin = (pmult_filt) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
