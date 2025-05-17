@@ -13,7 +13,8 @@ from starforge_mult_search.analysis.analyze_stack import npz_stack
 default_config = OmegaConf.create({
     "contig_suff": "",
     "flat_suff": "_flat",
-    "smao":"False"})
+    "smao":"False",
+    "two_body":"False"})
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -61,6 +62,7 @@ with open("figdir", "w") as ff:
 flat_suff = config["flat_suff"]
 ##Flag for using contiguous segments
 contig_suff = config["contig_suff"]
+two_body = config["two_body"]
 smao = config["smao"]
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1, 2, 42)

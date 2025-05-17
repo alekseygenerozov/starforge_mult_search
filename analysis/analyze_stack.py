@@ -221,13 +221,18 @@ def max_w_infinite(p1):
     else:
         return np.max(p1[~np.isinf(p1)])
 
-def get_min_dist_binary(path_lookup, tmp_row):
+def get_min_dist_binary(path_lookup, tmp_row, two_body):
     """
     Get time series of separations between binary and other stars
     """
     p1_raw = path_lookup[tmp_row[0]]
     p2_raw = path_lookup[tmp_row[1]]
     path_lookup_keys = path_lookup.keys()
+
+    my_subtract_func = subtract_path_opt_vanilla
+    if two_body == subtract_path_opt:
+        my_subtract_func = subtract_path_opt
+
 
     path_diff_all = []
     for ii, uu in enumerate(path_lookup_keys):
@@ -239,9 +244,9 @@ def get_min_dist_binary(path_lookup, tmp_row):
             continue
 
         ##Displacement from binary com
-        path_diff1 = subtract_path_opt_vanilla(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = subtract_path_opt_vanilla(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
         # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)

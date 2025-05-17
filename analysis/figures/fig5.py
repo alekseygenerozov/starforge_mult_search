@@ -65,9 +65,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     bins_last_bound[ii] = bs[-1]
 
     fst = my_data["fst"][ii]
-    # tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
-    tmp_sel = high_df.loc[(tval < bs[0])]
-
+    tmp_sel = high_df.loc[(tval >= fst) & (tval < bs[-1])]
     ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
@@ -101,10 +99,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         ex_time_end[ii] = bs[bs > ex_time[ii]][0]
         ex_time_max_end[ii] = bs[bs > ex_time_max[ii]][0]
 
-    ck1 = np.any(ck1)
-    ck2 = np.any(ck2)
-    # pmult_filt[ii] = ex_time[ii] >= ibs
-    pmult_filt[ii] = ~(ck1 or ck2)
+    pmult_filt[ii] = ex_time[ii] >= ibs
 
 ##Need to get time of the first exchange as well -- this is not quite ex_time
 np.savez(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
@@ -132,15 +127,10 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     sys1_info = lookup_dict[bin_list[0]]
     sys2_info = lookup_dict[bin_list[1]]
 
-    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
-    # bin_sel = get_bound_snaps_adjust(bin_list, high_df)
-    # lb = int(bin_sel["tval"].iloc[-1])
-    b1, b2, xxxxx = analyze_multiples_part2.get_bound_snaps(sys1_info, sys2_info)
-
-    tmp_times = b1[:,0].astype(int)
-    fb, lb = tmp_times[0], tmp_times[-1]
-    # lsma = bin_sel["a"].iloc[-1]
-    lsma = b1[-1, LOOKUP_SMA]
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row, two_body)
+    bin_sel = get_bound_snaps_adjust(bin_list, high_df)
+    lb = int(bin_sel["tval"].iloc[-1])
+    lsma = bin_sel["a"].iloc[-1]
     try:
         norm_sep[idx] = min(path_diff_all[lb], path_diff_all[lb + 1]) / (2 * lsma)
     except IndexError:
@@ -162,8 +152,7 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 ##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
 ##Checking if the stars are bound at the last snapshot both exist(!!)
-# final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
-final_bound_snaps_norm = my_data["final_bound_snaps_norm"]
+final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
 ##May also filter out cases where "exchange" occurs after the initial formation -- but then we may be putting in the answer with our sample selection...
 no_mult_before_bin = (pmult_filt) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis
@@ -178,7 +167,7 @@ for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
     bin_sel = get_bound_snaps_adjust(bin_list, high_df)
-    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row)
+    path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row, two_body)
     ##Minimum distance for all surviving binaries
     norm_sep[idx] = np.min(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
 #########################################################################################################
@@ -193,7 +182,8 @@ ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
 plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        ("Surviving\n(no mult\ninteractions)", "Ionized",  "Min(Lb and Lb+1)", "Lb", "traj_extrap"), ax=ax,
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', None, None, None], linestyles=["--", None, None, None])
-fig.savefig("fig5a.pdf")
+fig.savefig(f"fig5a_{two_body}.pdf")
+np.savez(f"fig5_data_{two_body}.npz", norm_sep=norm_sep, norm_sep_og=norm_sep_og, bin_ids_surv=bin_ids_surv, bin_ids_11=bin_ids_11)
 #########################################################################################################
 final_pair_mass_no_halo = my_data["mfinal_pair"]
 
