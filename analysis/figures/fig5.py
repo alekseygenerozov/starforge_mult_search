@@ -43,7 +43,7 @@ ex_time_max = np.ones(len(bin_ids)) * np.inf
 ex_time_max_end = np.ones(len(bin_ids)) * np.inf
 bins_first_bound = np.ones(len(bin_ids)) * np.inf
 bins_last_bound = np.ones(len(bin_ids)) * np.inf
-
+print(two_body)
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Don't care about non-persistent binaries so we can skip them
     if not quasi_filter[ii]:
@@ -126,7 +126,6 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     tmp_row = np.array(bin_list).astype(str)
     sys1_info = lookup_dict[bin_list[0]]
     sys2_info = lookup_dict[bin_list[1]]
-
     path_diff_all, path_diff_all_order = get_min_dist_binary(path_lookup, tmp_row, two_body)
     bin_sel = get_bound_snaps_adjust(bin_list, high_df)
     lb = int(bin_sel["tval"].iloc[-1])

@@ -82,8 +82,8 @@ CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
 ##
 
 ##Have to ensure the correct path in the figure preamble...
-python $CODE_BASE/analysis/figures/figure_preamble.py $FIGCONF
-cp fig_config.yaml `cat figdir`
+python $CODE_BASE/analysis/figures/figure_preamble.py $1
+cp $1 `cat figdir`
 cp config_example1 `cat figdir`
 cp config_example2 `cat figdir`
 cd `cat figdir`
@@ -100,10 +100,12 @@ mkdir logs
 
 # Generate static figures
 #FIG_SCRIPTS=(fig2 fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5 bin_companions)
-fig_scripts = (fig5)
+
+
+FIG_SCRIPTS=(fig5)
 for SCRIPT in "${FIG_SCRIPTS[@]}"; do
     echo "Generating static figure $SCRIPT..."
-    python $CODE_BASE/analysis/figures/$SCRIPT.py > logs/${SCRIPT}.log 2>&1
+    python $CODE_BASE/analysis/figures/$SCRIPT.py $1 > logs/${SCRIPT}.log 2>&1
     echo "Figure $SCRIPT generated."
 done
 

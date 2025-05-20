@@ -1,5 +1,6 @@
-import pickle
 import os
+import pickle
+import sys
 
 import numpy as np
 from omegaconf import OmegaConf
@@ -39,13 +40,14 @@ mcol = np.where(sink_cols == "m")[0][0]
 mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
 
-user_config_path = "fig_config.yaml"
+# user_config_path = "fig_config.yaml"
+user_config_path = sys.argv[1]
 if os.path.exists(user_config_path):
     user_config = OmegaConf.load(user_config_path)
     config = OmegaConf.merge(default_config, user_config)
 else:
     config = default_config
-
+print(user_config_path)
 
 ##Hard-coded parameters for figures
 my_ft = 1.0
@@ -62,14 +64,14 @@ with open("figdir", "w") as ff:
 flat_suff = config["flat_suff"]
 ##Flag for using contiguous segments
 contig_suff = config["contig_suff"]
-two_body = config["two_body"]
+two_body = eval(config["two_body"])
+print(two_body, config["two_body"])
 smao = config["smao"]
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
 seeds = (1, 2, 42)
 seeds_idx = (0, 1, 2)
 end_snaps = np.array((464, 423, 489))
 start_snaps = np.array((44, 48, 48))
-
 
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []

@@ -230,8 +230,9 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     path_lookup_keys = path_lookup.keys()
 
     my_subtract_func = subtract_path_opt_vanilla
-    if two_body == subtract_path_opt:
+    if two_body:
         my_subtract_func = subtract_path_opt
+    print(two_body)
 
 
     path_diff_all = []
