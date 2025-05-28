@@ -63,8 +63,9 @@ def main():
     a1s = []
     a2s = []
     a3s = []
-    for seed in (2, 42):
-        my_ft = 1.0
+    ##Missing seed 1
+    for seed in (1, 2, 42):
+        my_ft = 8.0
         sim_tag = f"M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}"
         base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
         r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/{0}/M2e4_snapshot_".format(sim_tag)
@@ -100,10 +101,14 @@ def main():
                     tmp_rho = ff[kk_rho][...]
                     tmp_u = ff[kk_u][...]
                     tmp_mass = ff[kk_mass][...]
+                    assert len(tmp_bound)==len(tmp_pos)
 
                     if len(tmp_pos.shape) != 2:
+                        breakpoint()
                         print("bad", tmp_bound)
                     elif np.sum(tmp_pos) == 0:
+                        if len(tmp_bound) > 0:
+                            breakpoint()
                         print("bad", tmp_bound)
                     elif len(tmp_pos) < 10:
                         print("bad", tmp_bound)
@@ -151,7 +156,7 @@ def main():
                         # fig.savefig(f"tmp_{seed}_{my_ft}_{ii:03d}.png")
                         # plt.close()
 
-        np.savez("halo_sizes.npz", rhalos=rhalos, rjeans=rjeans, final_masses=final_masses, a1s=a1s, a2s=a2s, a3s=a3s)
+        np.savez(f"halo_sizes_{my_ft}.npz", rhalos=rhalos, rjeans=rjeans, final_masses=final_masses, a1s=a1s, a2s=a2s, a3s=a3s)
 
 if __name__=="__main__":
     main()
