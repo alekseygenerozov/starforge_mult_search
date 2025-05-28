@@ -14,17 +14,16 @@ pd.set_option("display.precision", 2)
 my_ft = 1.0
 my_tides = False
 
-# base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
-#         "M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
-#         "M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
-#         "M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
-#         "M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
-#         "v1.2/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
-#                 ]
-# seeds_all =[ (1, 2, 42), (1,), (1,), (1,), (1,), (42,)]
-base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
+        "M2e4_R10/M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5_",
+        "M2e4_R10/M2e4_R10_S0_T1_B1_Res271_n2_sol0.5_",
+        "M2e4_R10/M2e4_R10_S0_T0.5_B0.01_Res271_n2_sol0.5_",
+        "M2e4_R10/M2e4_R10_S0_T2_B0.01_Res271_n2_sol0.5_",
                 ]
-seeds_all =[ (1, 2, 42),]
+seeds_all =[ (1, 2, 42), (1, 2, 42), (1, 2, 42), (1, 2), (1, 2)]
+# base_new_all = ["M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
+#                 ]
+# seeds_all =[ (1, 2, 42),]
 grand_total_stars = 0
 grand_total_bins_a = 0
 grand_total_bins_b = 0

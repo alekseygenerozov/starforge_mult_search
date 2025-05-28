@@ -65,7 +65,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     bins_last_bound[ii] = bs[-1]
 
     fst = my_data["fst"][ii]
-    tmp_sel = high_df.loc[(tval < bs[-1])]
+    tmp_sel = high_df.loc[(tval < bs[-1]) & (tval > fst)]
     ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
@@ -167,8 +167,8 @@ print(f"Frac in mult after destruction: {len(mult_after_destruction[mult_after_d
 ##Surviving binaries and encounters -- those that end up as single stars
 bin_ids = my_data["bin_ids"]
 ##Checking if the stars are bound at the last snapshot both exist(!!)
-# final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
-final_bound_snaps_norm = my_data['final_bound_snaps_norm']
+final_bound_snaps_norm = bins_last_bound / my_data["end_stars"]
+# final_bound_snaps_norm = my_data['final_bound_snaps_norm']
 ##May also filter out cases where "exchange" occurs after the initial formation -- but then we may be putting in the answer with our sample selection...
 no_mult_before_bin = (pmult_filt) ##Since this will be looking at final binaries we can just check that ex_time is infinite(?)
 ##NOTE: Deliberately taking stricter 'survival' sample. Need the stars to remain in orbit of one another for the analysis

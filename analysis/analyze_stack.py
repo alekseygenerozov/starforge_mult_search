@@ -236,6 +236,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
 
 
     path_diff_all = []
+    keys_all = []
     for ii, uu in enumerate(path_lookup_keys):
         #Want only closest approach of stars external to the binary.
         if uu in tmp_row:
@@ -251,7 +252,9 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
         # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)
+        keys_all.append(uu)
 
+    keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
@@ -260,7 +263,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     # path_diff_all_order = np.argsort(path_diff_all, axis=1)
     # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
 
-    return closest_val, closest_idx
+    return closest_val, closest_idx, keys_all[closest_idx]
 
 def get_min_dist_binary_og(path_lookup, tmp_row):
     """
