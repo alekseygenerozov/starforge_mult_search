@@ -9,6 +9,23 @@ import starforge_mult_search.code.starforge_constants as sfc
 # import tqdm
 
 
+def load_gas_ids(file, res_limit=0.0):
+    """ file - h5pdf5 STARFORGE snapshot
+        res_limit - minimum mass resolution to include in analyis (in code units)
+    """
+    # Load snapshot data
+    f = h5py.File(file, 'r')
+
+    # Mask to remove any cells with mass below the cell resolution
+    # (implemented specifically to remove feedback cells if desired)
+    mask = (f['PartType0']['Masses'][:] >= res_limit * 0.999)
+    mask3d = np.array([mask, mask, mask]).T
+
+    gas_id = f["PartType0"]["ParticleIDs"][:] * mask
+
+    del f
+    return gas_id
+
 def load_data(file, res_limit=0.0):
     """ file - h5pdf5 STARFORGE snapshot
         res_limit - minimum mass resolution to include in analyis (in code units)

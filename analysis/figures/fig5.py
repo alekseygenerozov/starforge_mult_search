@@ -192,6 +192,8 @@ for idx, uid in enumerate(bin_ids_subset):
     norm_sep[idx] = np.min(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
     enc_idx = np.argmin(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
     my_snap = bin_sel["tval"].astype(int).iloc[enc_idx]
+    if idx==2:
+        breakpoint()
     ##Mass information for encounter...
     encounter_mass_surv[idx] = path_lookup[closest_key[my_snap]][my_snap, mcol], path_lookup[closest_key[my_snap]][my_snap, mtotcol]
     bin_mass_surv_a[idx] = path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol]
