@@ -143,11 +143,6 @@ def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
 
     ##Kinetic and potential energies
     ke = 0.5*m1*v12 + 0.5*m2*v22
-    # print(ke, KE([p1, p2], [m1, m2], [v1, v2], [0, 0]))
-    ##Potential energy ##TRY REPLACING WITH FUNCTIONALITY FROM PYTREEGRAV...
-    # pe = G*m1*m2/dp
-    ##Flipped p2_com and p1_com -- does not matter because we are only considering two-body systems...
-    ##CHECK ONE MORE TIME
     pe = -PE(np.array([p1_com, p2_com]), np.array([m1, m2]), np.array([h1, h2]))
 
     a_bin = sfc.GN*(m1*m2)/(2.*(pe-ke))

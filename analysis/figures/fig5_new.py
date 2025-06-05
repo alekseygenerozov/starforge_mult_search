@@ -12,6 +12,8 @@ import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary,get_soft_times,get_bound_snaps_adjust
+from starforge_mult_search.analysis.analyze_stack import get_dynamics_binary
+
 from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
 from labelLine import labelLines
@@ -19,6 +21,8 @@ from labelLine import labelLines
 ##Try to get rid of this import...
 from sci_analysis import plotting
 from starforge_mult_search.analysis.figures.figure_preamble import *
+import starforge_mult_search.code.starforge_constants as sfc
+
 
 #########################################################################################################
 ## Constructing new filter: whether
@@ -123,6 +127,9 @@ mult_after_destruction = np.zeros(len(bin_ids_subset))
 encounter_mass_11 = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_b = np.zeros((len(bin_ids_subset), 2))
+smas_11 = np.zeros((len(bin_ids_subset), 2))
+encs_11_bin_sep = np.zeros(len(bin_ids_subset))
+avg_11_hr = np.zeros(len(bin_ids_subset))
 
 for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     bin_list = list(uid)
@@ -130,10 +137,11 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     sys1_info = lookup_dict[bin_list[0]]
     sys2_info = lookup_dict[bin_list[1]]
     path_diff_all, path_diff_all_order, closest_key = get_min_dist_binary(path_lookup, tmp_row, two_body)
-    keys_filt = np.array(list(path_lookup.keys()))
-    nsnaps = np.array([len(path_lookup[kk]) for kk in keys_filt])
-    keys_filt = keys_filt[(nsnaps == len(path_lookup[str(bin_list[0])])) & (keys_filt!=str(bin_list[0])) & (keys_filt!=str(bin_list[1]))]
-    closest_key_ck = np.array(list(keys_filt))[path_diff_all_order]
+    sigmas_close, mass_close = get_dynamics_binary(path_lookup, tmp_row, two_body)
+    # keys_filt = np.array(list(path_lookup.keys()))
+    # nsnaps = np.array([len(path_lookup[kk]) for kk in keys_filt])
+    # keys_filt = keys_filt[(nsnaps == len(path_lookup[str(bin_list[0])])) & (keys_filt!=str(bin_list[0])) & (keys_filt!=str(bin_list[1]))]
+    # closest_key_ck = np.array(list(keys_filt))[path_diff_all_order]
     # assert np.all(closest_key==closest_key_ck)
 
     # closest_key = np.array(list(path_lookup.keys()))[path_diff_all_order]
@@ -145,9 +153,18 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
         corder = np.argsort((path_diff_all[lb], path_diff_all[lb + 1]))
         my_snap = csnaps[corder[0]]
         norm_sep[idx] = path_diff_all[my_snap] / (2 * lsma)
+        smas_11[idx, 0] = np.mean(bin_sel["a"].mean())
+        smas_11[idx, 1] = lsma
+
+        hrs = sfc.GN * (bin_sel["m1"] + bin_sel["m2"]) / (2. * bin_sel["a"]) / (.5 * sigmas_close[bin_sel["tval"]]**2. * mass_close[bin_sel["tval"]])
+        avg_11_hr[idx] = np.mean(hrs)
+        ##Better to use the last bound snapshot?!
         encounter_mass_11[idx] = (path_lookup[closest_key[my_snap]][my_snap, mcol], path_lookup[closest_key[my_snap]][my_snap, mtotcol])
         bin_mass_11_a[idx] = (path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol])
         bin_mass_11_b[idx] = (path_lookup[str(bin_list[1])][my_snap, mcol], path_lookup[str(bin_list[1])][my_snap, mtotcol])
+        encs_11_bin_sep[idx] = np.linalg.norm(
+            path_lookup[str(bin_list[0])][lb, pxcol:pzcol + 1] - path_lookup[str(bin_list[1])][lb, pxcol:pzcol + 1])
+
     except IndexError:
         breakpoint()
     try:
@@ -182,16 +199,29 @@ bin_ids_subset = bin_ids_surv
 encounter_mass_surv = np.zeros((len(bin_ids_subset), 2))
 bin_mass_surv_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_surv_b = np.zeros((len(bin_ids_subset), 2))
+smas_surv = np.zeros((len(bin_ids_subset), 3))
+encs_surv_time = np.zeros(len(bin_ids_subset))
+encs_surv_bin_sep = np.zeros(len(bin_ids_subset))
+avg_surv_hr = np.zeros(len(bin_ids_subset))
 
 for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
     tmp_row = np.array(bin_list).astype(str)
     bin_sel = get_bound_snaps_adjust(bin_list, high_df)
     path_diff_all, path_diff_all_order, closest_key = get_min_dist_binary(path_lookup, tmp_row, two_body)
+    sigmas_close, mass_close = get_dynamics_binary(path_lookup, tmp_row, two_body)
     ##Minimum distance for all surviving binaries
     norm_sep[idx] = np.min(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
     enc_idx = np.argmin(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
+    smas_surv[idx, 0] = bin_sel["a"].mean()
+    smas_surv[idx, 1] = bin_sel["a"].iloc[-1]
+    smas_surv[idx, 2] = bin_sel["a"].iloc[enc_idx]
     my_snap = bin_sel["tval"].astype(int).iloc[enc_idx]
+    encs_surv_time[idx] = my_snap
+    encs_surv_bin_sep[idx] = np.linalg.norm(path_lookup[str(bin_list[0])][my_snap, pxcol:pzcol + 1] - path_lookup[str(bin_list[1])][my_snap, pxcol:pzcol + 1])
+
+    hrs = sfc.GN * (bin_sel["m1"] + bin_sel["m2"]) / (2. * bin_sel["a"]) / (.5 * sigmas_close[bin_sel["tval"]] ** 2. * mass_close[bin_sel["tval"]])
+    avg_surv_hr[idx] = np.mean(hrs)
     ##Mass information for encounter...
     encounter_mass_surv[idx] = path_lookup[closest_key[my_snap]][my_snap, mcol], path_lookup[closest_key[my_snap]][my_snap, mtotcol]
     bin_mass_surv_a[idx] = path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol]
@@ -211,8 +241,10 @@ plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', colorblind_palette[0], None, None], alphas=[0.5,0.5,0.5,0.5,0.5], linestyles=["--", None, None, None])
 fig.savefig(f"fig5a_{two_body}_na.pdf")
 np.savez(f"fig5_data_{two_body}.npz", norm_sep=norm_sep, norm_sep_og=norm_sep_og, bin_ids_surv=bin_ids_surv, bin_ids_11=bin_ids_11,
-         encounter_mass_11=encounter_mass_11, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
-         encounter_mass_surv=encounter_mass_surv, bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b)
+         encounter_mass_11=encounter_mass_11, encs_11_bin_sep=encs_11_bin_sep, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
+         encounter_mass_surv=encounter_mass_surv, encs_surv_time=encs_surv_time, encs_surv_bin_sep=encs_surv_bin_sep,
+         bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b,
+         smas_11=smas_11, smas_surv=smas_surv, avg_11_hr=avg_11_hr, avg_surv_hr=avg_surv_hr)
 
 ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
 plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\

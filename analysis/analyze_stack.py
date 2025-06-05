@@ -143,7 +143,7 @@ def get_peri_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
     return bisect_root(E, L2, mtot, eps, rmin, rmax)
 
 @njit
-def subtract_path_opt(p1, p2):
+def subtract_path_opt(p1, p2, dir=1):
     """
     Efficiently compute p1 - p2, skipping rows where either is [inf, inf, inf]
     """
@@ -179,7 +179,9 @@ def subtract_path_opt(p1, p2):
             eps = max(p1[i, 7], p2[i, 7])
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
-            if (i < n) and (angs[i] * angs[i+1] < 0):
+            if (dir > 0) and (i < n) and (angs[i] * angs[i+1] < 0):
+                d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
+            elif (dir < 0) and (i > 0) and (angs[i] * angs[i-1] < 0):
                 d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
@@ -232,8 +234,6 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     my_subtract_func = subtract_path_opt_vanilla
     if two_body:
         my_subtract_func = subtract_path_opt
-    print(two_body)
-
 
     path_diff_all = []
     keys_all = []
@@ -255,17 +255,16 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
         keys_all.append(uu)
 
     keys_all = np.array(keys_all)
+    ##Why is this transposition necessary? Couldn't we just change to axis=0 in the following line...
     path_diff_all = np.array(path_diff_all).T
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
     del path_diff_all
 
-    # path_diff_all_order = np.argsort(path_diff_all, axis=1)
-    # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
-
     return closest_val, closest_idx, keys_all[closest_idx]
 
-def get_min_dist_binary_og(path_lookup, tmp_row):
+
+def get_dynamics_binary(path_lookup, tmp_row, two_body):
     """
     Get time series of separations between binary and other stars
     """
@@ -273,9 +272,14 @@ def get_min_dist_binary_og(path_lookup, tmp_row):
     p2_raw = path_lookup[tmp_row[1]]
     path_lookup_keys = path_lookup.keys()
 
+    my_subtract_func = subtract_path_opt_vanilla
+    if two_body:
+        my_subtract_func = subtract_path_opt
+
     path_diff_all = []
+    keys_all = []
     for ii, uu in enumerate(path_lookup_keys):
-        #Want only closest approach of stars external to the binary.
+        # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
             continue
         ##Filtering out other seeds? Could be done more robustly/elegantly
@@ -283,21 +287,63 @@ def get_min_dist_binary_og(path_lookup, tmp_row):
             continue
 
         ##Displacement from binary com
-        path_diff1 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
-        path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
-        path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
+        path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
+        path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)
+        keys_all.append(uu)
 
+    keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
-    path_diff_all_order = np.argsort(path_diff_all, axis=1)
-    path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+    partition = np.argpartition(path_diff_all, 16)
+    keys_closest = keys_all[partition][:, :16]
 
-    return path_diff_all
+    sigmas = np.zeros(len(keys_closest))
+    mass_closest = np.zeros(len(keys_closest))
+    for ii, row in enumerate(keys_closest):
+        vclosest = np.array([path_lookup[kk][ii, vxcol:vzcol + 1] for kk in row])
+        vclosest = np.sum(vclosest * vclosest, axis=1)**.5
+        ##Maybe better to do 1D velocity dispersion...
+        sigmas[ii] = np.std(vclosest)
+        mass_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
+
+    return sigmas, mass_closest
+
+# def get_min_dist_binary_og(path_lookup, tmp_row):
+#     """
+#     Get time series of separations between binary and other stars
+#     """
+#     p1_raw = path_lookup[tmp_row[0]]
+#     p2_raw = path_lookup[tmp_row[1]]
+#     path_lookup_keys = path_lookup.keys()
+#
+#     path_diff_all = []
+#     for ii, uu in enumerate(path_lookup_keys):
+#         #Want only closest approach of stars external to the binary.
+#         if uu in tmp_row:
+#             continue
+#         ##Filtering out other seeds? Could be done more robustly/elegantly
+#         if len(path_lookup[uu]) != len(p1_raw):
+#             continue
+#
+#         ##Displacement from binary com
+#         path_diff1 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+#         path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
+#         path_diff2 = subtract_path(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+#         path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
+#         path_diff = np.min((path_diff1, path_diff2), axis=0)
+#         path_diff_all.append(path_diff)
+#
+#     path_diff_all = np.array(path_diff_all).T
+#     path_diff_all_order = np.argsort(path_diff_all, axis=1)
+#     path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+#
+#     return path_diff_all
 
 
-def get_closest_star_time_series(path_lookup, my_key, two_body=False):
+def get_closest_star_time_series(path_lookup, my_key, two_body=False, dir=1):
     p1_raw = path_lookup[my_key]
     ##Filtering out other seeds? Could be done more robustly/elegantly
     path_lookup_keys = np.array(list(path_lookup.keys()))
@@ -314,7 +360,7 @@ def get_closest_star_time_series(path_lookup, my_key, two_body=False):
         tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
         tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
         if two_body:
-            path_diff = subtract_path_opt(tmp_path1, tmp_path2)
+            path_diff = subtract_path_opt(tmp_path1, tmp_path2, dir=dir)
         else:
             path_diff = subtract_path_opt_vanilla(tmp_path1, tmp_path2)
         # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
@@ -328,7 +374,7 @@ def get_closest_star_time_series(path_lookup, my_key, two_body=False):
     keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
     closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii], path_lookup[keys[ii]][ii, 0]] for ii in range(len(keys))]
     closest_comp = np.array(closest_comp)
-    filt = ~np.isinf(closest_comp[:,-1].astype(float))
+    filt = ~np.isinf(closest_comp[:,-2].astype(float))
 
     return closest_comp[filt]
 
@@ -360,6 +406,19 @@ def get_closest_star_time_series_mem_opt(path_lookup, my_key):
 
     return np.array(closest_comp)
 
+# def get_t90(path_lookup, my_key):
+#     p1_raw = path_lookup[my_key]
+#     p1_raw = p1_raw[~np.isinf(p1_raw[:,0])]
+#
+#     m_end = p1_raw[-1, mcol]
+#     m_series = p1_raw[:, mcol]
+#     t_series = p1_raw[:, 0]
+#     idx_crit = np.where(m_series < 0.9 * m_end)[0]
+#     if len(idx_crit)==0:
+#         return t_series[0], 0
+#     else:
+#         return interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])
+
 def get_t90(path_lookup, my_key):
     p1_raw = path_lookup[my_key]
     p1_raw = p1_raw[~np.isinf(p1_raw[:,0])]
@@ -369,9 +428,10 @@ def get_t90(path_lookup, my_key):
     t_series = p1_raw[:, 0]
     idx_crit = np.where(m_series < 0.9 * m_end)[0]
     if len(idx_crit)==0:
-        return t_series[0], 0
+        return t_series[0], 0, t_series[0]
     else:
-        return interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])
+        t90_abs = interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])(0.9 * m_end)
+        return t90_abs, t90_abs - t_series[0], t_series[0]
 
 
 ##Only do 1 seed at a time

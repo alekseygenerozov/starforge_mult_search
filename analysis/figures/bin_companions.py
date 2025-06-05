@@ -31,14 +31,16 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     tmp_sel2b = high_df.loc[high_df.index.get_level_values("id").str.contains(rf"\b{bin_list[1]}\b")]
 
     if len(tmp_sel2a) > 0:
-        comps_a = tmp_sel2a.groupby("t")[["tval", "mult", "mult_ids_list"]].apply(lambda g: g[g["mult"] == g["mult"].max()])
-        comps_a_ids[ii] = (comps_a.index.get_level_values("id").to_numpy())
+        comps_a = tmp_sel2a.groupby("t")[["tval", "mult", "mult_ids_list", "hier"]].apply(lambda g: g[g["mult"] == g["mult"].max()])
+        # comps_a_ids[ii] = (comps_a.index.get_level_values("id").to_numpy())
+        comps_a_ids[ii] = comps_a["hier"]
         comps_a_times[ii] = (comps_a["tval"].values)
         comps_a_ids_flat[ii] = (comps_a["mult_ids_list"].values)
 
     if len(tmp_sel2b) > 0:
-        comps_b = tmp_sel2b.groupby("t")[["tval", "mult", "mult_ids_list"]].apply(lambda g: g[g["mult"] == g["mult"].max()])
-        comps_b_ids[ii] = (comps_b.index.get_level_values("id").to_numpy())
+        comps_b = tmp_sel2b.groupby("t")[["tval", "mult", "mult_ids_list", "hier"]].apply(lambda g: g[g["mult"] == g["mult"].max()])
+        # comps_b_ids[ii] = (comps_b.index.get_level_values("id").to_numpy())
+        comps_b_ids[ii] = comps_b["hier"]
         comps_b_times[ii] = (comps_b["tval"].values)
         comps_b_ids_flat[ii] = (comps_b["mult_ids_list"].values)
 

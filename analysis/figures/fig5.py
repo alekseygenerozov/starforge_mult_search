@@ -123,6 +123,7 @@ mult_after_destruction = np.zeros(len(bin_ids_subset))
 encounter_mass_11 = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_b = np.zeros((len(bin_ids_subset), 2))
+smas_11 = np.zeros((len(bin_ids_subset), 2))
 
 for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     bin_list = list(uid)
@@ -145,6 +146,8 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
         corder = np.argsort((path_diff_all[lb], path_diff_all[lb + 1]))
         my_snap = csnaps[corder[0]]
         norm_sep[idx] = path_diff_all[my_snap] / (2 * lsma)
+        smas_11[idx, 0] = np.mean(bin_sel["a"].mean())
+        smas_11[idx, 1] = lsma
         encounter_mass_11[idx] = (path_lookup[closest_key[my_snap]][my_snap, mcol], path_lookup[closest_key[my_snap]][my_snap, mtotcol])
         bin_mass_11_a[idx] = (path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol])
         bin_mass_11_b[idx] = (path_lookup[str(bin_list[1])][my_snap, mcol], path_lookup[str(bin_list[1])][my_snap, mtotcol])
@@ -182,6 +185,8 @@ bin_ids_subset = bin_ids_surv
 encounter_mass_surv = np.zeros((len(bin_ids_subset), 2))
 bin_mass_surv_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_surv_b = np.zeros((len(bin_ids_subset), 2))
+smas_surv = np.zeros((len(bin_ids_subset), 3))
+encs_surv_time = np.zeros(len(bin_ids_subset))
 
 for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
@@ -191,9 +196,11 @@ for idx, uid in enumerate(bin_ids_subset):
     ##Minimum distance for all surviving binaries
     norm_sep[idx] = np.min(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
     enc_idx = np.argmin(path_diff_all[bin_sel["tval"].astype(int)] / (2 * bin_sel["a"]))
+    smas_surv[idx, 0] = bin_sel["a"].mean()
+    smas_surv[idx, 1] = bin_sel["a"].iloc[-1]
+    smas_surv[idx, 2] = bin_sel["a"].iloc[enc_idx]
     my_snap = bin_sel["tval"].astype(int).iloc[enc_idx]
-    if idx==2:
-        breakpoint()
+    encs_surv_time[idx] = my_snap
     ##Mass information for encounter...
     encounter_mass_surv[idx] = path_lookup[closest_key[my_snap]][my_snap, mcol], path_lookup[closest_key[my_snap]][my_snap, mtotcol]
     bin_mass_surv_a[idx] = path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol]
@@ -214,7 +221,8 @@ plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
 fig.savefig(f"fig5a_{two_body}_na.pdf")
 np.savez(f"fig5_data_{two_body}.npz", norm_sep=norm_sep, norm_sep_og=norm_sep_og, bin_ids_surv=bin_ids_surv, bin_ids_11=bin_ids_11,
          encounter_mass_11=encounter_mass_11, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
-         encounter_mass_surv=encounter_mass_surv, bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b)
+         encounter_mass_surv=encounter_mass_surv, bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b,
+         smas_11=smas_11, smas_surv=smas_surv, encs_surv_time=encs_surv_time)
 
 ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
 plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
