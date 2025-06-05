@@ -300,13 +300,14 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
     partition = np.argpartition(path_diff_all, 16)
     keys_closest = keys_all[partition][:, :16]
 
-    sigmas = np.zeros(len(keys_closest))
-    mass_closest = np.zeros(len(keys_closest))
+    sigmas = np.ones(len(keys_closest)) * np.inf
+    mass_closest = np.ones(len(keys_closest)) * np.inf
     for ii, row in enumerate(keys_closest):
         vclosest = np.array([path_lookup[kk][ii, vxcol:vzcol + 1] for kk in row])
-        vclosest = np.sum(vclosest * vclosest, axis=1)**.5
+        vclosest = np.sum(vclosest * vclosest, axis=1) ** .5
         ##Maybe better to do 1D velocity dispersion...
-        sigmas[ii] = np.std(vclosest)
+        if np.all(~np.isinf(vclosest)):
+            sigmas[ii] = np.std(vclosest)
         mass_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
 
     return sigmas, mass_closest
