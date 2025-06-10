@@ -297,8 +297,9 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
 
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
-    partition = np.argpartition(path_diff_all, 16)
-    keys_closest = keys_all[partition][:, :16]
+    nn = 4
+    partition = np.argpartition(path_diff_all, 4)
+    keys_closest = keys_all[partition][:, :nn]
 
     sigmas = np.ones(len(keys_closest)) * np.inf
     mass_closest = np.ones(len(keys_closest)) * np.inf
