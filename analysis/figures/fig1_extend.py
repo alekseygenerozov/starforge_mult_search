@@ -155,12 +155,12 @@ ins = config.getfloat("params", "ins", fallback=-1.0)
 ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
 v_rescale = config.getfloat("params", "v_rescale", fallback=2)
-center = config.get("params", "center", fallback="None")
+center = config.get("params", "center", fallback=None)
 base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_")
-snap_loc = config.get("params", "snap_loc", fallback="None")
+snap_loc = config.get("params", "snap_loc", fallback=None)
 
-center = ast.literal_eval(center)
-snap_loc = ast.literal_eval(snap_loc)
+if center is not None:
+    center = ast.literal_eval(center)
 
 v_scale = 100. / cgs.pc * cgs.year * v_rescale
 d_cut = rmax
