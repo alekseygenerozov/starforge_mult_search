@@ -235,6 +235,12 @@ partids_filt = partids[dist_filter]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
     ax.plot(partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1], "kX")
+arr_index1 = np.where(partids_filt.astype(int)==bin_id1)[0]
+arr_index2 = np.where(partids_filt.astype(int)==bin_id2)[0]
+ax.plot(partpos_filt[arr_index1, 0] - center[0], partpos_filt[arr_index1, 1] - center[1], "ro")
+ax.plot(partpos_filt[arr_index2, 0] - center[0], partpos_filt[arr_index2, 1] - center[1], "ro")
+
+
 fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
