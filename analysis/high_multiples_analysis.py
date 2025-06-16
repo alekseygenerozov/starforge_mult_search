@@ -274,6 +274,29 @@ def lookup_star_mult(my_df, star_id, target, pre_filtered=False, contig_suff="")
     tmp_idx = np.where(tmp_mults==np.max(tmp_mults))[0][0]
     return mults_with_star.index.get_level_values("id")[tmp_idx], tmp_mults[tmp_idx]
 
+def lookup_star_mult_with_mass(my_df, star_id, target, path_lookup, pre_filtered=False, contig_suff=""):
+    """
+    Get the multiplicity and id of max multiplicity
+    system, containing star_id at time target.
+
+    """
+    star_id = str(int(star_id))
+    tmp_sel = my_df
+    if not pre_filtered:
+        tmp_sel = my_df.xs(target, level="t")
+        tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{contig_suff}"]>1) & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)]
+    star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
+    mults_with_star = tmp_sel.loc[star_in_mult]
+    if len(mults_with_star)==0:
+        return star_id, 1, np.array([path_lookup[star_id][target, mcol]])
+    tmp_mults = mults_with_star.groupby("id", sort=False).apply(lambda x: get_mult(x.name)).values
+    tmp_idx = np.where(tmp_mults==np.max(tmp_mults))[0][0]
+    host_sys = mults_with_star.iloc[tmp_idx]
+    tmp_mult, tmp_time = host_sys["mult_ids_list"], target
+    tmp_masses = [path_lookup[str(uu)][tmp_time, mcol] for uu in tmp_mult]
+
+    return host_sys.name, tmp_mults[tmp_idx], np.array(tmp_masses)
+
 def get_pair_state(my_df, id1, id2, target, **kwargs):
     """
     Get multiplicity of stars id1 and id2 from dataframe my_df at time target. Also, find out

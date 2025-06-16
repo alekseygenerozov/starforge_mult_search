@@ -99,6 +99,7 @@ cp config_example1 `cat figdir`
 cp config_example2 `cat figdir`
 cd `cat figdir`
 ln -s ../M2e4_R10
+ln -s ../v1.2
 mkdir logs
 #
 #

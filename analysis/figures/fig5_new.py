@@ -69,7 +69,7 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     bins_last_bound[ii] = bs[-1]
 
     fst = my_data["fst"][ii]
-    tmp_sel = high_df.loc[(tval < bs[-1]) & (tval > fst)]
+    tmp_sel = high_df.loc[(tval < bs[-1]) & (tval >= fst)]
     ##IDEAS: Require binary * physically closer to another one...
     bin_exclude = ~tmp_sel["tval"].isin(bs)
     tmp_sel = tmp_sel.loc[bin_exclude]
