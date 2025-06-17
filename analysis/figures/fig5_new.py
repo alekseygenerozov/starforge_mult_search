@@ -241,7 +241,6 @@ plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', colorblind_palette[0], None, None], alphas=[0.5,0.5,0.5,0.5,0.5], linestyles=["--", None, None, None])
 fig.savefig(f"fig5a_{two_body}_na.pdf")
 np.savez(f"fig5_data_{two_body}.npz", norm_sep=norm_sep, norm_sep_og=norm_sep_og, bin_ids_surv=bin_ids_surv, bin_ids_11=bin_ids_11,
-         encounter_mass_11=encounter_mass_11, encs_11_bin_sep=encs_11_bin_sep, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
          encounter_mass_surv=encounter_mass_surv, encs_surv_time=encs_surv_time, encs_surv_bin_sep=encs_surv_bin_sep,
          bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b,
          smas_11=smas_11, smas_surv=smas_surv, avg_11_hr=avg_11_hr, avg_surv_hr=avg_surv_hr)

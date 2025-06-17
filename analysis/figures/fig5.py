@@ -31,7 +31,6 @@ high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f
 mult_ids = high_df.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
 high_df["mult_ids_set"] = mult_ids_set.to_list()
-
 tval = high_df.index.get_level_values("t")
 high_df["tval"] = tval
 pmult_filt = np.zeros(len(bin_ids)).astype(bool)
@@ -124,6 +123,7 @@ encounter_mass_11 = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_11_b = np.zeros((len(bin_ids_subset), 2))
 smas_11 = np.zeros((len(bin_ids_subset), 2))
+encs_11_bin_sep = np.zeros(len(bin_ids_subset))
 
 for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     bin_list = list(uid)
@@ -162,6 +162,8 @@ for idx, uid in tqdm.tqdm(enumerate(bin_ids_subset)):
     mult1 = lookup_star_mult(high_df, bin_list[0], lb + 1, pre_filtered=False)
     mult2 = lookup_star_mult(high_df, bin_list[1], lb + 1, pre_filtered=False)
     mult_after_destruction[idx] = max(mult1[1], mult2[1])
+    encs_11_bin_sep[idx] = np.linalg.norm(
+        path_lookup[str(bin_list[0])][lb, pxcol:pzcol + 1] - path_lookup[str(bin_list[1])][lb, pxcol:pzcol + 1])
 
 norm_sep_og = np.copy(norm_sep)
 ##TO FIX: Not right filtering!
@@ -187,6 +189,7 @@ bin_mass_surv_a = np.zeros((len(bin_ids_subset), 2))
 bin_mass_surv_b = np.zeros((len(bin_ids_subset), 2))
 smas_surv = np.zeros((len(bin_ids_subset), 3))
 encs_surv_time = np.zeros(len(bin_ids_subset))
+encs_surv_bin_sep = np.zeros(len(bin_ids_subset))
 
 for idx, uid in enumerate(bin_ids_subset):
     bin_list = list(uid)
@@ -206,6 +209,9 @@ for idx, uid in enumerate(bin_ids_subset):
     bin_mass_surv_a[idx] = path_lookup[str(bin_list[0])][my_snap, mcol], path_lookup[str(bin_list[0])][my_snap, mtotcol]
     bin_mass_surv_b[idx] = path_lookup[str(bin_list[1])][my_snap, mcol], path_lookup[str(bin_list[1])][my_snap, mtotcol]
 
+    encs_surv_bin_sep[idx] = np.linalg.norm(path_lookup[str(bin_list[0])][my_snap, pxcol:pzcol + 1] - path_lookup[str(bin_list[1])][my_snap, pxcol:pzcol + 1])
+
+
 #########################################################################################################
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
 ax.set_xlim(0.05, 1000)
@@ -220,9 +226,9 @@ plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
                        levels=(60, 60, 50, 75, 80), ha=["left", "right"], x_offset=(6, -.6), y_offset=-0.04, colors=['0.5', colorblind_palette[0], None, None], alphas=[0.5,0.5,0.5,0.5,0.5], linestyles=["--", None, None, None])
 fig.savefig(f"fig5a_{two_body}_na.pdf")
 np.savez(f"fig5_data_{two_body}.npz", norm_sep=norm_sep, norm_sep_og=norm_sep_og, bin_ids_surv=bin_ids_surv, bin_ids_11=bin_ids_11,
-         encounter_mass_11=encounter_mass_11, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
+         encounter_mass_11=encounter_mass_11, encs_11_bin_sep=encs_11_bin_sep, bin_mass_11_a=bin_mass_11_a, bin_mass_11_b=bin_mass_11_b,
          encounter_mass_surv=encounter_mass_surv, bin_mass_surv_a=bin_mass_surv_a, bin_mass_surv_b=bin_mass_surv_b,
-         smas_11=smas_11, smas_surv=smas_surv, encs_surv_time=encs_surv_time)
+         smas_11=smas_11, smas_surv=smas_surv, encs_surv_time=encs_surv_time, encs_surv_bin_sep=encs_surv_bin_sep,)
 
 ax.legend(title=f"KS p-value={pval:.2g}", loc="upper left", frameon=True)
 plotting.annotate_multiple_ecdf((norm_sep, norm_sep_og),\
