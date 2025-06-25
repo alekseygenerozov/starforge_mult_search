@@ -16,6 +16,7 @@ from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_mult, get_pair_state, add_node_to_orbit_tab_streamlined
+from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult_b, filter_maximal_sets
 from starforge_mult_search.analysis.labelLine import labelLines
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.power_fit import fit_power
@@ -68,14 +69,46 @@ def parse_mult_id(id_str):
 
 ##Make f1 >= 1 for consistency, but should not matter.
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
+##Filter -- only get maximal multiple(!)
+
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
 single_star_in_mult = []
 
 mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
-
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_mult.append(int(star_id) in mult_ids_set)
+
+max_multiples_only = []
+single_star_in_iso_bin = []
+single_star_in_higher = []
+#########################################################################################################
+##Getting table of just isolated binaries(!)
+times_all = tmp_sel.index.get_level_values("t").unique()
+for tt in tqdm.tqdm(times_all):
+    tmp_slice = tmp_sel.xs(tt, level="t")
+    tmp_mult_ids_set = tmp_slice.index.get_level_values("id").to_series().apply(parse_mult_id)
+    tmp_filt = filter_maximal_sets(tmp_mult_ids_set)
+    tmp_slice.loc[tmp_filt]
+    max_multiples_only.append(tmp_slice)
+max_multiples_only = pd.concat(max_multiples_only)
+mult_ids_iso_bins = max_multiples_only.loc[max_multiples_only["mult"]==2]
+mult_ids_set_iso_bins = mult_ids_iso_bins.index.get_level_values("id").to_series().apply(parse_mult_id)
+mult_ids_set_iso_bins = np.unique(np.concatenate(mult_ids_set_iso_bins.tolist()))
+
+#########################################################################################################
+#########################################################################################################
+mult_ids_higher = max_multiples_only.loc[max_multiples_only["mult"] > 2]
+mult_ids_set_higher = mult_ids_higher.index.get_level_values("id").to_series().apply(parse_mult_id)
+mult_ids_set_higher = np.unique(np.concatenate(mult_ids_set_higher.tolist()))
+
+#########################################################################################################
+for star_id in tqdm.tqdm(star_ids[single_filter]):
+    single_star_in_iso_bin.append(int(star_id) in mult_ids_set_iso_bins)
+    single_star_in_higher.append(int(star_id) in mult_ids_set_higher)
+breakpoint()
+
+
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
 np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult)))
 

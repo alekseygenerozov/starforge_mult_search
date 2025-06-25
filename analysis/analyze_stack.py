@@ -490,6 +490,12 @@ def get_closest_star_time_series_T(path_lookup, my_key, t):
 #
 #     return path_lookup_keys[order[:, 1]], np.take_along_axis(delta, order, axis=1)[:, 1]
 
+# def var_g23(N, k):
+#     return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
+
+def var_g23(N, k):
+    return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
+
 def make_binned_data(absc, ords, bins):
     """
     Binning of (boolean) ords according to absc and bins
@@ -497,6 +503,7 @@ def make_binned_data(absc, ords, bins):
     binned_num = np.zeros(len(bins) - 1)
     binned_den = np.zeros(len(bins) - 1)
     binned_numu = np.zeros(len(bins) - 1)
+    true_err = np.zeros(len(bins) - 1)
     for bidx in range(1, len(bins)):
         tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
         tmp_ords = ords[tmp_filt]
@@ -504,8 +511,9 @@ def make_binned_data(absc, ords, bins):
         binned_num[bidx - 1] = len(tmp_ords[tmp_ords > 0])
         binned_numu[bidx - 1] = len(tmp_ords[tmp_ords > 0]) ** .5
         binned_den[bidx - 1] = len(tmp_ords)
+        true_err[bidx - 1] = var_g23(len(tmp_ords), len(tmp_ords[tmp_ords > 0]))**.5
 
-    return binned_num, binned_numu, binned_den
+    return binned_num, binned_numu, binned_den, true_err
 
 def get_soft_times(id1, id2, path_lookup):
     d12 = subtract_path(path_lookup[f"{id1}"][:, pxcol:pzcol+1], path_lookup[f"{id2}"][:, pxcol:pzcol+1])

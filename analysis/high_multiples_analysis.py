@@ -297,6 +297,28 @@ def lookup_star_mult_with_mass(my_df, star_id, target, path_lookup, pre_filtered
 
     return host_sys.name, tmp_mults[tmp_idx], np.array(tmp_masses)
 
+def lookup_star_mult_b(my_df, star_id):
+    """
+    Get multiple of star with id star_id from DataFrame my_df
+    """
+    mult = 1
+    for row in my_df.iterrows():
+        if (row[1]["mult"] > mult) and (star_id in row[1]["mult_ids_list"]):
+            mult = row[1]["mult"]
+        if mult==4:
+            break
+    
+    return mult
+
+def filter_maximal_sets(sets):
+    result = []
+    for s in sets:
+        if not any(s < other for other in sets):  # proper subset
+            result.append(True)
+        else:
+            result.append(False)
+    return result
+
 def get_pair_state(my_df, id1, id2, target, **kwargs):
     """
     Get multiplicity of stars id1 and id2 from dataframe my_df at time target. Also, find out

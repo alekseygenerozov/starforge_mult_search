@@ -41,6 +41,7 @@ def ad_index(u):
 
 def u_to_cs(u1):
     gamma_eff = ad_index(u1)
+    # print("gamma:",gamma_eff)
     return u1**.5 * (gamma_eff * (gamma_eff - 1))**.5
 
 def get_shape_eigen(dxc):

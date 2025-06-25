@@ -37,6 +37,8 @@ high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f
 end_states = np.zeros(len(bin_ids)).astype(str)
 same_sys_filt = np.zeros(len(bin_ids)).astype(bool)
 for ii, row in tqdm.tqdm(enumerate(bin_ids)):
+    nsnaps = end_snaps[seeds_lookup_idx[ii]]
+
     bin_list = list(row)
     id1 = bin_list[0]
     id2 = bin_list[1]
@@ -48,8 +50,12 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ## Evaluating min mass at the end of its lifetime...
     look1 = lookup_dict[float(int(id1))]
     look2 = lookup_dict[float(int(id2))]
-    end_bin_time = analyze_multiples_part2.get_bound_snaps(look1, look2)[0][-1][0]
+
+    bs_out = analyze_multiples_part2.get_bound_snaps(look1, look2)#[0][-1]
+    end_bin_time = bs_out[0][-1][0]
     end_bin_time = int(end_bin_time)
+    end_sys_time = int(nsnaps * my_data["same_sys_final_norm"][ii])
+    end_bin_time = end_sys_time
     min_mass_b[ii] = min(path_lookup[str(id1)][end_bin_time, mcol], path_lookup[str(id2)][end_bin_time, mcol])
 
     tmp_df = high_df.xs(end_time, level="t")
@@ -74,6 +80,7 @@ assert(np.all(same_sys_filt==same_sys_filt_ck))
 ##Need to apply completeness correction to higher multiples table to get a corrected endState??
 #########################################################################################################
 d1 = len(end_states[quasi_filter & (min_mass_b > mthres)])
+print(len(min_mass_b[quasi_filter & (min_mass_b < 0.1)]) / len(min_mass_b[quasi_filter]))
 #########################################################################################################
 ##Tallying all the non-surviving states.
 ns1 = len(end_states[(end_states=="1 1") & (quasi_filter) & (min_mass_b > mthres) ]) / d1
