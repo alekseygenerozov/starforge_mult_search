@@ -30,6 +30,7 @@ bin_ids_quasi_list = np.array([list(row) for row in bin_ids[quasi_filter]]).rave
 star_ids = np.array(list(path_lookup.keys()))
 star_mult_label_final = np.ones(len(star_ids))
 star_final_mass = np.ones(len(star_ids)) * np.inf
+star_form_time = np.ones(len(star_ids)) * np.inf
 
 ##Much of this could be refactored into its own function
 ##SNe 'snapshot' problem again...Here SNe are excluded.
@@ -41,6 +42,7 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
     star_masses = star_masses[~np.isinf(star_masses)]
     star_final_mass[ii] = star_masses[-1]
     star_end_snap = int(star_times[-1])
+    star_form_time[ii] = star_times[0]
 
     tmp_sel = coll_full_df_life.xs(star_end_snap, level="t")
     tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{contig_suff}"]>1) & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)]
@@ -69,8 +71,8 @@ def parse_mult_id(id_str):
 
 ##Make f1 >= 1 for consistency, but should not matter.
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
+tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
 ##Filter -- only get maximal multiple(!)
-
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
 single_star_in_mult = []
@@ -83,30 +85,49 @@ max_multiples_only = []
 single_star_in_iso_bin = []
 single_star_in_higher = []
 #########################################################################################################
-##Getting table of just isolated binaries(!)
+##Getting table without subsystems
 times_all = tmp_sel.index.get_level_values("t").unique()
 for tt in tqdm.tqdm(times_all):
     tmp_slice = tmp_sel.xs(tt, level="t")
+    ##Could refactor -- get sets for the full frame and then we can simplify this [Priority: Low...]
     tmp_mult_ids_set = tmp_slice.index.get_level_values("id").to_series().apply(parse_mult_id)
     tmp_filt = filter_maximal_sets(tmp_mult_ids_set)
     tmp_slice.loc[tmp_filt]
     max_multiples_only.append(tmp_slice)
 max_multiples_only = pd.concat(max_multiples_only)
+#########################################################################################################
 mult_ids_iso_bins = max_multiples_only.loc[max_multiples_only["mult"]==2]
 mult_ids_set_iso_bins = mult_ids_iso_bins.index.get_level_values("id").to_series().apply(parse_mult_id)
 mult_ids_set_iso_bins = np.unique(np.concatenate(mult_ids_set_iso_bins.tolist()))
-
 #########################################################################################################
 #########################################################################################################
 mult_ids_higher = max_multiples_only.loc[max_multiples_only["mult"] > 2]
 mult_ids_set_higher = mult_ids_higher.index.get_level_values("id").to_series().apply(parse_mult_id)
 mult_ids_set_higher = np.unique(np.concatenate(mult_ids_set_higher.tolist()))
-
 #########################################################################################################
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_iso_bin.append(int(star_id) in mult_ids_set_iso_bins)
     single_star_in_higher.append(int(star_id) in mult_ids_set_higher)
+max_ids = max_multiples_only.index.get_level_values("id").str
+max_ids_times = max_multiples_only["tval"].to_numpy()
+# last_mults = np.zeros(len(star_ids[single_filter]))
+# for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
+#     tmp_filt = max_ids.contains(rf"\b{star_id}\b")
+#     tmp_slice = max_multiples_only.loc[tmp_filt]
+#     if len(tmp_slice) > 0:
+#         last_mults[ii] = tmp_slice["mult"].iloc[-1]
+first_mults = np.ones(len(star_ids[single_filter]))
+star_form_time_single = star_form_time[single_filter]
+for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
+    tmp_max_multiples_only_slice = max_multiples_only.loc[(max_ids_times >= star_form_time_single[ii]) & (max_ids_times < star_form_time_single[ii] + 20)]
+    tmp_max_ids = tmp_max_multiples_only_slice.index.get_level_values("id").str
+    tmp_filt = tmp_max_ids.contains(rf"\b{star_id}\b")
+    tmp_slice = tmp_max_multiples_only_slice.loc[tmp_filt]
+    if len(tmp_slice) > 0:
+        first_mults[ii] = tmp_slice["mult"].iloc[0]
 breakpoint()
+##For 1st snapshot we can do a similar loop but filter slice to be within 5e5 yr of appearance of the star...
+#########################################################################################################
 
 
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
