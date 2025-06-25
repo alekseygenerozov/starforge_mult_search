@@ -110,12 +110,14 @@ for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_higher.append(int(star_id) in mult_ids_set_higher)
 max_ids = max_multiples_only.index.get_level_values("id").str
 max_ids_times = max_multiples_only["tval"].to_numpy()
-# last_mults = np.zeros(len(star_ids[single_filter]))
-# for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
-#     tmp_filt = max_ids.contains(rf"\b{star_id}\b")
-#     tmp_slice = max_multiples_only.loc[tmp_filt]
-#     if len(tmp_slice) > 0:
-#         last_mults[ii] = tmp_slice["mult"].iloc[-1]
+#########################################################################################################
+last_mults = np.zeros(len(star_ids[single_filter]))
+for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
+    tmp_filt = max_ids.contains(rf"\b{star_id}\b")
+    tmp_slice = max_multiples_only.loc[tmp_filt]
+    if len(tmp_slice) > 0:
+        last_mults[ii] = tmp_slice["mult"].iloc[-1]
+#########################################################################################################
 first_mults = np.ones(len(star_ids[single_filter]))
 star_form_time_single = star_form_time[single_filter]
 for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
@@ -125,13 +127,10 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
     tmp_slice = tmp_max_multiples_only_slice.loc[tmp_filt]
     if len(tmp_slice) > 0:
         first_mults[ii] = tmp_slice["mult"].iloc[0]
-breakpoint()
 ##For 1st snapshot we can do a similar loop but filter slice to be within 5e5 yr of appearance of the star...
 #########################################################################################################
-
-
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
-np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult)))
+np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
