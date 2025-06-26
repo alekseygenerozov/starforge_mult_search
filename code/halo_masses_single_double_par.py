@@ -159,6 +159,8 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
             ##Storing binned data
             halo_mass_idx = np.searchsorted(rad_bins, d[idx])
             halo_mass_bins[halo_mass_idx] += muniq1[idx]
+            ##Wont this just be index??? -- Let's test this explicitly!
+            assert idx==particle_indices[idx]
             bound_index.append(particle_indices[idx])
 
     halo_mass_bins = np.cumsum(halo_mass_bins)
