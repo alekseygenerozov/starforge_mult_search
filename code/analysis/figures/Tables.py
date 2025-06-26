@@ -112,6 +112,5 @@ for ii in range(len(base_new_all)):
         grand_total_mults_b += nmults
 
     print(np.mean(c0s), np.mean(c1s), np.mean(c2s), np.mean(c3s))
-    print(1, np.mean(f1s), 1, np.mean(f3s))
+    print(1, np.sum(c1s) / np.sum(c0s), 1, np.sum(c3s) / np.sum(c2s))
 
-# print(grand_total_stars, grand_total_bins_a, grand_total_bins_b, grand_total_mults, grand_total_mults_b)

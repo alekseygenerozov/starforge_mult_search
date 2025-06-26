@@ -61,9 +61,14 @@ for SCRIPT in "${FIG_SCRIPTS[@]}"; do
     echo "Figure $SCRIPT generated."
 done
 
+python $CODE_BASE/analysis/figures/halo_size.py
+python $CODE_BASE/analysis/figures/ex_fig8.py > logs/ex_fig8.log 2>&1
+
+
 # Completion message
-echo "Pipeline execution completed successfully."
+echo "Pipeline execution completed."
 
 mv logs /results
 mv *.pdf /results
 mv M2e4_R10 /results
+

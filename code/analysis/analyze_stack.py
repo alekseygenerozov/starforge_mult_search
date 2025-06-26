@@ -102,6 +102,8 @@ def get_min_dist_binary(path_lookup, tmp_row):
 
     return path_diff_all
 
+def var_g23(N, k):
+    return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
 
 def make_binned_data(absc, ords, bins):
     """
@@ -110,6 +112,7 @@ def make_binned_data(absc, ords, bins):
     binned_num = np.zeros(len(bins) - 1)
     binned_den = np.zeros(len(bins) - 1)
     binned_numu = np.zeros(len(bins) - 1)
+    true_err = np.zeros(len(bins) - 1)
     for bidx in range(1, len(bins)):
         tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
         tmp_ords = ords[tmp_filt]
@@ -117,8 +120,9 @@ def make_binned_data(absc, ords, bins):
         binned_num[bidx - 1] = len(tmp_ords[tmp_ords > 0])
         binned_numu[bidx - 1] = len(tmp_ords[tmp_ords > 0]) ** .5
         binned_den[bidx - 1] = len(tmp_ords)
+        true_err[bidx - 1] = var_g23(len(tmp_ords), len(tmp_ords[tmp_ords > 0]))**.5
 
-    return binned_num, binned_numu, binned_den
+    return binned_num, binned_numu, binned_den, true_err
 
 
 def get_fpaths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
