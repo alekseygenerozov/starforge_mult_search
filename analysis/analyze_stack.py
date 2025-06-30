@@ -143,6 +143,25 @@ def get_peri_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
     return bisect_root(E, L2, mtot, eps, rmin, rmax)
 
 @njit
+def get_apo_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
+    r0 = np.sqrt(x * x + y * y + z * z)
+    v2 = vx * vx + vy * vy + vz * vz
+    phi = phi_softened(r0, mtot, eps)
+    E = 0.5 * v2 + phi
+
+    # Angular momentum squared
+    Lx = y * vz - z * vy
+    Ly = z * vx - x * vz
+    Lz = x * vy - y * vx
+    L2 = Lx * Lx + Ly * Ly + Lz * Lz
+
+    rmin = r0 
+    rmax = 10 * r0    
+
+    return bisect_root(E, L2, mtot, eps, rmin, rmax)
+
+
+@njit
 def subtract_path_opt(p1, p2, dir=1):
     """
     Efficiently compute p1 - p2, skipping rows where either is [inf, inf, inf]
