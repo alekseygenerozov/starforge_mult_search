@@ -91,34 +91,34 @@ ax.annotate("Bound", (0.03,0.96), ha='left', color='0.5')
 fig.savefig("fig2a.pdf")
 
 
-##Be wary of flips here....
-ens_ck_seed1 = np.load("en_col_seed1_1.0.npz")["arr_0"]
-ens_ck_seed2 = np.load("en_col_seed2_1.0.npz")["arr_0"]
-ens_ck_seed42 = np.load("en_col_seed42_1.0.npz")["arr_0"]
-ens_ck = np.concatenate((ens_ck_seed1, ens_ck_seed2, ens_ck_seed42))
+##Code for Extended Data Fig. 5--Figure cannot be generated in capsule due to data constraints
+# ens_ck_seed1 = np.load("en_col_seed1_1.0.npz")["arr_0"]
+# ens_ck_seed2 = np.load("en_col_seed2_1.0.npz")["arr_0"]
+# ens_ck_seed42 = np.load("en_col_seed42_1.0.npz")["arr_0"]
+# ens_ck = np.concatenate((ens_ck_seed1, ens_ck_seed2, ens_ck_seed42))
 
-log_ens_ratio_ft1 = np.log10(-ens_ck[:, 0] / ens_ck[:, 1])[quasi_filter]
-ax.ecdf(log_ens_ratio_ft1, color=colorblind_palette[2])
+# log_ens_ratio_ft1 = np.log10(-ens_ck[:, 0] / ens_ck[:, 1])[quasi_filter]
+# ax.ecdf(log_ens_ratio_ft1, color=colorblind_palette[2])
 
-ens_ck_seed1 = np.load("en_col_seed1_8.0.npz")["arr_0"]
-ens_ck_seed2 = np.load("en_col_seed2_8.0.npz")["arr_0"]
-ens_ck_seed42 = np.load("en_col_seed42_8.0.npz")["arr_0"]
-ens_ck = np.concatenate((ens_ck_seed1, ens_ck_seed2, ens_ck_seed42))
+# ens_ck_seed1 = np.load("en_col_seed1_8.0.npz")["arr_0"]
+# ens_ck_seed2 = np.load("en_col_seed2_8.0.npz")["arr_0"]
+# ens_ck_seed42 = np.load("en_col_seed42_8.0.npz")["arr_0"]
+# ens_ck = np.concatenate((ens_ck_seed1, ens_ck_seed2, ens_ck_seed42))
 
-log_ens_ratio_ft8 = np.log10(-ens_ck[:, 0] / ens_ck[:, 1])[comp_quasi_filter]
-ax.ecdf(log_ens_ratio_ft8, color=colorblind_palette[2])
+# log_ens_ratio_ft8 = np.log10(-ens_ck[:, 0] / ens_ck[:, 1])[comp_quasi_filter]
+# ax.ecdf(log_ens_ratio_ft8, color=colorblind_palette[2])
 
-x_gas1, y_gas1 = ecdf(log_ens_ratio_ft8)
-print(interp1d(x_gas1, y_gas1)(0))
-x_gas2, y_gas2 = ecdf(log_ens_ratio_ft1)
-print(interp1d(x_gas2, y_gas2)(0))
+# x_gas1, y_gas1 = ecdf(log_ens_ratio_ft8)
+# print(interp1d(x_gas1, y_gas1)(0))
+# x_gas2, y_gas2 = ecdf(log_ens_ratio_ft1)
+# print(interp1d(x_gas2, y_gas2)(0))
 
-x_common = np.linspace(min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500)
-y_gas1_interp = np.interp(x_common, x_gas1, y_gas1)
-y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
+# x_common = np.linspace(min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500)
+# y_gas1_interp = np.interp(x_common, x_gas1, y_gas1)
+# y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 
-# # Plot ECDF
-ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[2], alpha=0.3)
-ax.annotate("Gas corrected", (0.55, 0.5), ha='left', color=colorblind_palette[2]) 
-plt.show()
-fig.savefig("ex_fig5.pdf")
+# # # Plot ECDF
+# ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[2], alpha=0.3)
+# ax.annotate("Gas corrected", (0.55, 0.5), ha='left', color=colorblind_palette[2]) 
+# plt.show()
+# fig.savefig("ex_fig5.pdf")

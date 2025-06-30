@@ -37,12 +37,12 @@ wait
 echo "All Part 1 analyses completed. Starting figure generation..."
 
 # Run figure generation
-for SEED in "${SEEDS[@]}"; do
-    echo "Generating figures for seed $SEED with ft=8.0..."
-    python3 $CODE_BASE/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse 8.0 > logs/bexp_ft8_seed_${SEED}.log 2>&1 &
-    echo "Generating figures for seed $SEED with ft=1.0..."
-    python3 $CODE_BASE/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse 1.0 > logs/bexp_ft1_seed_${SEED}.log 2>&1 &
-done
+#for SEED in "${SEEDS[@]}"; do
+#    echo "Generating figures for seed $SEED with ft=8.0..."
+#    python3 $CODE_BASE/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft8.0_coFalse 8.0 > logs/bexp_ft8_seed_${SEED}.log 2>&1 &
+#    echo "Generating figures for seed $SEED with ft=1.0..."
+#    python3 $CODE_BASE/analysis/bound_experiment.py $SEED _TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse 1.0 > logs/bexp_ft1_seed_${SEED}.log 2>&1 &
+#done
 
 wait
 
@@ -61,8 +61,8 @@ for SCRIPT in "${FIG_SCRIPTS[@]}"; do
     echo "Figure $SCRIPT generated."
 done
 
-python $CODE_BASE/analysis/figures/halo_size.py
-python $CODE_BASE/analysis/figures/ex_fig8.py > logs/ex_fig8.log 2>&1
+# python $CODE_BASE/analysis/figures/halo_size.py
+# python $CODE_BASE/analysis/figures/ex_fig8.py > logs/ex_fig8.log 2>&1
 
 
 # Completion message
