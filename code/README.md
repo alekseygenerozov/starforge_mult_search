@@ -134,6 +134,6 @@ The first part of name (M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1) indicat
 starforge simulation. The suffix at the end (TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse) indicates the parameters used for the halo multiple identification code 
 
 To reduce the size of the required data assets, we have opted not to upload the multiple output data for the non-fiducial
-simulations--these would be required for part of Table 1 and Extended Data Table 2. 
- 
-Also, we have not uploaded some date products that would be required to produce Extended Data Figure 5 and 8.
+simulations--these would be required for part of Table 1 and Extended Data Table 2. Also, we have not uploaded some date products that would be required to produce Extended Data Figures 5 and 8. 
+
+
