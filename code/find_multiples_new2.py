@@ -63,6 +63,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
 
     ## Units and snapshot time
     time = f['Header'].attrs['Time']
+    tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
     try:
         unitlen = f['Header'].attrs['UnitLength_In_CGS']
         unitmass = f['Header'].attrs['UnitMass_In_CGS']
@@ -82,7 +83,6 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         partids = f['PartType5']['ParticleIDs'][:]
         partsink = (f['PartType5']['SinkRadius'][:])
         partspin = (f['PartType5']['BH_Specific_AngMom'][:])
-        tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
         tstar_form_Myr = f['PartType5'][star_age_key][...] * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
         tage_myr = tsnap_myr - tstar_form_Myr
     ##Had some non-empty values here...
