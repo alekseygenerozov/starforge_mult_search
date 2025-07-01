@@ -62,8 +62,6 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     fneu = f['PartType0']['NeutralHydrogenAbundance'][:] * mask
 
     ## Units and snapshot time
-    time = f['Header'].attrs['Time']
-    tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
     try:
         unitlen = f['Header'].attrs['UnitLength_In_CGS']
         unitmass = f['Header'].attrs['UnitMass_In_CGS']
@@ -75,6 +73,8 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         unitvel = 100.0
     unitb = 1e4  # f['Header'].attrs['UnitMagneticField_In_CGS'] If not defined
     unit_base = {'UnitLength': unitlen, 'UnitMass': unitmass, 'UnitVel': unitvel, 'UnitB': unitb}
+    time = f['Header'].attrs['Time']
+    tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
 
     if 'PartType5' in f.keys():
         partpos = f['PartType5']['Coordinates'][:]
