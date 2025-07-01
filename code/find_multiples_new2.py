@@ -32,7 +32,6 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     """
     # Load snapshot data
     f = h5py.File(file, 'r')
-    breakpoint()
 
     # Mask to remove any cells with mass below the cell resolution
     # (implemented specifically to remove feedback cells if desired)
@@ -62,6 +61,20 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     # To get molecular gas density do: den*fmol*fneu*(1-helium_mass_fraction)/(2.0*mh), helium_mass_fraction=0.284
     fneu = f['PartType0']['NeutralHydrogenAbundance'][:] * mask
 
+    ## Units and snapshot time
+    time = f['Header'].attrs['Time']
+    try:
+        unitlen = f['Header'].attrs['UnitLength_In_CGS']
+        unitmass = f['Header'].attrs['UnitMass_In_CGS']
+        unitvel = f['Header'].attrs['UnitVelocity_In_CGS']
+    ##Fallback for units...
+    except KeyError:
+        unitlen = 3.085678e+18
+        unitmass = 1.989e+33
+        unitvel = 100.0
+    unitb = 1e4  # f['Header'].attrs['UnitMagneticField_In_CGS'] If not defined
+    unit_base = {'UnitLength': unitlen, 'UnitMass': unitmass, 'UnitVel': unitvel, 'UnitB': unitb}
+
     if 'PartType5' in f.keys():
         partpos = f['PartType5']['Coordinates'][:]
         partmasses = f['PartType5']['Masses'][:]
@@ -81,19 +94,6 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         partsink = []
         partspin = []
         tage_myr = []
-    time = f['Header'].attrs['Time']
-    try:
-        unitlen = f['Header'].attrs['UnitLength_In_CGS']
-        unitmass = f['Header'].attrs['UnitMass_In_CGS']
-        unitvel = f['Header'].attrs['UnitVelocity_In_CGS']
-    ##Fallback for units...
-    except KeyError:
-        unitlen = 3.085678e+18
-        unitmass = 1.989e+33
-        unitvel = 100.0
-    unitb = 1e4  # f['Header'].attrs['UnitMagneticField_In_CGS'] If not defined
-    unit_base = {'UnitLength': unitlen, 'UnitMass': unitmass, 'UnitVel': unitvel, 'UnitB': unitb}
-
 
     print("Snapshot time in %f Myr" % (tsnap_myr))
 
