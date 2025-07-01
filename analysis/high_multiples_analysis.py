@@ -413,10 +413,6 @@ def main(params):
     coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"}, inplace=True)
     ##Get orbits and bound snapshots by segments...
     coll_full_df_life["segment"] = coll_full_df_life.groupby("id", group_keys=False).apply(lambda x: assign_contiguous_segments(x, cadence=cadence))
-    # tmp1 = coll_full_df_life.groupby(["id", "segment"])[["tf"]].transform(lambda x: list(range(len(x))))
-    # tmp2 = coll_full_df_life.groupby(["id", "segment"])[["p"]].transform(lambda x: (snap_interval / x).cumsum())
-    # coll_full_df_life["cumul_snaps_cont"] = tmp1
-    # coll_full_df_life["cumul_frac_cont"] = tmp2
     frac_of_orbit = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit_seg")
     nbound_snaps = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: len(x)).rename("nbound_snaps_seg")
     coll_full_df_life = coll_full_df_life.join(frac_of_orbit, on=["id", "segment"])

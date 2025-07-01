@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define seeds and cloud tags
-SEEDS=(1 2 42)
+SEEDS=(1)
 CLOUD_TAGS=(
     "M2e4_R10_S0_T1_B1_Res271_n2_sol0.5"
     "M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5"
@@ -44,13 +44,13 @@ mkdir -p logs
 #    $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAG > logs/part1_seed_${SEED}.log 2>&1 &
 #done
 
-## Run pipeline_part_1 in parallel for each seed
-#for SEED in "${SEEDS[@]}"; do
-#    echo "Running pipeline_part_1 for seed $SEED..."
-#    $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAGB > logs/part1_seed_${SEED}.log 2>&1 &
-#done
+# Run pipeline_part_1 in parallel for each seed
+for SEED in "${SEEDS[@]}"; do
+   echo "Running pipeline_part_1 for seed $SEED..."
+   $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAGB > logs/part1_seed_${SEED}.log 2>&1 &
+done
 
-#wait
+wait
 #
 ## Run pipeline_part_1_non_fid in parallel for each cloud tag
 #for CLOUD_TAG in "${CLOUD_TAGS[@]}"; do
@@ -93,21 +93,21 @@ echo "All Part 1 analyses completed. Starting figure generation..."
 #
 
 ##Have to ensure the correct path in the figure preamble...
-python $CODE_BASE/analysis/figures/figure_preamble.py $1
-cp $1 `cat figdir`
-cp config_example1 `cat figdir`
-cp config_example2 `cat figdir`
-cd `cat figdir`
-ln -s ../M2e4_R10
-ln -s ../v1.2
-mkdir logs
+# python $CODE_BASE/analysis/figures/figure_preamble.py $1
+# cp $1 `cat figdir`
+# cp config_example1 `cat figdir`
+# cp config_example2 `cat figdir`
+# cd `cat figdir`
+# ln -s ../M2e4_R10
+# ln -s ../v1.2
+# mkdir logs
 #
 #
 #python $CODE_BASE/analysis/figures/fig1.py example1 > logs/fig1_1.log 2>&1
 #python $CODE_BASE/analysis/figures/fig1.py example2 > logs/fig1_2.log 2>&1
 #echo "Figure 1 generated."
 
-python $CODE_BASE/analysis/figures/Tables.py $1 > logs/tables.log 2>&1
+# python $CODE_BASE/analysis/figures/Tables.py $1 > logs/tables.log 2>&1
 #echo "Tables generated."
 
 #Generate static figures
@@ -120,4 +120,4 @@ python $CODE_BASE/analysis/figures/Tables.py $1 > logs/tables.log 2>&1
 #done
 
 # Completion message
-echo "Pipeline execution completed successfully."
+# echo "Pipeline execution completed."

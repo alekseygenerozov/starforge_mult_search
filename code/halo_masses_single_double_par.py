@@ -189,6 +189,8 @@ def main():
     parser.add_argument("--cutoff", type=float, default=0.5, help="Outer cutoff to look for bound gas (0.5 pc)")
     parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
     parser.add_argument("--ntides", action="store_true", help="Turn off tides")
+    parser.add_argument("--star_age_key", default="ProtoStellarAge", help="Key for stellar age")
+
 
     args = parser.parse_args()
 
@@ -197,12 +199,12 @@ def main():
     non_pair = args.non_pair
     name_tag = args.name_tag
     inc_tides = not args.ntides
+    star_age_key = args.star_age_key
 
     snap_file = args.snap_base + '_{0:03d}.hdf5'.format(int(snap_idx))
-    try:
-        den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base =\
-    find_multiples_new2.load_data(snap_file, res_limit=1e-3)
-    except KeyError:
+    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin = find_multiples_new2.load_data(snap_file, res_limit=1e-3, star_age_key=star_age_key)
+    if len(partpos)==0:
+        print("No particles!")
         return
 
     xuniq, indx = np.unique(x, return_index=True, axis=0)

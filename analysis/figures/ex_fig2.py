@@ -25,6 +25,7 @@ lookup_dict_keys = list(lookup_dict_keys)
 first_mult = np.ones(len(lookup_dict_keys)) * np.inf
 f1 = coll_full_df_life[f"frac_of_orbit{contig_suff}"]
 n1 = coll_full_df_life[f"nbound_snaps{contig_suff}"]
+print("Contig", contig_suff)
 ##Selecting persistent multiples
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
 ##Filter for selecting first instance of each index
@@ -37,6 +38,7 @@ for ii,kk in enumerate(lookup_dict_keys):
 
     if not np.isnan(tmp_delay):
         first_mult[ii] = tmp_delay
+
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 n1 = len(lookup_dict_keys)
@@ -59,7 +61,7 @@ fig,ax = plt.subplots(figsize=(10, 8), constrained_layout=True)
 # ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
 ax.set_xlim(0.01, 1)
 ax.set_ylim(0., 1)
-ax.set_ylabel("CDF")
+ax.set_ylabel("Cumulative fraction")
 ax.set_xlabel("Delay to multiple [Myr]")
 from matplotlib.lines import Line2D
 

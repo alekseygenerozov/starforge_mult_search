@@ -26,12 +26,13 @@ def load_gas_ids(file, res_limit=0.0):
     del f
     return gas_id
 
-def load_data(file, res_limit=0.0):
+def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     """ file - h5pdf5 STARFORGE snapshot
         res_limit - minimum mass resolution to include in analyis (in code units)
     """
     # Load snapshot data
     f = h5py.File(file, 'r')
+    breakpoint()
 
     # Mask to remove any cells with mass below the cell resolution
     # (implemented specifically to remove feedback cells if desired)
@@ -54,7 +55,10 @@ def load_data(file, res_limit=0.0):
     b = f['PartType0']['MagneticField'][:] * mask3d
     #t = f['PartType0']['Temperature'][:] * mask
     # Fraction of molecular material in each cell
-    fmol = f['PartType0']['MolecularMassFraction'][:] * mask
+    try:
+        fmol = f['PartType0']['MolecularMassFraction'][:] * mask
+    except KeyError:
+        fmol = np.ones_like(u) * np.inf
     # To get molecular gas density do: den*fmol*fneu*(1-helium_mass_fraction)/(2.0*mh), helium_mass_fraction=0.284
     fneu = f['PartType0']['NeutralHydrogenAbundance'][:] * mask
 
@@ -64,32 +68,37 @@ def load_data(file, res_limit=0.0):
         partvels = f['PartType5']['Velocities'][:]
         partids = f['PartType5']['ParticleIDs'][:]
         partsink = (f['PartType5']['SinkRadius'][:])
+        partspin = (f['PartType5']['BH_Specific_AngMom'][:])
+        tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
+        tstar_form_Myr = f['PartType5'][star_age_key][...] * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
+        tage_myr = tsnap_myr - tstar_form_Myr
+    ##Had some non-empty values here...
     else:
         partpos = []
-        partmasses = [0]
+        partmasses = []
         partids = []
-        partvels = [0, 0, 0]
+        partvels = []
         partsink = []
-
+        partspin = []
+        tage_myr = []
     time = f['Header'].attrs['Time']
-    unitlen = f['Header'].attrs['UnitLength_In_CGS']
-    unitmass = f['Header'].attrs['UnitMass_In_CGS']
-    unitvel = f['Header'].attrs['UnitVelocity_In_CGS']
+    try:
+        unitlen = f['Header'].attrs['UnitLength_In_CGS']
+        unitmass = f['Header'].attrs['UnitMass_In_CGS']
+        unitvel = f['Header'].attrs['UnitVelocity_In_CGS']
+    ##Fallback for units...
+    except KeyError:
+        unitlen = 3.085678e+18
+        unitmass = 1.989e+33
+        unitvel = 100.0
     unitb = 1e4  # f['Header'].attrs['UnitMagneticField_In_CGS'] If not defined
-
     unit_base = {'UnitLength': unitlen, 'UnitMass': unitmass, 'UnitVel': unitvel, 'UnitB': unitb}
 
-    # Unit base information specifies conversion between code units and CGS
-    # Example: To convert to density in units of g/cm^3 do: den*unit_base['UnitMass']/unit_base['UnitLength']**3
-
-    tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
-    tstar_form_Myr = f['PartType5']['ProtoStellarAge'][...] * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
-    tage_myr = tsnap_myr - tstar_form_Myr
 
     print("Snapshot time in %f Myr" % (tsnap_myr))
 
     del f
-    return den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base
+    return den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin
 
 def PE(xc, mc, hc):
     """ xc - array of positions
@@ -660,9 +669,11 @@ def main():
     parser.add_argument("--tides_factor", type=float, default=8.0, help="Prefactor for check of tidal criterion (8.0)")
     parser.add_argument("--nhalo", action="store_true", help="Turn off halo")
     parser.add_argument("--ntides", action="store_true", help="Turn off tides")
+    parser.add_argument("--star_age_key", default="ProtoStellarAge", help="Key for stellar age")
 
     args = parser.parse_args()
     inc_halo =  not args.nhalo
+    star_age_key = args.star_age_key
     inc_tides = not args.ntides
     snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
     sma_order = args.sma_order
@@ -671,9 +682,9 @@ def main():
 
     # den, x, m, h, u, b, v, t, fmol, fneu, partpos, partmasses, partvels, partids, tage_myr, unit_base = load_data(snapshot_file, res_limit=1e-3)
     # cl = cluster(partpos, partvels, partmasses, partids)
-    try:
-        den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = load_data(snapshot_file, res_limit=1e-3)
-    except KeyError:
+    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
+    if len(partpos)==0:
+        print("No particles!")
         return
     halo_masses = np.zeros(len(partmasses))
     if inc_halo:
