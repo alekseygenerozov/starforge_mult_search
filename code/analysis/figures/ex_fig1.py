@@ -45,6 +45,5 @@ ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n3 / d3, \
             yerr=te3, marker="s", linestyle="", alpha=0.7)
-
-print(n3 /d3)
+fig.savefig("fig2b.pdf")
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
