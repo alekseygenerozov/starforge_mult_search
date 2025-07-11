@@ -63,6 +63,7 @@ ex_filt = ~np.isinf(ex_time_max)
 ex_filt = ex_filt & my_data[f"quasi_filter{contig_suff}"]
 ex_index = np.where(ex_filt)[0]
 # paths = np.array([path_lookup[str(pp)] for pp in path_lookup.keys()])
+breakpoint()
 
 with open(f"companions{flat_suff}{contig_suff}.p", "rb") as ff:
     comps_dict = pickle.load(ff)

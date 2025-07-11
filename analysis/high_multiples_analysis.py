@@ -9,8 +9,8 @@ import pickle
 import sys
 import tqdm
 
-from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, KE
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol
+from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, KE, get_orbit
+from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol, hcol
 from starforge_mult_search.analysis import cgs_const as cgs
 
 from bash_command import bash_command as bc
@@ -177,7 +177,7 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     snapshot snap. The angular momentum of the tertiary is calculate with respect
     to the center of mass of the inner binary. This is by default calculated without
     the halo mass corrections, but if inc_halo=True, the halo masses are included
-    in the calculation of the com...
+    in the calculation of the com...TO DO: GET OTHER ORBITAL ELEMENTS AS WELL...
     """
     my_mcol = mcol
     if inc_halo:
@@ -196,8 +196,10 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     jhat_1 = jhat_1 / np.linalg.norm(jhat_1)
     jhat_2 = np.cross(t_r, t_v)
     jhat_2 = jhat_2 / np.linalg.norm(jhat_2)
+    orb = get_orbit(p1[pxcol:pzcol + 1], p2[pxcol:pzcol + 1], p1[vxcol:vzcol + 1], p2[vxcol:vzcol + 1], p1[my_mcol], p2[my_mcol], p1[hcol], p2[hcol])
 
-    return np.dot(jhat_1, jhat_2)
+    return {"ang": np.dot(jhat_1, jhat_2), "inner_sep":np.linalg.norm(bin_r), "outer_sep":np.linalg.norm(t_r),
+             "inner_a":orb[0], "inner_e":orb[1], "inner_sep_proj":np.linalg.norm(bin_r[:-1]), "outer_sep_proj":np.linalg.norm(t_r[:-1])}
 
 def get_q_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     """
@@ -216,11 +218,13 @@ def get_q_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     p3 = tmp_path_lookup[i3][snap]
 
     ##Mass ratio of inner binary: min / max < 1 by definition
-    q1 = min(p1[my_mcol], p2[my_mcol]) / max(p1[my_mcol], p2[my_mcol])
+    m1 = max(p1[my_mcol], p2[my_mcol])
+    m2 = min(p1[my_mcol], p2[my_mcol])
+    q1 = m2 / m1
     ##Tertiary / Inner binary.
     q2 = p3[my_mcol] / (p1[my_mcol] + p2[my_mcol])
 
-    return q1, q2
+    return {"q1":q1, "q2":q2, "m1":m1, "m2":m2, "m3":p3[my_mcol]}
 
 def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False):
     if n1.data["orbit"] is None:
@@ -394,6 +398,7 @@ def main(params):
 
 
                 n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
+                ##Could we simply add the full node to the table??
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
