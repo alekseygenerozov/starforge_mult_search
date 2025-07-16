@@ -32,6 +32,7 @@ star_mult_label_final = np.ones(len(star_ids))
 star_final_mass = np.ones(len(star_ids)) * np.inf
 star_form_time = np.ones(len(star_ids)) * np.inf
 
+##Filtering confusion
 ##Much of this could be refactored into its own function
 ##SNe 'snapshot' problem again...Here SNe are excluded.
 for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
@@ -59,9 +60,9 @@ single_final_masses = star_final_mass[single_filter]
 all_masses = star_final_mass#[star_mult_label_final!=-1]
 from_bins_filt = np.isin(star_ids[single_filter].astype(int), bin_ids_quasi_list)
 print(f"Number of final singles: {len(single_final_masses)}")
-print(f"Number of final singles from bins: {len(single_final_masses[from_bins_filt])}")
-print(f"Frac from bin: {len(single_final_masses[from_bins_filt]) / len(single_final_masses)}")
-print(f"Frac from bin (ms > 1 Msun): {len(single_final_masses[(from_bins_filt) & (single_final_masses > 1)]) / len(single_final_masses[(single_final_masses > 1)])}")
+# print(f"Number of final singles from bins: {len(single_final_masses[from_bins_filt])}")
+# print(f"Frac from bin: {len(single_final_masses[from_bins_filt]) / len(single_final_masses)}")
+# print(f"Frac from bin (ms > 1 Msun): {len(single_final_masses[(from_bins_filt) & (single_final_masses > 1)]) / len(single_final_masses[(single_final_masses > 1)])}")
 ##Get the number that were in *persistent multiples*
 #########################################################################################################
 f1 = coll_full_df_life[f"frac_of_orbit{contig_suff}"]
@@ -75,102 +76,113 @@ tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
 ##Filter -- only get maximal multiple(!)
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-single_star_in_mult = []
 
+single_star_in_mult = []
+single_star_in_soft_mult = []
 mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_mult.append(int(star_id) in mult_ids_set)
 
-max_multiples_only = []
-single_star_in_iso_bin = []
-single_star_in_higher = []
+min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
+tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
+mult_ids = tmp_sel_soft.index.get_level_values("id")
+mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+for star_id in tqdm.tqdm(star_ids[single_filter]):
+    single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
+# max_multiples_only = []
+# single_star_in_iso_bin = []
+# single_star_in_higher = []
 #########################################################################################################
 ##Getting table without subsystems
-times_all = tmp_sel.index.get_level_values("t").unique()
-for tt in tqdm.tqdm(times_all):
-    tmp_slice = tmp_sel.xs(tt, level="t")
-    ##Could refactor -- get sets for the full frame and then we can simplify this [Priority: Low...]
-    tmp_mult_ids_set = tmp_slice.index.get_level_values("id").to_series().apply(parse_mult_id)
-    tmp_filt = filter_maximal_sets(tmp_mult_ids_set)
-    tmp_slice.loc[tmp_filt]
-    max_multiples_only.append(tmp_slice)
-max_multiples_only = pd.concat(max_multiples_only)
-#########################################################################################################
-mult_ids_iso_bins = max_multiples_only.loc[max_multiples_only["mult"]==2]
-mult_ids_set_iso_bins = mult_ids_iso_bins.index.get_level_values("id").to_series().apply(parse_mult_id)
-mult_ids_set_iso_bins = np.unique(np.concatenate(mult_ids_set_iso_bins.tolist()))
-#########################################################################################################
-#########################################################################################################
-mult_ids_higher = max_multiples_only.loc[max_multiples_only["mult"] > 2]
-mult_ids_set_higher = mult_ids_higher.index.get_level_values("id").to_series().apply(parse_mult_id)
-mult_ids_set_higher = np.unique(np.concatenate(mult_ids_set_higher.tolist()))
-#########################################################################################################
-for star_id in tqdm.tqdm(star_ids[single_filter]):
-    single_star_in_iso_bin.append(int(star_id) in mult_ids_set_iso_bins)
-    single_star_in_higher.append(int(star_id) in mult_ids_set_higher)
-max_ids = max_multiples_only.index.get_level_values("id").str
-max_ids_times = max_multiples_only["tval"].to_numpy()
-#########################################################################################################
-last_mults = np.zeros(len(star_ids[single_filter]))
-for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
-    tmp_filt = max_ids.contains(rf"\b{star_id}\b")
-    tmp_slice = max_multiples_only.loc[tmp_filt]
-    if len(tmp_slice) > 0:
-        last_mults[ii] = tmp_slice["mult"].iloc[-1]
-#########################################################################################################
-first_mults = np.ones(len(star_ids[single_filter]))
-star_form_time_single = star_form_time[single_filter]
-for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
-    tmp_max_multiples_only_slice = max_multiples_only.loc[(max_ids_times >= star_form_time_single[ii]) & (max_ids_times < star_form_time_single[ii] + 20)]
-    tmp_max_ids = tmp_max_multiples_only_slice.index.get_level_values("id").str
-    tmp_filt = tmp_max_ids.contains(rf"\b{star_id}\b")
-    tmp_slice = tmp_max_multiples_only_slice.loc[tmp_filt]
-    if len(tmp_slice) > 0:
-        first_mults[ii] = tmp_slice["mult"].iloc[0]
+# times_all = tmp_sel.index.get_level_values("t").unique()
+# for tt in tqdm.tqdm(times_all):
+#     tmp_slice = tmp_sel.xs(tt, level="t")
+#     ##Could refactor -- get sets for the full frame and then we can simplify this [Priority: Low...]
+#     tmp_mult_ids_set = tmp_slice.index.get_level_values("id").to_series().apply(parse_mult_id)
+#     tmp_filt = filter_maximal_sets(tmp_mult_ids_set)
+#     tmp_slice.loc[tmp_filt]
+#     max_multiples_only.append(tmp_slice)
+# max_multiples_only = pd.concat(max_multiples_only)
+# #########################################################################################################
+# mult_ids_iso_bins = max_multiples_only.loc[max_multiples_only["mult"]==2]
+# mult_ids_set_iso_bins = mult_ids_iso_bins.index.get_level_values("id").to_series().apply(parse_mult_id)
+# mult_ids_set_iso_bins = np.unique(np.concatenate(mult_ids_set_iso_bins.tolist()))
+# #########################################################################################################
+# #########################################################################################################
+# mult_ids_higher = max_multiples_only.loc[max_multiples_only["mult"] > 2]
+# mult_ids_set_higher = mult_ids_higher.index.get_level_values("id").to_series().apply(parse_mult_id)
+# mult_ids_set_higher = np.unique(np.concatenate(mult_ids_set_higher.tolist()))
+# #########################################################################################################
+# for star_id in tqdm.tqdm(star_ids[single_filter]):
+#     single_star_in_iso_bin.append(int(star_id) in mult_ids_set_iso_bins)
+#     single_star_in_higher.append(int(star_id) in mult_ids_set_higher)
+# max_ids = max_multiples_only.index.get_level_values("id").str
+# max_ids_times = max_multiples_only["tval"].to_numpy()
+# #########################################################################################################
+# last_mults = np.zeros(len(star_ids[single_filter]))
+# for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
+#     tmp_filt = max_ids.contains(rf"\b{star_id}\b")
+#     tmp_slice = max_multiples_only.loc[tmp_filt]
+#     if len(tmp_slice) > 0:
+#         last_mults[ii] = tmp_slice["mult"].iloc[-1]
+# #########################################################################################################
+# first_mults = np.ones(len(star_ids[single_filter]))
+# star_form_time_single = star_form_time[single_filter]
+# for ii,star_id in tqdm.tqdm(enumerate(star_ids[single_filter])):
+#     tmp_max_multiples_only_slice = max_multiples_only.loc[(max_ids_times >= star_form_time_single[ii]) & (max_ids_times < star_form_time_single[ii] + 20)]
+#     tmp_max_ids = tmp_max_multiples_only_slice.index.get_level_values("id").str
+#     tmp_filt = tmp_max_ids.contains(rf"\b{star_id}\b")
+#     tmp_slice = tmp_max_multiples_only_slice.loc[tmp_filt]
+#     if len(tmp_slice) > 0:
+#         first_mults[ii] = tmp_slice["mult"].iloc[0]
 ##For 1st snapshot we can do a similar loop but filter slice to be within 5e5 yr of appearance of the star...
 #########################################################################################################
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
-np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
+single_star_in_soft_mult = np.array(single_star_in_mult).astype(bool)
+# np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
+
+print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
+print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
-fig,ax = plt.subplots()
-# ax.set_title(r"Singles Final MF")
-ax.set_yscale("log")
-ax.set_ylabel("PDF")
-ax.set_xlabel("Log(Mass [$M_{\odot}$])")
-bsize = 0.1
-bins = np.arange(-2, 1.81, bsize)
-ax.annotate(r"IMF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=18)
+# fig,ax = plt.subplots()
+# # ax.set_title(r"Singles Final MF")
+# ax.set_yscale("log")
+# ax.set_ylabel("PDF")
+# ax.set_xlabel("Log(Mass [$M_{\odot}$])")
+# bsize = 0.1
+# bins = np.arange(-2, 1.81, bsize)
+# ax.annotate(r"IMF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=18)
 
-ax.hist(np.log10(all_masses), histtype='step', density=True, bins=bins, label="All stars", linewidth=4, color="0.5")
-ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=bins, label="All singles", linewidth=4)
-ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=bins, label="Always single", linewidth=2.5)
-ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bins, label="From binaries", density=True,
-       linewidth=2.5)
-ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=bins, label="From higher\nmultiples", density=True,
-       linewidth=2.5, linestyle="-.")
+# ax.hist(np.log10(all_masses), histtype='step', density=True, bins=bins, label="All stars", linewidth=4, color="0.5")
+# ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=bins, label="All singles", linewidth=4)
+# ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=bins, label="Always single", linewidth=2.5)
+# ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bins, label="From binaries", density=True,
+#        linewidth=2.5)
+# ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), histtype='step', bins=bins, label="From higher\nmultiples", density=True,
+#        linewidth=2.5, linestyle="-.")
 
-ax.legend(fontsize=16, loc="upper right", bbox_to_anchor=(0.6, 0.35))
+# ax.legend(fontsize=16, loc="upper right", bbox_to_anchor=(0.6, 0.35))
 
-absc = np.geomspace(0.3, 10**1.8, 500)
+# absc = np.geomspace(0.3, 10**1.8, 500)
 
-def lighten_color(color, factor=0.5):
-    """Lightens the given color by blending it with white."""
-    return tuple(1 - factor * (1 - c) for c in color)
+# def lighten_color(color, factor=0.5):
+#     """Lightens the given color by blending it with white."""
+#     return tuple(1 - factor * (1 - c) for c in color)
 
-f0 = fit_power(all_masses[all_masses > 0.3], 1.1)[0]
-f1 = fit_power(single_final_masses[single_final_masses > 0.3], 1.1)[0]
-f2 = fit_power(single_final_masses[from_bins_filt & (single_final_masses > 0.3)], 1.1)[0]
-print(f"Power law fits {f1} {f2}")
+# f0 = fit_power(all_masses[all_masses > 0.3], 1.1)[0]
+# f1 = fit_power(single_final_masses[single_final_masses > 0.3], 1.1)[0]
+# f2 = fit_power(single_final_masses[from_bins_filt & (single_final_masses > 0.3)], 1.1)[0]
+# print(f"Power law fits {f1} {f2}")
 
-fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
-# l0,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f0 + 1), color="0.5", linestyle="--", label=f"$dN/dm \\propto m^{{-{f0:.2f}}}$")
-l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], linestyle="--", label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$")
-l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
-# labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
-labelLines([l1], fontsize=16, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.16)
-labelLines([l2], fontsize=16, xvals=(-0.1,), ang=0, y_offset=0.15, align=False)
+# fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
+# # l0,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f0 + 1), color="0.5", linestyle="--", label=f"$dN/dm \\propto m^{{-{f0:.2f}}}$")
+# l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], linestyle="--", label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$")
+# l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
+# # labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
+# labelLines([l1], fontsize=16, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.16)
+# labelLines([l2], fontsize=16, xvals=(-0.1,), ang=0, y_offset=0.15, align=False)
 
-fig.savefig("ex_fig6.pdf")
+# fig.savefig("ex_fig6.pdf")

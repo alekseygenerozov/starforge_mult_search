@@ -200,7 +200,6 @@ def main(params):
     lookup_df = pd.DataFrame(np.ones((len(sinks_df), 4)) * np.inf, columns=["sys_id", "mtot", "sma", "ecc"])
     if not params["skip"]:
         ##System lookup table
-        breakpoint()
         lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
         #Add the final snapshot -- Useful for when we have to stack multiple seeds.
         lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))

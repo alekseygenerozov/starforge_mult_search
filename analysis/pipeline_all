@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define seeds and cloud tags
-SEEDS=(1)
+SEEDS=(1 2 42)
 CLOUD_TAGS=(
     "M2e4_R10_S0_T1_B1_Res271_n2_sol0.5"
     "M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5"
@@ -17,8 +17,6 @@ CLOUD_TAGSC=(
     "M2e4_R10_S0_T1_B0.01_Res271_n2_sol0.5"
 )
 
-
-
 # Set default values if not set by the user
 SMAO=${SMAO:-False}
 TIDES=${TIDES:-False}
@@ -27,7 +25,6 @@ NGRID=${NGRID:-1}
 HM=${HM:-True}
 FT=${FT:-1.0}
 CO=${CO:-False}
-
 
 ## Common analysis tag
 ANALYSIS_TAG="Tides${TIDES}_smao${SMAO}_mult${MULT}_ngrid${NGRID}_hm${HM}_ft${FT}_co${CO}.p"
