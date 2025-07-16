@@ -187,52 +187,58 @@ def main(params):
         ff.write(r1 + "\n")
         ff.write(r2 + "\n")
 
-    ##System lookup table
-    lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
-    #Add the final snapshot -- Useful for when we have to stack multiple seeds.
-    lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
-    np.savez(save_path + "/system_lookup_table", lookup)
-    lookup_dict = {}
-    for uu in np.unique(lookup[:, 1]):
-        lookup_dict[uu] = lookup[lookup[:, LOOKUP_PID] == uu]
-    with open(save_path + f"/lookup_dict.p", "wb") as ff:
-        pickle.dump(lookup_dict, ff)
-    ##Particle paths...
-    start_snap_b = int(min(lookup[:, LOOKUP_SNAP]))
-    assert start_snap == start_snap_b
-    ###################################################################################################################
-    ##Look pairs that are in the same system with the same semi-major axis.
-    ##Should get all the binaries ever -- including those in higher order multiples.
-    ##Semi-major axes are from same underlying data so don't have to worry about floating point issues.
-    lookup_df = pd.DataFrame(lookup, columns=("time", "pid", "sys_id", "mult", "mtot", "x",
-                                              "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
-    sys_group = lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
-    sys_group = sys_group.to_list()
-    ##Can try assert here to be sure that the array is sorted in time
-    sys_group = np.array(sys_group)
-    tfirst_bin_in_mult = sys_group[:,0]
-    bin_in_mult = sys_group[:, [1, 2]].astype(int)
-    bin_in_mult_str = [str(np.sort(row)) for row in bin_in_mult]
-    tmp, tmp_uidx = np.unique(bin_in_mult_str, return_index=True)
-
-    bin_in_mult = bin_in_mult[tmp_uidx]
-    tfirst_bin_in_mult = tfirst_bin_in_mult[tmp_uidx]
-    bin_in_mult = np.array([set(row) for row in bin_in_mult])
-    ###################################################################################################################
-    np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
     ##Getting the initial snapshot together for all the binary pairs.
     sinks_df = get_sink_df(base_sink, start_snap, end_snap, cadence)
     first_snap_idx = sinks_df.groupby("pid").first()
-    fst = get_fst(first_snap_idx, bin_in_mult)
-    np.savez(save_path + "/fst_mult", fst)
     ###################################################################################################################
     spins_df = get_spin_df(base_sink, start_snap, end_snap, cadence)
     sinks_df = sinks_df.sort_values(["pid", "t"])
     spins_df = spins_df.sort_values(["pid", "t"])
-    lookup_df = lookup_df.sort_values(["pid", "time"])
     sinks_df.reset_index(inplace=True, drop=True)
     spins_df.reset_index(inplace=True, drop=True)
-    lookup_df.reset_index(inplace=True, drop=True)
+
+    lookup_df = pd.DataFrame(np.ones((len(sinks_df), 4)) * np.inf, columns=["sys_id", "mtot", "sma", "ecc"])
+    if not params["skip"]:
+        ##System lookup table
+        breakpoint()
+        lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
+        #Add the final snapshot -- Useful for when we have to stack multiple seeds.
+        lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
+        np.savez(save_path + "/system_lookup_table", lookup)
+        lookup_dict = {}
+        for uu in np.unique(lookup[:, 1]):
+            lookup_dict[uu] = lookup[lookup[:, LOOKUP_PID] == uu]
+        with open(save_path + f"/lookup_dict.p", "wb") as ff:
+            pickle.dump(lookup_dict, ff)
+        ##Particle paths...
+        start_snap_b = int(min(lookup[:, LOOKUP_SNAP]))
+        assert start_snap == start_snap_b
+        ###################################################################################################################
+        ##Look pairs that are in the same system with the same semi-major axis.
+        ##Should get all the binaries ever -- including those in higher order multiples.
+        ##Semi-major axes are from same underlying data so don't have to worry about floating point issues.
+        lookup_df = pd.DataFrame(lookup, columns=("time", "pid", "sys_id", "mult", "mtot", "x",
+                                                "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
+        sys_group = lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
+        sys_group = sys_group.to_list()
+        ##Can try assert here to be sure that the array is sorted in time
+        sys_group = np.array(sys_group)
+        tfirst_bin_in_mult = sys_group[:,0]
+        bin_in_mult = sys_group[:, [1, 2]].astype(int)
+        bin_in_mult_str = [str(np.sort(row)) for row in bin_in_mult]
+        tmp, tmp_uidx = np.unique(bin_in_mult_str, return_index=True)
+
+        bin_in_mult = bin_in_mult[tmp_uidx]
+        tfirst_bin_in_mult = tfirst_bin_in_mult[tmp_uidx]
+        bin_in_mult = np.array([set(row) for row in bin_in_mult])
+        lookup_df = lookup_df.sort_values(["pid", "time"])
+        lookup_df.reset_index(inplace=True, drop=True)
+        ###################################################################################################################
+        np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
+        fst = get_fst(first_snap_idx, bin_in_mult)
+        np.savez(save_path + "/fst_mult", fst)
+
+    ##Have dummy lookup_df...
     get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap)
     ##################################################################################################################
 

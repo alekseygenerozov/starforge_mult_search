@@ -8,6 +8,7 @@ import pandas as pd
 import pickle
 import sys
 import tqdm
+from collections import deque
 
 from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, KE, get_orbit
 from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol, hcol
@@ -121,6 +122,7 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
 
     :return: A `SystemNode` representing the root of the hierarchy tree.
     """
+    ###Can we adjust this code to get a flag for softening??
     import copy
 
     # Make deep copies to avoid modifying the original data
@@ -158,17 +160,63 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
             node.add_child(child1)
         else:
             node.add_child(
-                SystemNode(data={"id": p1, "orbit": None, "pos": p_dict[p1], "vel": v_dict[p1], "mass": m_dict[p1]}))
+                SystemNode(data={"id": p1, "orbit": None, "pos": p_dict[p1], "vel": v_dict[p1], "mass": m_dict[p1], "h": h_dict[p1]}))
 
         if isinstance(p2, list):
             child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
             node.add_child(child2)
         else:
             node.add_child(
-                SystemNode(data={"id": p2, "orbit": None, "pos": p_dict[p2], "vel": v_dict[p2], "mass": m_dict[p2]}))
+                SystemNode(data={"id": p2, "orbit": None, "pos": p_dict[p2], "vel": v_dict[p2], "mass": m_dict[p2], "h": h_dict[p2]}))
 
     return node, orbs_copy
 
+def is_soft_orbit(node):
+    ##Add children to queue -- we can assume there will always be at least one child...
+    my_queue = deque()
+    my_queue.append(node)
+    minimum_ratio = np.inf
+    ##Breadth-first search through the node
+    while my_queue:
+        current = my_queue.popleft()
+        children = current.children
+        is_simple = True
+        soft = 0
+        ##Iterate through children
+        for child in children:
+            if child.data["orbit"] is None: 
+                soft = max(soft, child.data["h"])
+            else:
+                is_simple = False
+                my_queue.append(child)
+            
+        ##If the children have no orbit data -- that means they are plain stars (a binary system)
+        ##In this case we compute the ratio of the pericenter of the orbit to the softening length...
+        ##If it is less than 1 -- we update accordingly...
+        if is_simple:
+            sma = current.data["orbit"][0]
+            eccentricity = current.data["orbit"][1]
+
+            pericenter = sma * (1 - eccentricity)
+            if (pericenter / soft) < minimum_ratio:
+                minimum_ratio = pericenter / soft
+
+    return minimum_ratio
+
+##This will not work -- and pericenter should be enough in any case(!) -- mathematically pericenter must be <= current separation...
+# def is_soft_separation(n1):
+#     my_leaves = n1.leaves
+#     my_pos = [ll.data["pos"] for ll in my_leaves]
+#     my_soft = [ll.data["h"] for ll in my_leaves]
+#     minimum_ratio = np.inf
+
+#     for ii in range(len(my_pos)):
+#         for jj in range(ii + 1, len(my_pos)):
+#             new_ratio = np.linalg.norm(my_pos[ii] - my_pos[jj]) / max(my_soft[ii], my_soft[jj])
+#             if new_ratio < minimum_ratio:
+#                 minimum_ratio = new_ratio
+    
+#     return minimum_ratio
 
 def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     """
@@ -248,6 +296,9 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(n1.data["ke"])
         tab_dat.append(tmp_orb[2])
         tab_dat.append(tmp_orb[3])
+        soft_ratio_pericenter = is_soft_orbit(n1)
+
+        tab_dat.append(soft_ratio_pericenter)
         coll_full.append(tab_dat)
 
         add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
@@ -395,14 +446,15 @@ def main(params):
                 v_dict = {ss.ids[ii]: ss.sub_vel[ii] for ii in range(len(ss.ids))}
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
                 h_dict = {ss.ids[ii]: ss.sub_soft[ii] for ii in range(len(ss.ids))}
-
+                ##Can calculate effective minimum separation distance here -- just iterating over the lists of particles and orbits[?]
+                ##Issues getting pairwise softening length...
 
                 n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
                 ##Could we simply add the full node to the table??
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2"))
+    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2", "soft_ratio"))
     coll_full_df.set_index(["id", "t"], inplace=True)
     ##TO DO: Try to homogenize this code...##group_keys is true by default, so it may be unnecessary.
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")

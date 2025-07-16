@@ -39,10 +39,10 @@ CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
 mkdir -p logs
 
 ##Run pipeline_part_1 in parallel for each seed
-#for SEED in "${SEEDS[@]}"; do
-#    echo "Running pipeline_part_1 for seed $SEED..."
-#    $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAG > logs/part1_seed_${SEED}.log 2>&1 &
-#done
+for SEED in "${SEEDS[@]}"; do
+   echo "Running pipeline_part_1 for seed $SEED..."
+   $CODE_BASE/analysis/pipeline_part_1 $SEED $ANALYSIS_TAG > logs/part1_seed_${SEED}.log 2>&1 &
+done
 
 # Run pipeline_part_1 in parallel for each seed
 for SEED in "${SEEDS[@]}"; do
