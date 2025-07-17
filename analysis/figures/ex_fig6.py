@@ -75,20 +75,32 @@ tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
 tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
 single_star_in_mult = []
 single_star_in_soft_mult = []
+minimum_pericenter_au = []
 ##Filter -- only get maximal multiple(!)
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
 mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
-    single_star_in_mult.append(int(star_id) in mult_ids_set)
+    current_in_mult = int(star_id) in mult_ids_set
+    single_star_in_mult.append(current_in_mult)
+    ##TO DEAL WITH WEIRD EDGE CASES WHERE HIGHER MULTIPLE IS IN PERSISTENT LIST BUT NOT SUBSYSTEMS(!)
+    star_orbits = coll_full_df_life.loc[(coll_full_df_life["child1"]==star_id) | (coll_full_df_life["child2"]==star_id)]
+    if current_in_mult:
+        if np.isnan(np.min(star_orbits["a"] * (1. - star_orbits["e"]) * cgs.pc / cgs.au)):
+            breakpoint()
+        minimum_pericenter_au.append(np.min(star_orbits["a"] * (1. - star_orbits["e"]) * cgs.pc / cgs.au))
+    ##WE ONLY CARE ABOUT SINGLE STARS THAT WERE IN MULTIPLE SYSTEMS(!!)
+    else:
+        # assert(len(star_orbits) == 0)
+        minimum_pericenter_au.append(np.inf)
 
-min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
-tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
-mult_ids = tmp_sel_soft.index.get_level_values("id")
-mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
-for star_id in tqdm.tqdm(star_ids[single_filter]):
-    single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
+# min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
+# tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
+# mult_ids = tmp_sel_soft.index.get_level_values("id")
+# mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+# mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
+# for star_id in tqdm.tqdm(star_ids[single_filter]):
+#     single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
 # max_multiples_only = []
 # single_star_in_iso_bin = []
 # single_star_in_higher = []
@@ -139,13 +151,18 @@ for star_id in tqdm.tqdm(star_ids[single_filter]):
 #########################################################################################################
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
 single_star_in_soft_mult = np.array(single_star_in_soft_mult).astype(bool)
+minimum_pericenter_au = np.array(minimum_pericenter_au)
 # np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 
-print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
-print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
+breakpoint()
+print(f"Frac from mult nsoft: {len(single_final_masses[single_star_in_mult & (minimum_pericenter_au < 40)]) / len(single_final_masses)}")
+print(f"Frac from mult nsoft (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1) & (minimum_pericenter_au > 40)]) / len(single_final_masses[single_final_masses > 1])}")
+
+# print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
+# print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
 # fig,ax = plt.subplots()
 # # ax.set_title(r"Singles Final MF")

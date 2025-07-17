@@ -297,10 +297,9 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(tmp_orb[2])
         tab_dat.append(tmp_orb[3])
         soft_ratio_pericenter = is_soft_orbit(n1)
+        tab_dat.append(soft_ratio_pericenter)
         tab_dat.append(str(n1.children[0].data["id"]))
         tab_dat.append(str(n1.children[1].data["id"]))
-
-        tab_dat.append(soft_ratio_pericenter)
         coll_full.append(tab_dat)
 
         add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
