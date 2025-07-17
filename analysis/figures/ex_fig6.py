@@ -73,12 +73,11 @@ def parse_mult_id(id_str):
 ##Make f1 >= 1 for consistency, but should not matter.
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
 tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
+single_star_in_mult = []
+single_star_in_soft_mult = []
 ##Filter -- only get maximal multiple(!)
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-
-single_star_in_mult = []
-single_star_in_soft_mult = []
 mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_mult.append(int(star_id) in mult_ids_set)
@@ -87,6 +86,7 @@ min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
 tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
 mult_ids = tmp_sel_soft.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
     single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
 # max_multiples_only = []
@@ -138,7 +138,7 @@ for star_id in tqdm.tqdm(star_ids[single_filter]):
 ##For 1st snapshot we can do a similar loop but filter slice to be within 5e5 yr of appearance of the star...
 #########################################################################################################
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
-single_star_in_soft_mult = np.array(single_star_in_mult).astype(bool)
+single_star_in_soft_mult = np.array(single_star_in_soft_mult).astype(bool)
 # np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
