@@ -297,6 +297,8 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(tmp_orb[2])
         tab_dat.append(tmp_orb[3])
         soft_ratio_pericenter = is_soft_orbit(n1)
+        tab_dat.append(str(n1.children[0].data["id"]))
+        tab_dat.append(str(n1.children[1].data["id"]))
 
         tab_dat.append(soft_ratio_pericenter)
         coll_full.append(tab_dat)
@@ -454,7 +456,7 @@ def main(params):
                 add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
                 sidx += 1
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2", "soft_ratio"))
+    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2", "soft_ratio", "child1", "child2"))
     coll_full_df.set_index(["id", "t"], inplace=True)
     ##TO DO: Try to homogenize this code...##group_keys is true by default, so it may be unnecessary.
     frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
