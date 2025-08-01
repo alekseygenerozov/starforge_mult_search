@@ -407,6 +407,8 @@ class cluster(object):
         ##Partition stars into different subregions -- copied from one of existing binary-finding codes.
         ##Can help with performance.
         self.regions = select_in_subregion(self.get_system_position, Ngrid1D=self.Ngrid1D)
+        if Ngrid1D==1:
+            self.regions = [np.ones(len(self.get_system_position)).astype(bool)]
         self.orb_all = []
         self._calculate_orbits()
         conv = False
