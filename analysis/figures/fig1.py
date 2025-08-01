@@ -164,8 +164,7 @@ aa = "analyze_multiples_output_" + r2 + "/"
 
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
 
-den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = \
-find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin  = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
 huniq = h[indx]
@@ -227,19 +226,19 @@ ymax *= conv
 p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
 ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3] * v_scale * snap_interval, tmp_halo_pos_center[:,4] * v_scale * snap_interval,
           scale=1, scale_units = "xy", angles = "xy",
-          color=col1, alpha=0.4)
+          color=col1, alpha=0.5, headwidth=4, headlength=6, headaxislength=5)
 ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3] * v_scale * snap_interval, tmp_halo_pos2_center[:,4] * v_scale * snap_interval,
           scale=1, scale_units = "xy", angles = "xy",
-          color="#A52A2A", alpha=0.4)
+          color="#A52A2A", alpha=0.5, headwidth=4, headlength=6, headaxislength=5)
 
 center_b, tmp_pos_center_b, tmp_halo_pos_center_b, tmp_pos2_center_b, tmp_halo_pos2_center_b, com_w_halo_b, com2_w_halo_b = get_phalo(base, aa, snap_idx,
                                                                                        bin_id1, bin_id2, 8.0)
 ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv, tmp_halo_pos_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos_center_b[:,4]  * v_scale * snap_interval,
           scale=1, scale_units = "xy", angles = "xy",
-          color=col1, alpha=0.2)
+          color=col1, alpha=0.15, headwidth=4, headlength=6, headaxislength=5)
 ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos2_center_b[:,4] * v_scale * snap_interval,
           scale=1, scale_units = "xy", angles = "xy",
-          color="#A52A2A", alpha=0.2)
+          color="#A52A2A", alpha=0.15, headwidth=4, headlength=6, headaxislength=5)
 plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
 
 #####################################################################################################
@@ -277,6 +276,8 @@ if ins > 0:
     axins.set_ylim(y1, y2)
     axins.set_xticks([-ins/2, ins/2])
     axins.set_yticks([-ins/2, ins/2])
+    axins.set_xlabel("x [$10^4$ au]")
+    axins.set_ylabel("y [$10^4$ au]")
     axins.plot(p1[:, 0] * conv, p1[:, 1] * conv, color=col1)
     axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2)
 
