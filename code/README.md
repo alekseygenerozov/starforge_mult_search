@@ -121,7 +121,7 @@ we describe these scripts' outputs in README_ANALYSIS.md, but the user does not 
 with these intermediate outputs to reproduce the paper figures.
 2. Scripts that produce Figures in the analysis/figures, using the above data tables. 
 So fig2.py generates figure 2 (fig2a.pdf), fig3.py generates figure 3 (fig3a.pdf, fig3b.pdf), etc. 
-ex_fig1.py  also generates the right panel of fig2 (as fig2b.pdf).
+ex_fig3.py  also generates the right panel of fig2 (as fig2b.pdf).
 fig4.py generates the numbers in the schematic in fig. 4, and writes them to logs/fig4.log. 
 3. Tables.py generates the numbers for the fiducial simulations in Tables 1 and writes it to logs/tables.log.
 
@@ -134,6 +134,6 @@ The first part of name (M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_1) indicat
 starforge simulation. The suffix at the end (TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft1.0_coFalse) indicates the parameters used for the halo multiple identification code 
 
 To reduce the size of the required data assets, we have opted not to upload the multiple output data for the non-fiducial
-simulations--these would be required for part of Table 1 and Extended Data Table 2. Also, we have not uploaded some date products that would be required to produce Extended Data Figures 5 and 8. 
+simulations--these would be required for part of Table 1 and Extended Data Table 2. Also, we have not uploaded some date products that would be required to produce Extended Data Figures 6 and 7. 
 
 
