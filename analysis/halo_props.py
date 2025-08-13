@@ -40,7 +40,7 @@ def main():
     snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
     snapshot_num = f'{int(args.snap):03d}'
 
-    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base =\
+    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin =\
     find_multiples_new2.load_data(snapshot_file, res_limit=1e-3)
     halo_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
 
