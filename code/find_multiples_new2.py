@@ -532,7 +532,7 @@ class cluster(object):
             # tidal_crit = (tidal_crit) or (not self.tides)
             ##Check that binary is bound, multiplicity is less than four, and that the binary is tidally stable. Tides can be turned off by setting self.tides to False.
             if row[0] > 0 and (mult_total <= self.mult_max) and tidal_crit:
-                print("adding {0} {1} {2}".format(mult_total, self.systems[idx1].ids, self.systems[idx2].ids))
+                # print("adding {0} {1} {2}".format(mult_total, self.systems[idx1].ids, self.systems[idx2].ids))
                 ID_NEW = self._combine_binaries(row)
                 ##Put add operation first to deal with special case of only three stars
                 self._orbit_adjust_add(ii, ID_NEW)
