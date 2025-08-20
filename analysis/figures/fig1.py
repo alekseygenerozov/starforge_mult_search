@@ -17,6 +17,9 @@ import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import scienceplots
+plt.style.use('nature')
+
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
 # Define a custom unit
@@ -198,7 +201,7 @@ sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.ar
 
 ############################################################################################################
 
-fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
+fig,ax = plt.subplots()
 ax.set_xlabel("x [pc]")
 ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
@@ -212,7 +215,7 @@ if plimit > 0:
 
 fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
-fig,ax = plt.subplots(figsize=(9.5,8), constrained_layout=True)
+fig,ax = plt.subplots()
 ax.set_xlabel("x [$10^4$ au]")
 ax.set_ylabel("y [$10^4$ au]")
 

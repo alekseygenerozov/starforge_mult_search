@@ -12,7 +12,7 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 
 bfb_filter = my_data["same_sys_at_fst"].astype(bool)
 
-fig,ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
+fig,ax = plt.subplots()
 ax.set_xlim(-1, 1)
 ax.set_yscale('log')
 ax.set_ylabel("PDF")
@@ -68,7 +68,7 @@ from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
 delta_snap = my_data["delta_snap"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
-fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
+fig,ax = plt.subplots()
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"Age Difference [Myr]")
 

@@ -18,8 +18,8 @@ from dataclasses import dataclass
 import pandas as pd
 
 from starforge_mult_search.code import myglobals
+##Refactor this -- don't really need this extra dependency(!)
 from starforge_mult_vis.config.config import load_config
-from starforge_mult_vis.data_io.loaders import load_parquets
 myglobals.gas_data = []
 
 @dataclass

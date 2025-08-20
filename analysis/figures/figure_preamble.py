@@ -2,13 +2,17 @@ import os
 import pickle
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 from omegaconf import OmegaConf
 import pandas as pd
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
+import scienceplots
+
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
+plt.style.use('nature')
 
 ##Keep the default parameters the same as the submitted paper...
 default_config = OmegaConf.create({

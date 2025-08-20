@@ -1,7 +1,6 @@
 from labelLine import labelLines
 from matplotlib.ticker import LogFormatterSciNotation
 from matplotlib.ticker import FuncFormatter
-
 import matplotlib.pyplot as plt
 
 from starforge_mult_search.analysis import cgs_const as cgs
@@ -19,9 +18,9 @@ for bb, uid in enumerate(bin_ids_example):
     cols = [np.array((129, 50, 168)) / 256, colorblind_palette[1]]
     alphas = [0.5, 0.5]
 
-    fig1, ax0 = plt.subplots(figsize=(8, 8), constrained_layout=True)
-    fig2, ax1 = plt.subplots(figsize=(8, 8), constrained_layout=True)
-    fig3, ax2 = plt.subplots(figsize=(8, 8), constrained_layout=True)
+    fig1, ax0 = plt.subplots()
+    fig2, ax1 = plt.subplots()
+    fig3, ax2 = plt.subplots()
     axs = (ax0, ax1, ax2)
 
     ax = axs[0]

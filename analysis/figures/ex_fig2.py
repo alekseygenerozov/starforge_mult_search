@@ -57,7 +57,7 @@ import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 
 ##Wide figure to accomodate the colorbar
-fig,ax = plt.subplots(figsize=(10, 8), constrained_layout=True)
+fig,ax = plt.subplots()
 # ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
 ax.set_xlim(0.01, 1)
 ax.set_ylim(0., 1)

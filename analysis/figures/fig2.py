@@ -39,7 +39,7 @@ comp_quasi_filter = comp[f"quasi_filter{contig_suff}"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 
-fig,ax = plt.subplots(constrained_layout=True)
+fig,ax = plt.subplots()
 ax.set_xlim(-2.1, 2)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"log(-PE / KE)")

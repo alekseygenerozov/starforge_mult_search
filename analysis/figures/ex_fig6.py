@@ -72,40 +72,23 @@ def parse_mult_id(id_str):
 
 ##Make f1 >= 1 for consistency, but should not matter.
 tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
-# tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
-single_star_in_mult = []
-single_star_in_soft_mult = []
-minimum_pericenter_au = []
-minimum_pericenter_soft = []
+tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
 ##Filter -- only get maximal multiple(!)
 mult_ids = tmp_sel.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+
+single_star_in_mult = []
+single_star_in_soft_mult = []
 mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
 for star_id in tqdm.tqdm(star_ids[single_filter]):
-    current_in_mult = int(star_id) in mult_ids_set
-    single_star_in_mult.append(current_in_mult)
-    ##TO DEAL WITH EDGE CASE WHERE HIGHER MULTIPLE IS IN PERSISTENT LIST BUT NOT SUBSYSTEMS(!) -- USE UNFILTERED LIST TO GET PERICENTERS
-    ##THE EDGE CASE CAN OCCUR IN A QUAD WHICH SURVIVES FOR 2 SNAPSHOT WITH INNER TRIPLE REARRANGED BETWEEN THEM...
-    star_orbits = coll_full_df_life.loc[(coll_full_df_life["child1"]==star_id) | (coll_full_df_life["child2"]==star_id)]
-    times_star_orbits = star_orbits.index.get_level_values("t").to_numpy()
-    soft_star_orbits = path_lookup[star_id][times_star_orbits, hcol]
-    if current_in_mult:
-        if np.isnan(np.min(star_orbits["a"] * (1. - star_orbits["e"]) * cgs.pc / cgs.au)):
-            breakpoint()
-        minimum_pericenter_au.append(np.min(star_orbits["a"] * (1. - star_orbits["e"]) * cgs.pc / cgs.au))
-        minimum_pericenter_soft.append(np.min(star_orbits["a"] * (1. - star_orbits["e"]) / soft_star_orbits))
-    ##WE ONLY CARE ABOUT SINGLE STARS THAT WERE IN PERSISTENT MULTIPLE SYSTEMS(!!) SO WE CAN 
-    else:
-        minimum_pericenter_au.append(np.inf)
-        minimum_pericenter_soft.append(np.inf)
+    single_star_in_mult.append(int(star_id) in mult_ids_set)
 
-# min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
-# tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
-# mult_ids = tmp_sel_soft.index.get_level_values("id")
-# mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-# mult_ids_set = np.unique(np.concatenate(mult_ids_set.tolist()))
-# for star_id in tqdm.tqdm(star_ids[single_filter]):
-#     single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
+min_soft_ratio_by_id = tmp_sel.groupby("id")["soft_ratio"].min()
+tmp_sel_soft = tmp_sel.loc[min_soft_ratio_by_id[min_soft_ratio_by_id <= 2].index]
+mult_ids = tmp_sel_soft.index.get_level_values("id")
+mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
+for star_id in tqdm.tqdm(star_ids[single_filter]):
+    single_star_in_soft_mult.append(int(star_id) in mult_ids_set)
 # max_multiples_only = []
 # single_star_in_iso_bin = []
 # single_star_in_higher = []
@@ -155,20 +138,14 @@ for star_id in tqdm.tqdm(star_ids[single_filter]):
 ##For 1st snapshot we can do a similar loop but filter slice to be within 5e5 yr of appearance of the star...
 #########################################################################################################
 single_star_in_mult = np.array(single_star_in_mult).astype(bool)
-single_star_in_soft_mult = np.array(single_star_in_soft_mult).astype(bool)
-minimum_pericenter_au = np.array(minimum_pericenter_au)
-minimum_pericenter_soft = np.array(minimum_pericenter_soft)
+single_star_in_soft_mult = np.array(single_star_in_mult).astype(bool)
 # np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
 print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
 print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 
-breakpoint()
-print(f"Frac from mult nsoft: {len(single_final_masses[single_star_in_mult & (minimum_pericenter_au < 40)]) / len(single_final_masses)}")
-print(f"Frac from mult nsoft (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1) & (minimum_pericenter_au > 40)]) / len(single_final_masses[single_final_masses > 1])}")
-
-# print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
-# print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
+print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
+print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
 # fig,ax = plt.subplots()
 # # ax.set_title(r"Singles Final MF")
