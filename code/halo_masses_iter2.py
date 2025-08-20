@@ -14,9 +14,23 @@ import functools
 import starforge_mult_search.code.starforge_constants as sfc
 import time
 import subprocess
+from dataclasses import dataclass
+import pandas as pd
 
 from starforge_mult_search.code import myglobals
+from starforge_mult_vis.config.config import load_config
+from starforge_mult_vis.data_io.loaders import load_parquets
 myglobals.gas_data = []
+
+@dataclass
+class Particle():
+    """Class for keeping track of an item in inventory."""
+    mass: float 
+    vel: np.ndarray
+    pos: np.ndarray
+    accel: np.ndarray
+    u: float = 0.
+    h: float = 0.
 
 def bash_command(cmd, **kwargs):
 	'''Run command from the bash shell'''
@@ -75,28 +89,28 @@ def blob_setup(sys1):
 
     return blob
 
-def add_to_blob(blob,  idx):
-    """
-    Bookkeeping function for get_gas_mass_bound
-    """
-    ##Could make copies but may take up too much memory...
-    xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
-
+def add_to_blob_general(blob, particle):
     ##This is really the com_accel: Rename to keep the pattern
-    blob['cumul_masses'] = np.append(blob['cumul_masses'], muniq1[idx])
-    blob['cumul_u'] = np.append(blob['cumul_u'], uuniq1[idx])
-    blob['cumul_pos'] = np.vstack([blob['cumul_pos'], xuniq1[idx]])
-    blob['cumul_vel'] = np.vstack([blob['cumul_vel'], vuniq1[idx]])
-    blob['cumul_soft'] = np.append(blob['cumul_soft'], huniq1[idx])
-    blob['com_accel'] = (blob['com_masses'] * blob['com_accel'] + muniq1[idx] * accel_gas1[idx]) /\
-                          (muniq1[idx] + blob['com_masses'])
+    blob['cumul_masses'] = np.append(blob['cumul_masses'], particle.mass)
+    blob['cumul_u'] = np.append(blob['cumul_u'], particle.u)
+    blob['cumul_pos'] = np.vstack([blob['cumul_pos'], particle.pos])
+    blob['cumul_vel'] = np.vstack([blob['cumul_vel'], particle.vel])
+    blob['cumul_soft'] = np.append(blob['cumul_soft'], particle.h)
+    blob['com_accel'] = (blob['com_masses'] * blob['com_accel'] + particle.mass * particle.accel) /\
+                          (particle.mass + blob['com_masses'])
     blob['com_masses'] = np.sum(blob['cumul_masses'])
     blob['com_pos'] = np.average(blob['cumul_pos'], weights=blob['cumul_masses'], axis=0)
     blob['com_vel'] = np.average(blob['cumul_vel'], weights=blob['cumul_masses'], axis=0)
 
-    return blob
+def add_to_blob_gas_wrapper(blob, idx):
+    xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
+    gas_particle = Particle(mass=muniq1[idx], pos=xuniq1[idx], vel=vuniq1[idx], accel=accel_gas1[idx])
+    gas_particle.u = uuniq1[idx]
+    gas_particle.h = huniq1[idx]
 
-def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, compress=False, tides_factor=8, tides=True):
+    add_to_blob_general(blob, gas_particle)
+
+def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, compress=False, tides_factor=8, tides=True):
     """
     Get to gas mass bound to a system. This is meant to be applied to a *single star.*
 
@@ -108,9 +122,7 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
     :param float tides_factor: Prefactor to use in comparison of tidal criterion.
 
     """
-    blob = blob_setup(sys1)
-    ##In principle can add the stellar companions to the blob here -- assuming we have lookup for stellar
-    ##multiples here...Better to start fresh code for the second iteration(!) 
+    ##TO DO: CONSIDER REMOVING PREVIOUSLY IDENTIFIED GAS HALOS, BUT WE COULD ALSO DO THE REMOVAL IN POST-PROCESSING...
     xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
 
     d = xuniq1 - blob['com_pos']
@@ -118,8 +130,8 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
     ord1 = np.argsort(d)
     d_max = 0
     halo_mass = 0.
-    rad_bins = np.geomspace(sys1.soft, cutoff, 100)
-    halo_mass_bins = np.zeros(len(rad_bins))
+    # rad_bins = np.geomspace(sys1.soft, cutoff, 100)
+    # halo_mass_bins = np.zeros(len(rad_bins))
     bound_index = []
     particle_indices = range(len(xuniq1))
     for idx in ord1:
@@ -132,8 +144,9 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
 
         ##Use velocity relative to the cumulative center-of-mass
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob['com_vel'])
-        ##Performance shortcut-- logic is softening will only make things more unbound.
-        ## But can get unexpected (small?) decreases in the bound gas
+        ##Performance shortcut-- logic is softening and thermal energy will only make things more unbound
+        ##Though note the geometry is not accurate captured in this conditional, which can mean some bound particles will be rejected[?] 
+        ##So this is not ideal (though note this is a conservative choice)
         if tmp_vrel > np.sqrt((2. * sfc.GN * (blob['com_masses'] + muniq1[idx])) / d[idx]):
             continue
 
@@ -154,31 +167,55 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
         tide_crit = (tide_crit) or (not tides)
         if (pe1 + ke1 < 0) and (tide_crit):
             if non_pair:
-                blob = add_to_blob(blob, idx)
+                blob = add_to_blob_gas_wrapper(blob, idx)
 
             d_max = d[idx]
             halo_mass += muniq1[idx]
             ##Storing binned data
-            halo_mass_idx = np.searchsorted(rad_bins, d[idx])
-            halo_mass_bins[halo_mass_idx] += muniq1[idx]
+            # halo_mass_idx = np.searchsorted(rad_bins, d[idx])
+            # halo_mass_bins[halo_mass_idx] += muniq1[idx]
             ##Wont this just be index??? -- Let's test this explicitly!
             assert idx==particle_indices[idx]
             bound_index.append(particle_indices[idx])
 
-    halo_mass_bins = np.cumsum(halo_mass_bins)
-    return halo_mass, d_max, bound_index, .5 * (rad_bins[:-1] + rad_bins[1:]), halo_mass_bins[1:]
+    # halo_mass_bins = np.cumsum(halo_mass_bins)
+    return halo_mass, d_max, bound_index
 
-def get_mass_bound_manager(part_data, ii, **kwargs):
+def get_mass_bound_manager(part_data, comps, ii, **kwargs):
     partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr = part_data
     if tage_myr[ii] >= 1.0:
         return 0, 0, np.array([[0, 0]])
     
     sys_tmp = find_multiples_new2.system(partpos[ii], partvels[ii], partmasses[ii], partsink[ii], partids[ii],
-                                         accel_stars[ii], 0)
-    res = get_gas_mass_bound_refactor(sys_tmp, partpos, **kwargs)
-    halo_mass, max_dist, bound_index, rad_bins, halo_mass_bins = res
+                                        accel_stars[ii], 0)
+    ##Need to get initialize the companions
+    companion_part_id = comps.get(partids[ii], 0)
+    if companion_part_id:
+        companion_idx = np.where(partids==companion_part_id)[0][0]
+        my_blob = blob_setup(sys_tmp)
+        particle_to_add = Particle(mass=partmasses[companion_idx], pos=partpos[companion_idx], 
+                                   vel=partvels[companion_idx], accel=accel_stars[companion_idx])
+        particle_to_add.h = partsink[companion_idx]
+
+        add_to_blob_general(my_blob, particle_to_add)
+    else:
+        return 0, 0, np.array([[0, 0]])
+
+    ##NEED TO REMOVE THE COMPANION ID FROM THE PARTICLE POSITIONS FOR THE ALGORITHM TO WORK
+    res = get_gas_mass_bound_refactor(my_blob, partpos, **kwargs)
+    halo_mass, max_dist, bound_index = res
 
     return halo_mass, max_dist, bound_index
+
+def comps_setup(snap, comp_file, config_file):
+    cfg = load_config(config_file)
+    high_df = pd.read_parquet(comp_file)
+    f1 = high_df[f"frac_of_orbit{cfg['contig_suff']}"]
+    n1 = high_df[f"nbound_snaps{cfg['contig_suff']}"]
+    high_df_filt = high_df.loc[(f1>=1) & (n1>1)]
+    high_df_filt = high_df_filt.loc[high_df_filt["mult"]==2].xs(int(snap), level="t")
+    comps = np.vstack(high_df_filt["mult_ids_list"].to_numpy())
+    return {row[0]:row[1] for row in comps}
 
 def main():
     ##Fix GN from the simulation data rather than hard-coding...
@@ -192,7 +229,8 @@ def main():
     parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
     parser.add_argument("--ntides", action="store_true", help="Turn off tides")
     parser.add_argument("--star_age_key", default="ProtoStellarAge", help="Key for stellar age")
-
+    parser.add_argument("--comps_file", default="mults.pq", help="File containing information on multiples")
+    parser.add_argument("--config_file", default="config.yaml", help="File containing information on multiples")
 
     args = parser.parse_args()
 
@@ -202,6 +240,8 @@ def main():
     name_tag = args.name_tag
     inc_tides = not args.ntides
     star_age_key = args.star_age_key
+    ##Need "guardrails" to ensure the component file...
+    comps = comps_setup(snap_idx, args.comps_file, args.config_file)
 
     snap_file = args.snap_base + '_{0:03d}.hdf5'.format(int(snap_idx))
     den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin = find_multiples_new2.load_data(snap_file, res_limit=1e-3, star_age_key=star_age_key)
@@ -247,7 +287,7 @@ def main():
     accel_stars_stars = pytreegrav.Accel(partpos, partmasses, partsink, G=sfc.GN, method="bruteforce", parallel=True)
     accel_stars = accel_stars_gas + accel_stars_stars
 
-    halo_mass_name = "halo_masses_sing_np{0}_c{1}_{2}_comp{3}_tf{4}".format(non_pair, cutoff, snap_idx, args.compress,
+    halo_mass_name = "halo_masses_iter2_np{0}_c{1}_{2}_comp{3}_tf{4}".format(non_pair, cutoff, snap_idx, args.compress,
                                                                                args.tides_factor)
     halo_masses_sing = np.zeros(len(partpos))
     max_dist_sing = np.zeros(len(partpos))
@@ -256,7 +296,7 @@ def main():
 
     myglobals.gas_data = (xuniq, vuniq, muniq, huniq, uuniq, accel_gas)
     part_data = (partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr)
-    f_to_iter = functools.partial(get_mass_bound_manager, part_data,
+    f_to_iter = functools.partial(get_mass_bound_manager, part_data, comps,
                                   cutoff=cutoff, non_pair=non_pair, compress=args.compress, tides_factor=args.tides_factor,
                                   tides=inc_tides)
     print("Pool {0}".format(time.time()))

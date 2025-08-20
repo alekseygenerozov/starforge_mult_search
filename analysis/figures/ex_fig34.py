@@ -70,10 +70,20 @@ for bb, uid in enumerate(bin_ids_example):
     tmp_info = np.copy(sys1_info)
     to_replace = tmp_info[~bound_filt]
     tmp_info[~bound_filt] = np.ones(to_replace.shape) * np.inf
+    if bb==1:
+        axs[0].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
+        axs[0].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
     axs[0].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_SMA] * cgs.pc / cgs.au, marker="s",
-                color="brown", linewidth=5)
+                color="brown", linewidth=5, label="1&2 Bound")
+    axs[0].legend()
+    if bb==1:
+        axs[1].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
+        axs[1].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
     axs[1].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_ECC], marker="s", color="brown",
-                linewidth=5)
+                linewidth=5, label="1&2 Bound")
+    axs[1].legend()
+
+
 
     ls_mass = []
     for kk in (0, 1):
@@ -114,6 +124,6 @@ for bb, uid in enumerate(bin_ids_example):
     axs[2].yaxis.set_major_formatter(FuncFormatter(log_formatter))
 
 
-    fig1.savefig(f"ex_fig3_a_{bb}.pdf")
-    fig2.savefig(f"ex_fig3_e_{bb}.pdf")
-    fig3.savefig(f"ex_fig4_m_{bb}.pdf")
+    fig1.savefig(f"bin_example_a_{bb}.pdf")
+    fig2.savefig(f"bin_example_e_{bb}.pdf")
+    fig3.savefig(f"bin_example_m_{bb}.pdf")

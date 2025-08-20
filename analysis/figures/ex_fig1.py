@@ -34,6 +34,8 @@ ax.errorbar(bins_center, n1 / d1, \
             yerr=te1, marker="s", linestyle="", alpha=0.7, label="Survivors")
 ax.errorbar(bins_center, n2 / d2, \
             yerr=te2, marker="s", linestyle="", alpha=0.7, label="Non-survivors")
+print(n1, n2)
+print(d1, d2)
 ax.legend(loc="lower left")
 fig.savefig("ex_fig1.pdf")
 
@@ -45,7 +47,8 @@ ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n3 / d3, \
             yerr=te3, marker="s", linestyle="", alpha=0.7)
+print(n3)
 
-print(n3 /d3)
+print(d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
 fig.savefig("fig2b.pdf")
