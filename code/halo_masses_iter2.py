@@ -198,6 +198,9 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
         particle_to_add.h = partsink[companion_idx]
 
         add_to_blob_general(my_blob, particle_to_add)
+        partpos = np.delete(partpos, max(companion_idx, ii))
+        partpos = np.delete(partpos, min(companion_idx, ii))
+        partpos.append(my_blob["com_pos"])
     else:
         return 0, 0, np.array([[0, 0]])
 
@@ -248,7 +251,7 @@ def main():
     if len(partpos)==0:
         print("No particles!")
         return
-
+        
     xuniq, indx = np.unique(x, return_index=True, axis=0)
     muniq = m[indx]
     huniq = h[indx]
