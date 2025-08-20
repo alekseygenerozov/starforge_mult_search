@@ -200,7 +200,7 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
         add_to_blob_general(my_blob, particle_to_add)
         partpos = np.delete(partpos, max(companion_idx, ii))
         partpos = np.delete(partpos, min(companion_idx, ii))
-        partpos.append(my_blob["com_pos"])
+        partpos = np.append(partpos, my_blob["com_pos"])
     else:
         return 0, 0, np.array([[0, 0]])
 
