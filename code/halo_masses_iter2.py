@@ -101,6 +101,7 @@ def add_to_blob_general(blob, particle):
     blob['com_masses'] = np.sum(blob['cumul_masses'])
     blob['com_pos'] = np.average(blob['cumul_pos'], weights=blob['cumul_masses'], axis=0)
     blob['com_vel'] = np.average(blob['cumul_vel'], weights=blob['cumul_masses'], axis=0)
+    return blob
 
 def add_to_blob_gas_wrapper(blob, idx):
     xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
@@ -108,7 +109,7 @@ def add_to_blob_gas_wrapper(blob, idx):
     gas_particle.u = uuniq1[idx]
     gas_particle.h = huniq1[idx]
 
-    add_to_blob_general(blob, gas_particle)
+    return add_to_blob_general(blob, gas_particle)
 
 def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, compress=False, tides_factor=8, tides=True):
     """
@@ -124,7 +125,6 @@ def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, comp
     """
     ##TO DO: CONSIDER REMOVING PREVIOUSLY IDENTIFIED GAS HALOS, BUT WE COULD ALSO DO THE REMOVAL IN POST-PROCESSING...
     xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
-    print(vuniq1.shape)
 
     d = xuniq1 - blob['com_pos']
     d = np.sum(d * d, axis=1)**.5
@@ -144,8 +144,6 @@ def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, comp
             continue
 
         ##Use velocity relative to the cumulative center-of-mass
-        print(blob["com_vel"])
-        print(vuniq1[idx])
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob['com_vel'])
         ##Performance shortcut-- logic is softening and thermal energy will only make things more unbound
         ##Though note the geometry is not accurate captured in this conditional, which can mean some bound particles will be rejected[?] 
