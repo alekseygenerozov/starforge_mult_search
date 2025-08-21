@@ -204,7 +204,8 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
     else:
         return 0, 0, np.array([[0, 0]])
 
-    breakpoint()
+    print(my_blob.com_pos)
+    print(partpos)
     ##NEED TO REMOVE THE COMPANION ID FROM THE PARTICLE POSITIONS FOR THE ALGORITHM TO WORK
     res = get_gas_mass_bound_refactor(my_blob, partpos, **kwargs)
     halo_mass, max_dist, bound_index = res
