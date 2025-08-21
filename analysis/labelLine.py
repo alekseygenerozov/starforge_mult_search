@@ -88,7 +88,9 @@ def labelLine(line, x, label, ang=None, align=ALDEF, y_offset=OFFDEF, **kwargs):
 
 	t=ax.text(x,y,label,rotation=trans_angle, rotation_mode='anchor',**kwargs)
 	#t=ax.text(x,y*y_offset,label,rotation=trans_angle, **kwargs)
-	t.set_bbox(dict(facecolor='white', alpha=0.1, edgecolor='white'))
+	# t.set_bbox(dict(facecolor='white', alpha=0.1, edgecolor='white'))
+	t.set_bbox(dict(alpha=0))
+
 
 
 def labelLines(lines, xvals=None, y_offset=OFFDEF, align=ALDEF, **kwargs):

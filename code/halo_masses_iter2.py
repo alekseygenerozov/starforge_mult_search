@@ -124,6 +124,7 @@ def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, comp
     """
     ##TO DO: CONSIDER REMOVING PREVIOUSLY IDENTIFIED GAS HALOS, BUT WE COULD ALSO DO THE REMOVAL IN POST-PROCESSING...
     xuniq1, vuniq1, muniq1, huniq1, uuniq1, accel_gas1 = myglobals.gas_data
+    print(vuniq1.shape)
 
     d = xuniq1 - blob['com_pos']
     d = np.sum(d * d, axis=1)**.5
