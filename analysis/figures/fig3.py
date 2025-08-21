@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import interp1d
+import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import pickle
 import seaborn as sns
@@ -12,27 +13,34 @@ from starforge_mult_search.analysis.figures.figure_preamble import *
 
 bfb_filter = my_data["same_sys_at_fst"].astype(bool)
 
-fig,ax = plt.subplots()
+fig,ax = plt.subplots(constrained_layout=True)
+# plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+ax.set_xticks(np.linspace(-1, 1, 5))  # just -1, -0.5, 0, 0.5, 1
+# Minor ticks: finer, no labels
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+# Hide minor tick labels
+ax.tick_params(axis='x', which='minor', labelbottom=False)
+
 ax.set_xlim(-1, 1)
 ax.set_yscale('log')
 ax.set_ylabel("PDF")
 ax.set_xlabel(r"$cos(\theta)$")
-# ax.plot([-2, -2], [1,1], "k--", label="Not BFB Bins")
-# ax.legend()
+ax.plot([-2, -2], [1,1], "k--", label="Not BFB Bins")
+ax.legend()
 bins = np.arange(-1,1.01,0.1)
 
 vangs = my_data["vangs"]
 vangs_prim = my_data["vangs_prim"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
-n, bins, patches = ax.hist(vangs[quasi_filter], bins=bins, histtype='step', label="Cluster Frame", linewidth=4, density=True)
+n, bins, patches = ax.hist(vangs[quasi_filter], bins=bins, histtype='step', label="Cluster Frame", linewidth=1.5, density=True)
 bar_color = patches[0].get_edgecolor()
-# ax.hist(vangs[quasi_filter & ~bfb_filter], bins=bins, histtype='step', linewidth=4, color=bar_color, linestyle="--", density=True)
+ax.hist(vangs[quasi_filter & ~bfb_filter], bins=bins, histtype='step', linewidth=1.5, color=bar_color, linestyle="--", density=True)
 ax.annotate(f'Cluster\nFrame', xy=(0.88, 2.70), color=bar_color, va="bottom", ha="right")
-n, bins, patches = ax.hist(vangs_prim[quasi_filter], bins=bins, histtype='step', label="Primary\nFrame", linewidth=4, density=True)
+n, bins, patches = ax.hist(vangs_prim[quasi_filter], bins=bins, histtype='step', label="Primary\nFrame", linewidth=1.5, density=True)
 bar_color = patches[0].get_edgecolor()
-# ax.hist(vangs_prim[quasi_filter & ~bfb_filter], bins=bins, histtype='step', color=bar_color, linewidth=4, linestyle="--", density=True)
-ax.annotate(f'Rel vel & sep', xy=(-1, 2.5), color=bar_color, va="bottom")
+ax.hist(vangs_prim[quasi_filter & ~bfb_filter], bins=bins, histtype='step', color=bar_color, linewidth=1.5, linestyle="--", density=True)
+ax.annotate(f'Rel vel & sep', xy=(-0.875, 2.), color=bar_color, va="bottom")
 
 iso_height =  1. / (0.1) / len(bins)
 l1,=ax.plot([-1, 0.5, 0.75, 1], [iso_height, iso_height, iso_height, iso_height], "-.",  label="Isotropic")
@@ -68,7 +76,7 @@ from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
 delta_snap = my_data["delta_snap"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
 
-fig,ax = plt.subplots()
+fig,ax = plt.subplots(constrained_layout=True)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"Age Difference [Myr]")
 
@@ -77,5 +85,5 @@ d2 = delta_snapc[~np.isinf(delta_snapc)] / 1e6
 annotate_multiple_ecdf((d1,  d2), labels=("Binaries", "Control"), x_offset=(0.3, 0.32))
 
 ax.annotate("Binaries", (0.8, 800))
-ax.annotate("Control", (5.5, 800), color='red')
+ax.annotate("Control", (6., 800), color='red')
 fig.savefig("fig3b.pdf")

@@ -144,6 +144,8 @@ def get_gas_mass_bound_refactor(blob,  sinkpos, cutoff=0.5, non_pair=False, comp
             continue
 
         ##Use velocity relative to the cumulative center-of-mass
+        print(blob["com_vel"])
+        print(vuniq1[idx])
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob['com_vel'])
         ##Performance shortcut-- logic is softening and thermal energy will only make things more unbound
         ##Though note the geometry is not accurate captured in this conditional, which can mean some bound particles will be rejected[?] 
