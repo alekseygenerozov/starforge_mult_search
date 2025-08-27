@@ -7,6 +7,12 @@ colorblind_palette = sns.color_palette("colorblind")
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
 from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, smao, my_tides, base_new
+import scienceplots
+import matplotlib as mpl
+plt.style.use('nature')
+mpl.rcParams['font.sans-serif'] = "Arial"
+mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+
 
 ##Stacking data
 suff = "_mult"
@@ -120,4 +126,4 @@ y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[2], alpha=0.3)
 ax.annotate("Gas corrected", (0.55, 0.5), ha='left', color=colorblind_palette[2]) 
 plt.show()
-fig.savefig("ex_fig8.pdf")
+fig.savefig("ex_fig7.pdf")

@@ -32,14 +32,14 @@ ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n1 / d1, \
             yerr=te1, marker="o", linestyle="", alpha=0.7, label="Survivors", markerfacecolor="none", markeredgecolor="C0", markeredgewidth=1, markersize=3)
-for bin_idx in range(len(n1)):
-    ax.text(max(bins_center[bin_idx], -0.6), n1[bin_idx] / d1[bin_idx] + 0.05, f"{int(n1[bin_idx])}/{int(d1[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[0])
+# for bin_idx in range(len(n1)):
+#     ax.text(max(bins_center[bin_idx], -0.6), n1[bin_idx] / d1[bin_idx] + 0.05, f"{int(n1[bin_idx])}/{int(d1[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[0])
 
 
 ax.errorbar(bins_center, n2 / d2, \
             yerr=te2, marker="v", linestyle="", alpha=0.7, label="Non-survivors",  markersize=4)
-for bin_idx in range(len(n1)):
-    ax.text(max(bins_center[bin_idx], -0.6), n2[bin_idx] / d2[bin_idx] - 0.07, f"{int(n2[bin_idx])}/{int(d2[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[1])
+# for bin_idx in range(len(n1)):
+#     ax.text(max(bins_center[bin_idx], -0.6), n2[bin_idx] / d2[bin_idx] - 0.07, f"{int(n2[bin_idx])}/{int(d2[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[1])
 
 
 
@@ -51,8 +51,8 @@ fig.savefig("ex_fig3.pdf")
 fig, ax = plt.subplots()
 ax.set_xlim(-0.8, 1.8)
 ax.set_ylim(0, 1.)
-ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
-ax.set_ylabel("BFB Fraction")
+ax.set_xlabel(r"log(Final primary mass)")
+ax.set_ylabel("Fraction bound at IST")
 
 ax.errorbar(bins_center, n3 / d3, \
             yerr=te3, marker="s", linestyle="", alpha=0.7)

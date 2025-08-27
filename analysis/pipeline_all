@@ -107,6 +107,7 @@ mkdir logs
 # python $CODE_BASE/analysis/figures/Tables.py $1 > logs/tables.log 2>&1
 #echo "Tables generated."
 
+##Add figure 2 back to the pipeline(!)
 #Generate static figures
 FIG_SCRIPTS=(fig3 fig4 ex_fig1 ex_fig2 ex_fig3 ex_fig4 ex_fig6 ex_fig7 fig5)
 for SCRIPT in "${FIG_SCRIPTS[@]}"; do

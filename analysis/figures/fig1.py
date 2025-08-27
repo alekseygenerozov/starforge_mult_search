@@ -16,9 +16,12 @@ from starforge_mult_search.analysis import cgs_const as cgs
 import configparser
 import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib as mpl
 
 import scienceplots
 plt.style.use('nature')
+mpl.rcParams['font.sans-serif'] = "Arial"
+mpl.rcParams['figure.figsize'] = (3.3, 3.3)
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
@@ -270,8 +273,8 @@ if ins > 0:
     x1, x2, y1, y2 = -ins, ins, -ins, ins
     # Create an inset of the zoomed region
     axins = ax.inset_axes([0.7, 0.1, 0.2, 0.2])
-    axins.tick_params(axis="x", which="major", labelsize=16, rotation=45)
-    axins.tick_params(axis="y", which="major", labelsize=16)
+    axins.tick_params(axis="x", which="major", labelsize=7, rotation=45)
+    axins.tick_params(axis="y", which="major", labelsize=7)
     width, height = "30%", "30%"  # specify the width and height of the inset in relative terms
     axins.set_aspect('equal')
     # Update the view to reflect the new units
