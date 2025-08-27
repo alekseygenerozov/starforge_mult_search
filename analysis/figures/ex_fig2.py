@@ -5,6 +5,7 @@ import pickle
 import os
 
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
@@ -19,6 +20,8 @@ from starforge_mult_search.analysis.high_multiples_analysis import make_hier, ge
 from starforge_mult_search.analysis import cgs_const as cgs
 
 from starforge_mult_search.analysis.figures.figure_preamble import *
+
+mpl.rcParams['figure.figsize'] = (6.75, 6.75)
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)

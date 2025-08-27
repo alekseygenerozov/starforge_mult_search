@@ -15,9 +15,9 @@ from starforge_mult_search.analysis.analyze_stack import max_w_infinite, subtrac
 
 seeds = (1, 2, 42)
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
-my_tides=True
+my_tides=False
 smao=False
-my_ft=0.082
+my_ft=1.0
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 
 sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
@@ -89,4 +89,4 @@ ax2.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 2.01, 0.0
 ax2.annotate("CDF", (.7, 0.6), color=colorblind_palette[0])
 ax2.annotate(r"$PDF\times Constant$", (10, 0.1), color=colorblind_palette[1], ha='right')
 
-fig.savefig(f"ex_fig6c.pdf")
+fig.savefig(f"ex_fig4a.pdf")

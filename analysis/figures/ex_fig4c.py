@@ -89,4 +89,4 @@ ax2.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 2.01, 0.0
 ax2.annotate("CDF", (.7, 0.6), color=colorblind_palette[0])
 ax2.annotate(r"$PDF\times Constant$", (10, 0.1), color=colorblind_palette[1], ha='right')
 
-fig.savefig(f"ex_fig6c.pdf")
+fig.savefig(f"ex_fig4c.pdf")

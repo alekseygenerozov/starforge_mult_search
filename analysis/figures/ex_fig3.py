@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from starforge_mult_search.analysis.analyze_stack import make_binned_data
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
+mpl.rcParams['figure.figsize'] = (6.75, 6.75)
+
 ##Mass bins to use.
 bins = np.linspace(-1, 2, 6)
 bins_center = 0.5 * (bins[1:] + bins[:-1])
@@ -31,13 +33,13 @@ ax.set_xlabel(r"$log(M_{prim, f} / M_{\odot})$")
 ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n1 / d1, \
-            yerr=te1, marker="o", linestyle="", alpha=0.7, label="Survivors", markerfacecolor="none", markeredgecolor="C0", markeredgewidth=1, markersize=3)
+            yerr=te1, marker="o", linestyle="", alpha=0.7, label="Survivors", markerfacecolor="none", markeredgecolor="C0", markeredgewidth=1, markersize=4)
 # for bin_idx in range(len(n1)):
 #     ax.text(max(bins_center[bin_idx], -0.6), n1[bin_idx] / d1[bin_idx] + 0.05, f"{int(n1[bin_idx])}/{int(d1[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[0])
 
 
 ax.errorbar(bins_center, n2 / d2, \
-            yerr=te2, marker="v", linestyle="", alpha=0.7, label="Non-survivors",  markersize=4)
+            yerr=te2, marker="v", linestyle="", alpha=0.7, label="Non-survivors",  markersize=5)
 # for bin_idx in range(len(n1)):
 #     ax.text(max(bins_center[bin_idx], -0.6), n2[bin_idx] / d2[bin_idx] - 0.07, f"{int(n2[bin_idx])}/{int(d2[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[1])
 

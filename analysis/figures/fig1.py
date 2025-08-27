@@ -210,8 +210,8 @@ ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k", s=40)
-ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k", s=40)
+ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k", s=0.2)
+ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k", s=0.2)
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
@@ -272,7 +272,7 @@ if ins > 0:
     # Define the region to zoom in on
     x1, x2, y1, y2 = -ins, ins, -ins, ins
     # Create an inset of the zoomed region
-    axins = ax.inset_axes([0.7, 0.1, 0.2, 0.2])
+    axins = ax.inset_axes([0.7, 0.12, 0.2, 0.2])
     axins.tick_params(axis="x", which="major", labelsize=7, rotation=45)
     axins.tick_params(axis="y", which="major", labelsize=7)
     width, height = "30%", "30%"  # specify the width and height of the inset in relative terms
@@ -282,10 +282,10 @@ if ins > 0:
     axins.set_ylim(y1, y2)
     axins.set_xticks([-ins/2, ins/2])
     axins.set_yticks([-ins/2, ins/2])
-    axins.set_xlabel("x [$10^4$ au]")
-    axins.set_ylabel("y [$10^4$ au]")
-    axins.plot(p1[:, 0] * conv, p1[:, 1] * conv, color=col1)
-    axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2)
+    # axins.set_xlabel("x [$10^4$ au]")
+    # axins.set_ylabel("y [$10^4$ au]")
+    axins.plot(p1[:, 0] * conv, p1[:, 1] * conv, color=col1, linewidth=1)
+    axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2, linewidth=1)
 
 ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
 ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
@@ -295,16 +295,16 @@ start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.
 vel1 = tmp_pos_center[3] * v_scale , tmp_pos_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
+             arrowprops=dict(arrowstyle='->', color="k", linewidth=1))
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
 vel1 = tmp_pos2_center[3] * v_scale, tmp_pos2_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=40)
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
 ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->', color="k", linewidth=4))
+             arrowprops=dict(arrowstyle='->', color="k", linewidth=1))
 
 fig.savefig(f"fig1_{sys.argv[1]}b." + savetype)
 
