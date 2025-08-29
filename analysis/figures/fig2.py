@@ -11,7 +11,7 @@ import scienceplots
 import matplotlib as mpl
 plt.style.use('nature')
 mpl.rcParams['font.sans-serif'] = "Arial"
-mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+mpl.rcParams['figure.figsize'] = (6.75, 6.75)
 
 
 ##Stacking data

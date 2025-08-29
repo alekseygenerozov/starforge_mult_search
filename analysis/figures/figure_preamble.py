@@ -14,6 +14,7 @@ import scienceplots
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 plt.style.use('nature')
+print(mpl.rcParams['figure.figsize'] )
 mpl.rcParams['font.sans-serif'] = "Arial"
 mpl.rcParams['figure.figsize'] = (3.3, 3.3)
 

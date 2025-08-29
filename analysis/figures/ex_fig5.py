@@ -22,6 +22,7 @@ from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.power_fit import fit_power
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
+mpl.rcParams['figure.figsize'] = (6.75, 5.1)
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
@@ -164,7 +165,7 @@ ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bin
 ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), bins=bins, label="From higher\nmultiples", density=True,
        linewidth=2.5/4, linestyle="-.", alpha=0.2)
 
-ax.legend(fontsize=5)# ,loc="upper right" , bbox_to_anchor=(0.6, 0.35))
+ax.legend(fontsize=7)# ,loc="upper right" , bbox_to_anchor=(0.6, 0.35))
 absc = np.geomspace(0.3, 10**1.8, 500)
 
 def lighten_color(color, factor=0.5):
@@ -181,7 +182,7 @@ fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
 l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], linestyle="--", label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$")
 l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
 # labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
-labelLines([l1], fontsize=6, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.3)
-labelLines([l2], fontsize=6, xvals=(np.log10(0.3),), ang=0, y_offset=0.15, align=False)
+labelLines([l1], fontsize=7, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.3)
+labelLines([l2], fontsize=7, xvals=(np.log10(0.3),), ang=0, y_offset=0.15, align=False)
 
 fig.savefig("ex_fig5.pdf")
