@@ -16,7 +16,7 @@ def run_hp(ii, snap_base):
         bash_command(cmd)
 
 with open("data_loc", "r") as ff:
-	snap_base = ff.read().strip()
+        snap_base = ff.read().strip()
 snaps = glob.glob(snap_base + "*hdf5")
 
 os.chdir("halo_masses/")
@@ -24,6 +24,6 @@ cadence = get_cadence()
 start = int(sys.argv[1])
 end = int(sys.argv[2])
 if end < 0:
-	end = (len(snaps) - 1) * cadence
+        end = (len(snaps) - 1) * cadence
 with multiprocessing.Pool(10) as pool:
-    pool.starmap(run_hp, [(ii, snap_base) for ii in range(start, end + 1, cadence)])
+        pool.starmap(run_hp, [(ii, snap_base) for ii in range(start, end + 1, cadence)])
