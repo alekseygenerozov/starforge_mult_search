@@ -5,6 +5,7 @@ from starforge_mult_search.analysis.analyze_stack import make_binned_data
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
 mpl.rcParams['figure.figsize'] = (6.75, 6.75)
+mpl.rcParams['ps.fonttype'] = 42
 
 ##Mass bins to use.
 bins = np.linspace(-1, 2, 6)
@@ -48,7 +49,7 @@ ax.errorbar(bins_center, n2 / d2, \
 print(n1, n2)
 print(d1, d2)
 ax.legend(loc="lower left")
-fig.savefig("ex_fig3.pdf")
+fig.savefig("ex_fig3.eps")
 
 fig, ax = plt.subplots()
 ax.set_xlim(-0.8, 1.8)

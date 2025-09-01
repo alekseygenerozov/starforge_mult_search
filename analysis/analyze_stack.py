@@ -458,7 +458,15 @@ def get_t90(path_lookup, my_key):
         t90_abs = interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])(0.9 * m_end)
         return t90_abs, t90_abs - t_series[0], t_series[0]
 
-
+def get_t90_series(t_series, m_series):
+    m_end = m_series[-1]
+    idx_crit = np.where(m_series < 0.9 * m_end)[0]
+    if len(idx_crit)==0:
+        return t_series[0], 0, t_series[0]
+    else:
+        t90_abs = interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])(0.9 * m_end)
+        return t90_abs, t90_abs - t_series[0], t_series[0]
+    
 ##Only do 1 seed at a time
 # def get_closest_star_time_series_transposed(path_lookup_time, my_key):
 #     p1_raw = path_lookup[my_key]

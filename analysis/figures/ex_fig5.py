@@ -185,4 +185,4 @@ l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], 
 labelLines([l1], fontsize=7, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.3)
 labelLines([l2], fontsize=7, xvals=(np.log10(0.3),), ang=0, y_offset=0.15, align=False)
 
-fig.savefig("ex_fig5.pdf")
+fig.savefig("ex_fig5.eps")

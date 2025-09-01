@@ -2,29 +2,32 @@ from labelLine import labelLines
 from matplotlib.ticker import LogFormatterSciNotation
 from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
+mpl.rcParams['ps.fonttype'] = 42
 bin_ids = my_data["bin_ids"]
 fst = my_data["fst"]
 # bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}, {7647001, 9938318}, {12261108, 12102006},
 #                    {5312318, 3832908}]
 bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}]
 xlims = [(5.31, 5.8), (1.8, 5), None, None, None]
+fig1, axs = plt.subplots(figsize=(6.75, 7.5), nrows=3, ncols=2)
+
 for bb, uid in enumerate(bin_ids_example):
     jj = np.where(bin_ids == uid)[0][0]
 
     cols = [np.array((129, 50, 168)) / 256, colorblind_palette[1]]
-    alphas = [0.5, 0.5]
+    alphas = [1, 1]
 
-    fig1, ax0 = plt.subplots()
-    fig2, ax1 = plt.subplots()
-    fig3, ax2 = plt.subplots()
-    axs = (ax0, ax1, ax2)
+    # fig2, ax1 = plt.subplots()
+    # fig3, ax2 = plt.subplots()
+    # axs = (ax0, ax1, ax2)
 
-    ax = axs[0]
-    ax.annotate(f"Example {bb + 1}", xycoords="axes fraction", xy=(0.99, 0.99), va='top', ha='right')
+    ax = axs[0, bb]
+    # ax.annotate(f"Example {bb + 1}", xy=(0.99, 0.99), xycoords="axes fraction", va='top', ha='right')
     if not (xlims[bb] is None):
         ax.set_xlim(xlims[bb][0], xlims[bb][1])
 
@@ -32,7 +35,7 @@ for bb, uid in enumerate(bin_ids_example):
     ax.set_xlabel('t [Myr]')
     ax.set_ylabel('a [au]')
 
-    ax = axs[1]
+    ax = axs[1, bb]
     if not (xlims[bb] is None):
         ax.set_xlim(xlims[bb][0], xlims[bb][1])
     ax.set_ylim(0, 1)
@@ -40,7 +43,7 @@ for bb, uid in enumerate(bin_ids_example):
     ax.set_ylabel('e')
     # ax.tick_params(axis="x", which="both", rotation=45)
 
-    ax = axs[2]
+    ax = axs[2, bb]
     if not (xlims[bb] is None):
         ax.set_xlim(xlims[bb][0], xlims[bb][1])
     ax.set_ylim(0.04, 5)
@@ -70,17 +73,17 @@ for bb, uid in enumerate(bin_ids_example):
     to_replace = tmp_info[~bound_filt]
     tmp_info[~bound_filt] = np.ones(to_replace.shape) * np.inf
     if bb==1:
-        axs[0].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
-        axs[0].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
-    axs[0].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_SMA] * cgs.pc / cgs.au, marker="s",
-                color="brown", linewidth=5, label="1&2 Bound")
-    axs[0].legend()
+        axs[0, bb].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
+        axs[0, bb].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
+    axs[0, bb].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_SMA] * cgs.pc / cgs.au, 
+                color="brown", linewidth=5, label="1&2 Bound", zorder=2)
+    axs[0, bb].legend()
     if bb==1:
-        axs[1].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
-        axs[1].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
-    axs[1].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_ECC], marker="s", color="brown",
-                linewidth=5, label="1&2 Bound")
-    axs[1].legend()
+        axs[1, bb].plot([-1, -1], [-1, -1], label="Star 1", color=cols[0])
+        axs[1, bb].plot([-1, -1], [-1, -1], label="Star 2", color=cols[1])
+    axs[1, bb].plot(tmp_info[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_info[:, LOOKUP_ECC],  color="brown",
+                linewidth=5, label="1&2 Bound", zorder=2)
+    axs[1, bb].legend()
 
 
 
@@ -89,25 +92,26 @@ for bb, uid in enumerate(bin_ids_example):
         test_id = list(bin_ids[jj])[kk]
         tmp_sys_idx = lookup_dict[test_id]
 
-        l1, = axs[0].semilogy(
+        l1, = axs[0, bb].semilogy(
             [tmp_sys_idx[1, LOOKUP_SNAP] * snap_interval / 1e6, tmp_sys_idx[-2, LOOKUP_SNAP] * snap_interval / 1e6,
              tmp_sys_idx[-1, LOOKUP_SNAP] * snap_interval / 1e6], [20, 20, 20], color='0.5', label="Softening")
         clean_filt = (tmp_sys_idx[:, LOOKUP_SNAP] >= fst[jj])
 
-        axs[0].semilogy(tmp_sys_idx[:, LOOKUP_SNAP][clean_filt] * snap_interval / 1e6,
+        axs[0, bb].semilogy(tmp_sys_idx[:, LOOKUP_SNAP][clean_filt] * snap_interval / 1e6,
                         tmp_sys_idx[:, LOOKUP_SMA][clean_filt] * cgs.pc / cgs.au, "-",
-                        color=cols[kk], alpha=alphas[kk], linewidth=2)
-        axs[1].plot(tmp_sys_idx[:, LOOKUP_SNAP][clean_filt] * snap_interval / 1e6,
+                        color=cols[kk], alpha=alphas[kk], linewidth=2, zorder=1)
+        axs[1, bb].plot(tmp_sys_idx[:, LOOKUP_SNAP][clean_filt] * snap_interval / 1e6,
                     tmp_sys_idx[:, LOOKUP_ECC][clean_filt],
-                    color=cols[kk], alpha=alphas[kk], linewidth=2)
-        tmp_line, = axs[2].semilogy(tmp_sys_idx[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_sys_idx[:, LOOKUP_MTOT],
-                                    color=cols[kk], label=f"Star {kk + 1}")
-        axs[2].semilogy(tmp_sys_idx[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_sys_idx[:, LOOKUP_M], color=cols[kk],
-                        linestyle='--')
+                    color=cols[kk], alpha=alphas[kk], linewidth=2, zorder=1)
+        tmp_line, = axs[2, bb].semilogy(tmp_sys_idx[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_sys_idx[:, LOOKUP_MTOT],
+                                    color=cols[kk], label=f"Star {kk + 1}", zorder=1)
+        axs[2, bb].semilogy(tmp_sys_idx[:, LOOKUP_SNAP] * snap_interval / 1e6, tmp_sys_idx[:, LOOKUP_M], color=cols[kk],
+                        linestyle='--', zorder=1)
         # ls_mass.append(tmp_line)
 
     # axs[2].ticklabel_format(axis='both', style='plain')
-    labelLines([l1])
+    # labelLines([l1], backgroundcolor="w")
+    t=axs[0, bb].text(tmp_sys_idx[:, LOOKUP_SNAP][clean_filt][12] * snap_interval / 1e6, 25, "Softening", color="0.5")
 
 
     # Create a custom formatter
@@ -120,9 +124,9 @@ for bb, uid in enumerate(bin_ids_example):
 
 
     # Apply the custom formatter to the y-axis
-    axs[2].yaxis.set_major_formatter(FuncFormatter(log_formatter))
+    axs[2, bb].yaxis.set_major_formatter(FuncFormatter(log_formatter))
 
 
-    fig1.savefig(f"ex_fig1_a_{bb}.pdf")
-    fig2.savefig(f"ex_fig1_e_{bb}.pdf")
-    fig3.savefig(f"ex_fig1_m_{bb}.pdf")
+fig1.savefig(f"ex_fig1_all.eps")
+    # fig2.savefig(f"ex_fig1_e_{bb}.eps")
+    # fig3.savefig(f"ex_fig1_m_{bb}.eps")

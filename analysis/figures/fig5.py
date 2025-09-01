@@ -244,6 +244,7 @@ vd_b, b1, tmp1 = plt.hist(np.log10((final_pair_mass_no_halo[quasi_filter & ~(sam
                        histtype='step')
 vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_sys_filt)]), bins=bins,
                        histtype='step')
+print(vs_b, vd_b)
 
 fig,ax = plt.subplots()
 ax.set_ylabel("$N_{surv}$ / $N_{dis}$")

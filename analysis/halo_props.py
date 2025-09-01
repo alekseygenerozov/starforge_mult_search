@@ -61,18 +61,18 @@ def main():
     partsink = partsink.astype(np.float64)
     halo_ids = halo_ids[indx]
 
-    halo_mass_name = "halo_masses_sing_np{0}_c{1}_{2}_comp{3}_tf{4}".format(non_pair, cutoff, snap_idx, args.compress,
+    halo_mass_name = "halo_masses_iter2_np{0}_c{1}_{2}_comp{3}_tf{4}".format(non_pair, cutoff, snap_idx, args.compress,
                                                                                args.tides_factor)
     with h5py.File(halo_mass_name + ".hdf5", 'a') as gas_dat_h5:
         for ii in range(len(partids)):
             halo_idx = gas_dat_h5["halo_{0}".format(partids[ii])]
             gas_dat_h5.create_dataset("halo_{0}_pid".format(partids[ii]), data=halo_ids[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_h".format(partids[ii]), data=huniq[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_x".format(partids[ii]), data=xuniq[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_v".format(partids[ii]), data=vuniq[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_u".format(partids[ii]), data=uuniq[halo_idx])
-            # gas_dat_h5.create_dataset("halo_{0}_m".format(partids[ii]), data=muniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_h".format(partids[ii]), data=huniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_x".format(partids[ii]), data=xuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_v".format(partids[ii]), data=vuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_u".format(partids[ii]), data=uuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_m".format(partids[ii]), data=muniq[halo_idx])
 
 if __name__ == "__main__":
     main()

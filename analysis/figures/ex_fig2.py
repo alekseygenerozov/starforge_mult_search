@@ -22,6 +22,7 @@ from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
 mpl.rcParams['figure.figsize'] = (6.75, 6.75)
+mpl.rcParams['ps.fonttype'] = 42
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)
@@ -83,4 +84,4 @@ sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f)$")
 plt.show()
-fig.savefig("ex_fig2.pdf")
+fig.savefig("ex_fig2.eps")
