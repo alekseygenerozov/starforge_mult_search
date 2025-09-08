@@ -14,8 +14,8 @@ mpl.rcParams['figure.figsize'] = (3.3, 3.3)
 # from starforge_mult_search.analysis.figures.figure_preamble import *
 from starforge_mult_search.analysis.analyze_stack import max_w_infinite, subtract_path_1d
 
-fig = plt.figure(figsize=(6.75, 5))
-
+fig = plt.figure(figsize=(6.75, 5), constrained_layout=True)
+print(fig.get_size_inches())
 
 # Outer grid: 2 rows, 2 columns
 outer = gridspec.GridSpec(2, 2, height_ratios=[1, 1], hspace=0.3, wspace=0.3)
@@ -55,6 +55,7 @@ my_tides=(False, False, True)
 ylims = (2, 2, 3)
 yticks = ([2], [2], [2,3])
 rescales = [1, 1, 0.1]
+print(fig.get_size_inches())
 
 
 for ii in range(3):
@@ -132,5 +133,5 @@ for ii in range(3):
     ax2.annotate(r"$PDF\times Constant$", (10, 0.1), color=colorblind_palette[1], ha='right')
 
 
-
-fig.savefig(f"ex_fig4_all.eps")
+print(fig.get_size_inches())
+fig.savefig(f"ex_fig4_all.eps", bbox_inches=None)

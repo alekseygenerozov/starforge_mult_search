@@ -246,7 +246,7 @@ vs_b, b2, tmp2 = plt.hist(np.log10(final_pair_mass_no_halo[quasi_filter & (same_
                        histtype='step')
 print(vs_b, vd_b)
 
-fig,ax = plt.subplots()
+fig,ax = plt.subplots(constrained_layout=True)
 ax.set_ylabel("$N_{surv}$ / $N_{dis}$")
 ax.set_xlabel("log($m_{pair, f}$ [$M_{\odot}$])")
 plt.plot(0.5 * (b1[1:] + b1[:-1]), vs_b / vd_b, "s-")

@@ -7,14 +7,16 @@ import matplotlib as mpl
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['ps.fonttype'] = 42
+# mpl.rcParams['ps.fonttype'] = 42
 bin_ids = my_data["bin_ids"]
 fst = my_data["fst"]
 # bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}, {7647001, 9938318}, {12261108, 12102006},
 #                    {5312318, 3832908}]
 bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}]
 xlims = [(5.31, 5.8), (1.8, 5), None, None, None]
-fig1, axs = plt.subplots(figsize=(6.75, 7.5), nrows=3, ncols=2)
+fig1, axs = plt.subplots(figsize=(6.75, 7.5), nrows=3, ncols=2, constrained_layout=True)
+print(mpl.rcParams["legend.fontsize"])
+
 
 for bb, uid in enumerate(bin_ids_example):
     jj = np.where(bin_ids == uid)[0][0]

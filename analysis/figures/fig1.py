@@ -21,7 +21,8 @@ import matplotlib as mpl
 import scienceplots
 plt.style.use('nature')
 mpl.rcParams['font.sans-serif'] = "Arial"
-mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+fsize = (3.3, 3.3)
+mpl.rcParams['figure.figsize'] = fsize
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
@@ -204,7 +205,7 @@ sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.ar
 
 ############################################################################################################
 
-fig,ax = plt.subplots(figsize=(3.2, 3.2))
+fig,ax = plt.subplots(figsize=fsize, constrained_layout=True)
 ax.set_xlabel("x [pc]")
 ax.set_ylabel("y [pc]")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
@@ -218,7 +219,7 @@ if plimit > 0:
 
 fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
-fig,ax = plt.subplots(figsize=(3.8, 3.2))
+fig,ax = plt.subplots(figsize=(fsize[0] * (9.5 / 8), fsize[1]), constrained_layout=True)
 ax.set_xlabel("x [$10^4$ au]")
 ax.set_ylabel("y [$10^4$ au]")
 

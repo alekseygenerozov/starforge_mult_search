@@ -22,7 +22,7 @@ from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.power_fit import fit_power
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['figure.figsize'] = (6.75, 5.1)
+mpl.rcParams['figure.figsize'] = (6.75, 5)
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
@@ -148,7 +148,7 @@ print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mu
 # print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
 # print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
-fig,ax = plt.subplots()
+fig,ax = plt.subplots(constrained_layout=True)
 # ax.set_title(r"Singles Final MF")
 ax.set_yscale("log")
 ax.set_ylabel("PDF")
@@ -183,6 +183,6 @@ l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], 
 l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
 # labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
 labelLines([l1], fontsize=7, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.3)
-labelLines([l2], fontsize=7, xvals=(np.log10(0.3),), ang=0, y_offset=0.15, align=False)
+labelLines([l2], fontsize=7, xvals=(np.log10(0.6),), ang=0, y_offset=0.15, align=False)
 
-fig.savefig("ex_fig5.eps")
+fig.savefig("ex_fig5.pdf")

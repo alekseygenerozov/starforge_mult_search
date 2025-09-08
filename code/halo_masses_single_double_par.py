@@ -118,7 +118,7 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
     ord1 = np.argsort(d)
     d_max = 0
     halo_mass = 0.
-    rad_bins = np.geomspace(sys1.soft, cutoff, 100)
+    rad_bins = np.geomspace(max(sys1.soft, 1e-6), cutoff, 100)
     halo_mass_bins = np.zeros(len(rad_bins))
     bound_index = []
     particle_indices = range(len(xuniq1))
@@ -204,6 +204,7 @@ def main():
     star_age_key = args.star_age_key
 
     snap_file = args.snap_base + '_{0:03d}.hdf5'.format(int(snap_idx))
+    ##TO DO: Need an alternative head to load data from a Rebound simulation(!)
     den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin = find_multiples_new2.load_data(snap_file, res_limit=1e-3, star_age_key=star_age_key)
     if len(partpos)==0:
         print("No particles!")
@@ -261,6 +262,7 @@ def main():
                                   tides=inc_tides)
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()
+    breakpoint()
     with multiprocessing.Pool(10) as pool:
         for ii, halo_dat_full in enumerate(pool.map(f_to_iter, range(len(halo_masses_sing)))):
             halo_masses_sing[ii], max_dist_sing[ii], halo_dat = halo_dat_full

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pickle
 import seaborn as sns
 
@@ -12,7 +13,6 @@ from starforge_mult_search.analysis.labelLine import labelLines
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
 bfb_filter = my_data["same_sys_at_fst"].astype(bool)
-
 fig,ax = plt.subplots(constrained_layout=True)
 # plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 ax.set_xticks(np.linspace(-1, 1, 5))  # just -1, -0.5, 0, 0.5, 1
@@ -44,7 +44,7 @@ ax.annotate(f'Rel vel & sep', xy=(-0.875, 2.), color=bar_color, va="bottom")
 
 iso_height =  1. / (0.1) / len(bins)
 l1,=ax.plot([-1, 0.5, 0.75, 1], [iso_height, iso_height, iso_height, iso_height], "-.",  label="Isotropic")
-labelLines([l1], xvals=[0])
+labelLines([l1], xvals=[0], color=colorblind_palette[2])
 
 fig.savefig("fig3a.pdf")
 

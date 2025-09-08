@@ -45,7 +45,7 @@ comp_quasi_filter = comp[f"quasi_filter{contig_suff}"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 
-fig,ax = plt.subplots()
+fig,ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
 ax.set_xlim(-2.1, 2)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"log(-PE / KE)")
@@ -94,7 +94,6 @@ ax.annotate("Unbound", (-0.05,0.96), ha='right', color='0.5')
 ax.annotate("Bound", (0.03,0.96), ha='left', color='0.5')
 
 fig.savefig("fig2a.pdf")
-
 
 ##Be wary of flips here....
 ens_ck_seed1 = np.load("en_col_seed1_1.0.npz")["arr_0"]
