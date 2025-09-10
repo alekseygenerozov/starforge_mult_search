@@ -253,7 +253,9 @@ def main():
         print("No particles!")
         return
         
-    xuniq, indx = np.unique(x, return_index=True, axis=0)
+    # xuniq, indx = np.unique(x, return_index=True, axis=0)
+    indx = range(len(x))
+    xuniq = x[indx]
     muniq = m[indx]
     huniq = h[indx]
     vuniq = v[indx]
