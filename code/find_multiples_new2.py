@@ -281,12 +281,18 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
         return tidal_crit, sys1.accel, com_accel, a_internal_com, a_tides
     return (tidal_crit), a_tides
 
-def flatten_ids(id):
+def flatten_ids(ids):
     """
-    Convert arbitrary nested list of numbers into a 1D numpy array (i.e. flatten hierarchy to get list of ids
-    in a given system
+    Convert arbitrary nested list/array of numbers into a 1D numpy array of ints.
     """
-    return np.array(str(id).replace("[", "").replace("]", "").split(",")).astype(int)
+    def _flatten(x):
+        if isinstance(x, (list, tuple, np.ndarray)):
+            for item in x:
+                yield from _flatten(item)
+        else:
+            yield int(x)  # handles numpy.int64, np.str_ holding a number, plain int, etc.
+
+    return np.fromiter(_flatten(ids), dtype=int)
 
 class system(object):
     """
