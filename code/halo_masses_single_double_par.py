@@ -122,14 +122,12 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
     halo_mass_bins = np.zeros(len(rad_bins))
     bound_index = []
     particle_indices = range(len(xuniq1))
-    nshortcuta, nshortcutb = 0, 0
     for idx in ord1:
         if d[idx] > cutoff:
             break
         dall = (xuniq1[idx] - sinkpos)
         dall = np.sum(dall * dall, axis=1)**.5
         if not np.isclose(np.min(dall), d[idx]):
-            nshortcuta+=1
             continue
 
         ##Use velocity relative to the cumulative center-of-mass
@@ -137,9 +135,8 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
         ##Performance shortcut-- logic is softening will only make things more unbound.
         ## But can get unexpected (small?) decreases in the bound gas
         if tmp_vrel > np.sqrt((2. * sfc.GN * (blob['com_masses'] + muniq1[idx])) / d[idx]):
-            nshortcutb += 1
             continue
-        
+
         pe1 = muniq1[idx] * pytreegrav.PotentialTarget(np.atleast_2d(xuniq1[idx]), blob['cumul_pos'],
                                                 blob['cumul_masses'],
                                                 softening_target=np.atleast_1d(huniq1[idx]),
@@ -147,7 +144,6 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
                                                 G=sfc.GN, method='bruteforce')[-1]
         ke1 = KE(np.vstack([blob['com_pos'], xuniq1[idx]]), np.append(blob['com_masses'], muniq1[idx]),
                  np.vstack([blob['com_vel'], vuniq1[idx]]), np.append(0, uuniq1[idx]))
-        # print(blob["cumul_masses"], pe1, ke1, xuniq1[idx])
 
         ##Could refactor this part
         tmp_sys1 = find_multiples_new2.system(xuniq1[idx], vuniq1[idx], muniq1[idx],
@@ -170,7 +166,6 @@ def get_gas_mass_bound_refactor(sys1,  sinkpos, cutoff=0.5, non_pair=False, comp
             bound_index.append(particle_indices[idx])
 
     halo_mass_bins = np.cumsum(halo_mass_bins)
-    print("shortcut", nshortcuta, nshortcutb)
     return halo_mass, d_max, bound_index, .5 * (rad_bins[:-1] + rad_bins[1:]), halo_mass_bins[1:]
 
 def get_mass_bound_manager(part_data, ii, **kwargs):
@@ -215,9 +210,7 @@ def main():
         print("No particles!")
         return
 
-    # xuniq, indx = np.unique(x, return_index=True, axis=0)
-    indx = range(len(x))
-    xuniq = x[indx]
+    xuniq, indx = np.unique(x, return_index=True, axis=0)
     muniq = m[indx]
     huniq = h[indx]
     vuniq = v[indx]
@@ -269,7 +262,7 @@ def main():
                                   tides=inc_tides)
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()
-    with multiprocessing.Pool(1) as pool:
+    with multiprocessing.Pool(10) as pool:
         for ii, halo_dat_full in enumerate(pool.map(f_to_iter, range(len(halo_masses_sing)))):
             halo_masses_sing[ii], max_dist_sing[ii], halo_dat = halo_dat_full
             gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_dat)
