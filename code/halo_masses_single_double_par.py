@@ -18,6 +18,9 @@ import subprocess
 from starforge_mult_search.code import myglobals
 myglobals.gas_data = []
 
+import tqdm 
+from scipy.spatial import ckdtree
+
 def bash_command(cmd, **kwargs):
 	'''Run command from the bash shell'''
 	process = subprocess.Popen(['/bin/bash', '-c', cmd],  **kwargs)
@@ -226,6 +229,43 @@ def main():
     partmasses = partmasses.astype(np.float64)
     partsink = partsink.astype(np.float64)
 
+    ##############################################################################################################################
+    ##Put coarse-graining here -- Coarse-grain velocities, positions and internal energy--then proceed with analysis as normal[?]
+    def combine(closest):
+        ##Straight average may be sensitive to outliers
+        x = np.average(xuniq[closest], weights=muniq[closest], axis=0)
+        v = np.average(vuniq[closest], weights=muniq[closest], axis=0)
+        u = np.average(uuniq[closest], weights=muniq[closest], axis=0)
+
+        m = np.sum(muniq[closest])
+
+        return x, m, v, u
+
+    visited = set()
+    x_new = []
+    v_new = []
+    u_new = []
+    m_new = []
+    ck1 = ckdtree.cKDTree(xuniq)
+    for ii in tqdm.tqdm(range(len(xuniq))):
+        if ii in visited:
+            continue
+        # visited.add(ii)
+        ds, closest = ck1.query(xuniq[ii], 10)
+        closest = np.append(closest, ii)
+        x, m, v, u = combine(closest)
+        [visited.add(cc) for cc in closest]
+        x_new.append(x)
+        m_new.append(m)
+        v_new.append(v)
+        u_new.append(u)
+
+    xuniq = np.vstack(x_new)
+    muniq = np.array(m_new)
+    vuniq = np.vstack(v_new)
+    uuniq = np.array(u_new)
+    huniq = np.zeros_like(muniq)
+    ##############################################################################################################################
     ##Combined positions for computing accelerations
     pos_all = np.vstack((xuniq, partpos))
     mass_all = np.concatenate((muniq, partmasses))
