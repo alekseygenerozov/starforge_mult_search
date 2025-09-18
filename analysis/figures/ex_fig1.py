@@ -7,7 +7,7 @@ import matplotlib as mpl
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-# mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 bin_ids = my_data["bin_ids"]
 fst = my_data["fst"]
 # bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}, {7647001, 9938318}, {12261108, 12102006},

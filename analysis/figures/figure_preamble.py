@@ -17,6 +17,7 @@ plt.style.use('nature')
 print(mpl.rcParams['figure.figsize'] )
 mpl.rcParams['font.sans-serif'] = "Arial"
 mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+mpl.rcParams['pdf.fonttype'] = 42
 
 ##Keep the default parameters the same as the submitted paper...
 default_config = OmegaConf.create({
