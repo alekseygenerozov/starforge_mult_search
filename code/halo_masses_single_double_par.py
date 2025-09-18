@@ -304,10 +304,16 @@ def main():
     sys.stdout.flush()
     with multiprocessing.Pool(10) as pool:
         for ii, halo_dat_full in enumerate(pool.map(f_to_iter, range(len(halo_masses_sing)))):
-            halo_masses_sing[ii], max_dist_sing[ii], halo_dat = halo_dat_full
-            gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_dat)
-            ##ADD THE CREATION OF THE OTHER DATASETS HERE(!!!)
-
+            halo_masses_sing[ii], max_dist_sing[ii], halo_idx = halo_dat_full
+            gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_idx)
+            ##ADDING OTHER DATA TO HDF5 FILE--SO THAT WE DO NOT HAVE TO SEPARATELY RUN HALO_PROPS 
+            gas_dat_h5.create_dataset("halo_{0}_h".format(partids[ii]), data=huniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_x".format(partids[ii]), data=xuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_v".format(partids[ii]), data=vuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_u".format(partids[ii]), data=uuniq[halo_idx])
+            gas_dat_h5.create_dataset("halo_{0}_m".format(partids[ii]), data=muniq[halo_idx])
+            
     gas_dat_h5.close()
     np.savetxt(name_tag + halo_mass_name, np.transpose((halo_masses_sing, partids, max_dist_sing)))
     print("Finish {0}".format(time.time()))
