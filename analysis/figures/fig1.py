@@ -23,6 +23,7 @@ plt.style.use('nature')
 mpl.rcParams['font.sans-serif'] = "Arial"
 fsize = (3.3, 3.3)
 mpl.rcParams['figure.figsize'] = fsize
+mpl.rcParams['pdf.fonttype'] = 42
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4

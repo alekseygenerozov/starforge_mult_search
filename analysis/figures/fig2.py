@@ -12,7 +12,7 @@ import matplotlib as mpl
 plt.style.use('nature')
 mpl.rcParams['font.sans-serif'] = "Arial"
 mpl.rcParams['figure.figsize'] = (6.75, 6.75)
-
+mpl.rcParams['pdf.fonttype'] = 42
 
 ##Stacking data
 suff = "_mult"
