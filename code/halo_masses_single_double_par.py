@@ -18,8 +18,6 @@ import subprocess
 from starforge_mult_search.code import myglobals
 myglobals.gas_data = []
 
-from sklearn.cluster import KMeans
-
 import tqdm 
 from scipy.spatial import ckdtree
 
@@ -230,9 +228,9 @@ def main():
     partpos = partpos.astype(np.float64)
     partmasses = partmasses.astype(np.float64)
     partsink = partsink.astype(np.float64)
-    print(f"Mtot {np.sum(muniq)}")
+
     ##############################################################################################################################
-    #Put coarse-graining here -- Coarse-grain velocities, positions and internal energy--then proceed with analysis as normal[?]
+    ##Put coarse-graining here -- Coarse-grain velocities, positions and internal energy--then proceed with analysis as normal[?]
     def combine(closest):
         ##Straight average may be sensitive to outliers
         x = np.average(xuniq[closest], weights=muniq[closest], axis=0)
@@ -243,29 +241,37 @@ def main():
 
         return x, m, v, u
 
-    # visited = set()
+    visited = np.zeros(len(xuniq), dtype=bool)
     x_new = []
     v_new = []
     u_new = []
     m_new = []
-    n_clusters = len(xuniq) // 10
-    kmeans = KMeans(n_clusters=n_clusters, n_init=10).fit(xuniq)
-    labels = kmeans.labels_
-    for lab in np.unique(labels):
-        idx = np.where(labels == lab)[0]
-        x, m, v, u = combine(idx)
-        x_new.append(x)
-        m_new.append(m)
-        v_new.append(v)
-        u_new.append(u)
+    ck1 = ckdtree.cKDTree(xuniq)
+    for ii in tqdm.tqdm(range(len(xuniq))):
+        if ii in visited:
+            continue
 
+        d, neigh = ck1.query(xuniq[ii], k=20)  # overshoot
+        neigh = [n for n in neigh if not visited[n]][:10]
+        for n in neigh:
+            visited[n] = True
+
+        if len(neigh) > 0:
+            x, m, v, u = combine(neigh)
+            x_new.append(x)
+            m_new.append(m)
+            v_new.append(v)
+            u_new.append(u)
+
+    print(np.sum(muniq))
     xuniq = np.vstack(x_new)
     muniq = np.array(m_new)
     vuniq = np.vstack(v_new)
     uuniq = np.array(u_new)
     huniq = np.zeros_like(muniq)
-    print(f"Mtot {np.sum(muniq)}")
-    ##############################################################################################################################
+    print(np.sum(muniq))
+
+    #############################################################################################################################
     ##Combined positions for computing accelerations
     pos_all = np.vstack((xuniq, partpos))
     mass_all = np.concatenate((muniq, partmasses))
