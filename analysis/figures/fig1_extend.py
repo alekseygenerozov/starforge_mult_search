@@ -144,7 +144,7 @@ snap_idx = config.getint("params","snap_idx")
 bin_id1 = config.getint("params","bin1")
 bin_id2 = config.getint("params", "bin2")
 my_ft = config.get("params","ft", fallback="1.0")
-seed = config.getint("params","seed", fallback=42)
+# seed = config.getint("params","seed", fallback=42)
 rmax = config.getfloat("params", "rmax", fallback=0.5)
 res = config.getint("params", "res", fallback=800)
 savetype = config.get("params","savetype", fallback="png")
@@ -159,28 +159,32 @@ center = config.get("params", "center", fallback=None)
 base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_")
 snap_loc = config.get("params", "snap_loc", fallback=None)
 
+tracer_file = config.get("params", "tracers", fallback="")
+
 if center is not None:
     center = ast.literal_eval(center)
 
 v_scale = 100. / cgs.pc * cgs.year * v_rescale
 d_cut = rmax
-base = base + f"{seed}/"
+# base = base + f"{seed}/"
 
-r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
-aa = "analyze_multiples_output_" + r2 + "/"
-
+# r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
+# aa = "analyze_multiples_output_" + r2 + "/"
 if snap_loc is None:
     snap_loc = base
 snap_file = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
 
 den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base = \
 find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+gas_ids = find_multiples_new2.load_gas_ids(snap_file, res_limit=1e-3)
+
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
 huniq = h[indx]
 vuniq = v[indx]
 uuniq = u[indx]
 denuniq = den[indx]
+gas_ids = gas_ids[indx]
 vuniq = vuniq.astype(np.float64)
 xuniq = xuniq.astype(np.float64)
 muniq = muniq.astype(np.float64)
@@ -193,11 +197,15 @@ partsink = partsink.astype(np.float64)
 
 
 if center is None:
-    ##Will likely have to adjust
-    center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
-                                                                                           bin_id1, bin_id2, my_ft)
-center = np.array(center)
+    # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
+    #                                                                                        bin_id1, bin_id2, my_ft)
+    tmp_pos = np.concatenate((partpos[partids==bin_id1], partpos[partids==bin_id1]))
+    tmp_mass = partmasses[partids==bin_id1]
+    tmp_pos2 = np.concatenate((partpos[partids==bin_id2], partpos[partids==bin_id2]))
+    tmp_mass2 = partmasses[partids==bin_id2]
+    center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
 
+center = np.array(center)
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
 sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
@@ -246,19 +254,34 @@ fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
-for ii in range(len(partids_filt)):
-    with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-        tmp_halo_arr_id = hf[f"halo_{partids_filt[ii]}"][...]
-        tmp_halo_pos = np.hstack((hf[f"halo_{partids_filt[ii]}_x"][...], hf[f"halo_{partids_filt[ii]}_v"][...]))
-        if np.sum(tmp_halo_arr_id)==0:
-            continue
-        try:
-            ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
-                      (tmp_halo_pos[:, 3]  - partvel_filt[ii, 0]) * v_scale * snap_interval,
-                      (tmp_halo_pos[:, 4]  - partvel_filt[ii, 1]) * v_scale * snap_interval,
-                      scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[int(partids_filt[ii]) % len(colors)])
-        except IndexError:
-            breakpoint()
+if tracer_file:
+    tracer_ids = np.genfromtxt(tracer_file)
+    tracer_filt = np.where(tracer_ids==gas_ids)[0]
+    tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
+    try:
+        ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
+                    (tmp_halo_pos[:, 3]  - center[3]) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 4]  - center[4]) * v_scale * snap_interval,
+                    scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[0])#color=colors[int(partids_filt[ii]) % len(colors)])
+    except IndexError:
+        breakpoint()
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
+
+    
+
+# for ii in range(len(partids_filt)):
+#     with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
+#         tmp_halo_arr_id = hf[f"halo_{partids_filt[ii]}"][...]
+#         tmp_halo_pos = np.hstack((hf[f"halo_{partids_filt[ii]}_x"][...], hf[f"halo_{partids_filt[ii]}_v"][...]))
+#         if np.sum(tmp_halo_arr_id)==0:
+#             continue
+#         try:
+#             ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
+#                       (tmp_halo_pos[:, 3]  - partvel_filt[ii, 0]) * v_scale * snap_interval,
+#                       (tmp_halo_pos[:, 4]  - partvel_filt[ii, 1]) * v_scale * snap_interval,
+#                       scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[int(partids_filt[ii]) % len(colors)])
+#         except IndexError:
+#             breakpoint()
+# fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
 
 
