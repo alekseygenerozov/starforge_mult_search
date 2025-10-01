@@ -24,7 +24,8 @@ default_config = OmegaConf.create({
     "contig_suff": "",
     "flat_suff": "_flat",
     "smao":"False",
-    "two_body":"False"})
+    "two_body":"False",
+    "my_ft": 1.0})
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -59,7 +60,7 @@ else:
 print(user_config_path)
 
 ##Hard-coded parameters for figures
-my_ft = 1.0
+my_ft = config.my_ft
 my_tides = False
 ##Setting up figure directory...
 fdir = f"fig_Tides{my_tides}_smao{config.smao}_{my_ft}_c{config.contig_suff}_fl{config.flat_suff}"
