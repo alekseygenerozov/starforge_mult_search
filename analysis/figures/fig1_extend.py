@@ -243,6 +243,8 @@ dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
 partpos_filt  = partpos[dist_filter]
 partvel_filt = partvels[dist_filter]
 partids_filt = partids[dist_filter]
+print(partpos_filt - center[:3])
+print(partids_filt)
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
     ax.plot(partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1], "kX")
