@@ -57,6 +57,7 @@ yticks = ([2], [2], [2,3])
 rescales = [1, 1, 0.1]
 print(fig.get_size_inches())
 
+cdf_labs = (3, 6, 0.5)
 
 for ii in range(3):
     ax1, ax2 = axes[ii]
@@ -114,7 +115,7 @@ for ii in range(3):
     ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
     ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 
-    ax2.set_ylabel('PDF/CDF')
+    ax2.set_ylabel('Probability Density and CDF')
     ax2.set_xlabel("Max halo mass/Final star mass")
     ax2.set_title(f"$f_t={my_fts[ii]}$", fontsize=7)
     fig.subplots_adjust(hspace=0.05)  # adjust space between Axes
@@ -129,8 +130,8 @@ for ii in range(3):
             weights=[1 / len(mstars_final) * 10] * len(mstars_final),
             color=colorblind_palette[1])
 
-    ax2.annotate("CDF", (.7, 0.6), color=colorblind_palette[0])
-    ax2.annotate(r"$PDF\times Constant$", (10, 0.1), color=colorblind_palette[1], ha='right')
+    ax2.annotate("CDF", (cdf_labs[ii], 0.6), color=colorblind_palette[0])
+    ax2.annotate(r"Probability Density$\times$ Constant", (7, 0.3), color=colorblind_palette[1], ha='left')
 
 
 print(fig.get_size_inches())

@@ -21,7 +21,7 @@ from starforge_mult_search.analysis import cgs_const as cgs
 
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['figure.figsize'] = (6.75, 6.75)
+mpl.rcParams['figure.figsize'] = (3.3, 2.6)
 mpl.rcParams['ps.fonttype'] = 42
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()

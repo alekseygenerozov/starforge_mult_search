@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from starforge_mult_search.analysis.analyze_stack import make_binned_data
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['figure.figsize'] = (6.75, 6.75)
-# mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+mpl.rcParams['ps.fonttype'] = 42
 plt.style.use('nature')
 mpl.rcParams['font.sans-serif'] = "Arial"
 
@@ -29,7 +29,7 @@ n3, n3u, d3, te3 = make_binned_data(absc, ords, bins)
 
 from labelLine import labelLines
 
-fig, ax = plt.subplots(figsize=(6.75, 6.75), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
 ax.set_xlim(-0.8, 1.8)
 ax.set_ylim(0, 1.)
 ax.set_xlabel(r"log($M_{prim, f} / M_{\odot}$)")

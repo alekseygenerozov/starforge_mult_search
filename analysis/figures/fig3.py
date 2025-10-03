@@ -23,7 +23,7 @@ ax.tick_params(axis='x', which='minor', labelbottom=False)
 
 ax.set_xlim(-1, 1)
 ax.set_yscale('log')
-ax.set_ylabel("PDF")
+ax.set_ylabel("Density")
 ax.set_xlabel(r"$cos(\theta)$")
 ax.plot([-2, -2], [1,1], "k--", label="Not BFB Bins")
 ax.legend()
