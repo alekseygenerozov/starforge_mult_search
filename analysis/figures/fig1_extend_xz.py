@@ -115,6 +115,7 @@ def add_colorbar_to_axes(ax, mappable, label='', orientation='vertical', size='5
 
 def flip_yz(arr):
     arr[:, [2, 1]] = arr[:, [1, 2]]
+    ##Maintaining right-handed coordinate system
     arr[:, 1] = -arr[:, 1]
 
 units.registry["au"] = AUnit()
