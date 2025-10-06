@@ -196,6 +196,8 @@ parvels = partvels.astype(np.float64)
 partmasses = partmasses.astype(np.float64)
 partsink = partsink.astype(np.float64)
 
+##Hack for xz plane--flip y and z...in all the arrays??? For some reason cannot seem to set plane in Meshoid?
+##xuniq, vuniq, partpos, partvels
 
 if center is None:
     # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
@@ -243,8 +245,6 @@ dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
 partpos_filt  = partpos[dist_filter]
 partvel_filt = partvels[dist_filter]
 partids_filt = partids[dist_filter]
-print(partpos_filt - center[:3])
-print(partids_filt)
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
     ax.plot(partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1], "kX")

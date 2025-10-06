@@ -317,7 +317,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
     nn = 4
-    partition = np.argpartition(path_diff_all, 4)
+    partition = np.argpartition(path_diff_all, nn)
     keys_closest = keys_all[partition][:, :nn]
 
     ndens = np.ones(len(keys_closest)) * np.inf
@@ -325,7 +325,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
     mass_tot_closest = np.ones(len(keys_closest)) * np.inf
     mass_closest = np.ones(len(keys_closest)) * np.inf
     for ii, row in enumerate(keys_closest):
-        if np.isinf(path_diff_all[ii, 0]):
+        if np.any(np.isinf(path_diff_all[ii, partition[ii, :nn]])):
             continue
         vclosest = np.array([path_lookup[kk][ii, vxcol:vzcol + 1] for kk in row])
         vclosest = np.sum(vclosest * vclosest, axis=1) ** .5
@@ -337,7 +337,6 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
         #     ndens[ii] = nn / np.max(pclosest)**3.
 
         sigmas[ii] = np.std(vclosest)
-        print(path_diff_all[ii, partition[ii,:nn]])
         ndens[ii] = nn / (4. * np.pi / 3.) / np.max(path_diff_all[ii, partition[ii, :nn]])**3
         mass_closest[ii] = np.mean([path_lookup[kk][ii, mcol] for kk in row])
         mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
