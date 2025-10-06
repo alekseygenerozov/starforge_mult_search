@@ -320,21 +320,29 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
     partition = np.argpartition(path_diff_all, 4)
     keys_closest = keys_all[partition][:, :nn]
 
+    ndens = np.ones(len(keys_closest)) * np.inf
     sigmas = np.ones(len(keys_closest)) * np.inf
     mass_tot_closest = np.ones(len(keys_closest)) * np.inf
     mass_closest = np.ones(len(keys_closest)) * np.inf
-
     for ii, row in enumerate(keys_closest):
+        if np.isinf(path_diff_all[ii, 0]):
+            continue
         vclosest = np.array([path_lookup[kk][ii, vxcol:vzcol + 1] for kk in row])
         vclosest = np.sum(vclosest * vclosest, axis=1) ** .5
+        # pclosest = np.array([path_lookup[kk][ii, pxcol:pzcol + 1] for kk in row])
+        # pclosest = np.sum(pclosest * pclosest, axis=1) ** .5
         ##Maybe better to do 1D velocity dispersion...
-        if np.all(~np.isinf(vclosest)):
-            sigmas[ii] = np.std(vclosest)
+        # if np.all(~np.isinf(vclosest)):
+        #     sigmas[ii] = np.std(vclosest)
+        #     ndens[ii] = nn / np.max(pclosest)**3.
+
+        sigmas[ii] = np.std(vclosest)
+        print(path_diff_all[ii, partition[ii,:nn]])
+        ndens[ii] = nn / (4. * np.pi / 3.) / np.max(path_diff_all[ii, partition[ii, :nn]])**3
         mass_closest[ii] = np.mean([path_lookup[kk][ii, mcol] for kk in row])
         mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
 
-
-    return sigmas, mass_closest, mass_tot_closest, keys_closest
+    return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
 
 # def get_min_dist_binary_og(path_lookup, tmp_row):
 #     """

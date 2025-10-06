@@ -264,7 +264,7 @@ if tracer_file:
     tracer_filt = np.isin(gas_ids, tracer_ids)
     tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
     ##Only include halo particles in the Voxel
-    sel2 = np.abs(tmp_halo_pos - center[:3])
+    sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
     dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
     tmp_halo_pos = tmp_halo_pos[dist_filter]
     try:
