@@ -160,7 +160,7 @@ base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Ha
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
-
+arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.4)
 
 if center is not None:
     center = ast.literal_eval(center)
@@ -275,7 +275,7 @@ if tracer_file:
         ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
                     (tmp_halo_pos[:, 3]  - center[3]) * v_scale * snap_interval,
                     (tmp_halo_pos[:, 4]  - center[4]) * v_scale * snap_interval,
-                    scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[1])#color=colors[int(partids_filt[ii]) % len(colors)])
+                    scale=1, scale_units="xy", angles="xy",alpha=arrow_opacity, color=colors[1])#color=colors[int(partids_filt[ii]) % len(colors)])
     except IndexError:
         breakpoint()
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
