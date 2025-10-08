@@ -158,8 +158,9 @@ v_rescale = config.getfloat("params", "v_rescale", fallback=2)
 center = config.get("params", "center", fallback=None)
 base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_")
 snap_loc = config.get("params", "snap_loc", fallback=None)
-
 tracer_file = config.get("params", "tracers", fallback="")
+down_sample = config.getint("params", "down_sample", fallback=1)
+
 
 if center is not None:
     center = ast.literal_eval(center)
@@ -263,15 +264,18 @@ if tracer_file:
     tracer_ids = np.genfromtxt(tracer_file)
     tracer_filt = np.isin(gas_ids, tracer_ids)
     tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
+
     ##Only include halo particles in the Voxel
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
     dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
     tmp_halo_pos = tmp_halo_pos[dist_filter]
+    tmp_halo_pos = tmp_halo_pos[np.random.choice(range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False)]
+
     try:
         ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
                     (tmp_halo_pos[:, 3]  - center[3]) * v_scale * snap_interval,
                     (tmp_halo_pos[:, 4]  - center[4]) * v_scale * snap_interval,
-                    scale=1, scale_units="xy", angles="xy",alpha=0.4, color=colors[1])#color=colors[int(partids_filt[ii]) % len(colors)])
+                    scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[1])#color=colors[int(partids_filt[ii]) % len(colors)])
     except IndexError:
         breakpoint()
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
