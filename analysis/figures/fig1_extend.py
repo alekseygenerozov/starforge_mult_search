@@ -12,6 +12,7 @@ from matplotlib import colors
 from matplotlib.colors import LogNorm
 from meshoid import Meshoid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import pandas as pd
 
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.code import find_multiples_new2
@@ -263,9 +264,11 @@ colors = prop_cycle.by_key()['color']
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
     tracer_ids = tracer_data[:, 0]
-    is_accreted = tracer_data[:, 1].astype(bool)
+    # is_accreted = tracer_data[:, 1].astype(bool)
     tracer_filt = np.isin(gas_ids, tracer_ids)
     tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
+    is_accreted = pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int).set_index("id").loc[gas_ids[tracer_filt]]
+    is_accreted = is_accreted["acc"].to_numpy().astype(bool)
 
     ##Only include halo particles in the Voxel
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])

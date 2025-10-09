@@ -207,8 +207,8 @@ sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.ar
 ############################################################################################################
 
 fig,ax = plt.subplots(figsize=fsize, constrained_layout=True)
-ax.set_xlabel("x [pc]")
-ax.set_ylabel("y [pc]")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
 ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
 p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
@@ -221,8 +221,8 @@ if plimit > 0:
 fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
 fig,ax = plt.subplots(figsize=(fsize[0] * (9.5 / 8), fsize[1]), constrained_layout=True)
-ax.set_xlabel("x [$10^4$ au]")
-ax.set_ylabel("y [$10^4$ au]")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
 
 xmin, xmax, ymin, ymax = get_phalo_limits(base, aa, snap_idx, bin_id1, bin_id2)
 buff = 0.05
@@ -247,7 +247,7 @@ ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv
 ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos2_center_b[:,4] * v_scale * snap_interval,
           scale=1, scale_units = "xy", angles = "xy",
           color="#A52A2A", alpha=0.15, headwidth=4, headlength=6, headaxislength=5)
-plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot} pc^{-2}$]")
+plt.colorbar(p, label=r"Surface Density")
 
 #####################################################################################################
 with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
@@ -291,8 +291,8 @@ if ins > 0:
 
 ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
 ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
-ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
-           (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
+# ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
+#            (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.
 vel1 = tmp_pos_center[3] * v_scale , tmp_pos_center[4] * v_scale
