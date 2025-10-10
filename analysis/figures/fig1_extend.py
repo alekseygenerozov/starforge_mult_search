@@ -10,6 +10,7 @@ import numpy as np
 import seaborn as sns
 from matplotlib import colors
 from matplotlib.colors import LogNorm
+import matplotlib.patches as patches
 from meshoid import Meshoid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pandas as pd
@@ -247,9 +248,16 @@ dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
 partpos_filt  = partpos[dist_filter]
 partvel_filt = partvels[dist_filter]
 partids_filt = partids[dist_filter]
+partmasses_filt = partmasses[dist_filter]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
-    ax.plot(partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1], "kX")
+    center_x, center_y = partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1]
+    ax.plot(center_x, center_y, "kX", markersize= 4 * np.log(partmasses_filt / 0.001))
+    # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
+    hl_radius = 2. * sfc.GN * partmasses_filt[ii] / partvel_filt[ii]**2.
+    circle = patches.Circle((center_x, center_y), hl_radius, color='red', fill=False, linewidth=2, label='Circle')
+    # Add the circle to the axes
+    ax.add_patch(circle)
 arr_index1 = np.where(partids_filt.astype(int)==bin_id1)[0]
 arr_index2 = np.where(partids_filt.astype(int)==bin_id2)[0]
 ax.plot(partpos_filt[arr_index1, 0] - center[0], partpos_filt[arr_index1, 1] - center[1], "ro")
