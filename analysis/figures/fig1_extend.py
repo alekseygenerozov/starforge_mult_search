@@ -274,6 +274,7 @@ if tracer_file:
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
     dist_filter = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
     tmp_halo_pos = tmp_halo_pos[dist_filter]
+    is_accreted = is_accreted[dist_filter]
     random_selection = np.random.choice(range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False)
     tmp_halo_pos = tmp_halo_pos[random_selection]
     is_accreted = is_accreted[random_selection]
