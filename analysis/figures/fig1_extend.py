@@ -252,7 +252,7 @@ partmasses_filt = partmasses[dist_filter]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
     center_x, center_y = partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1]
-    ax.plot(center_x, center_y, "kX", markersize= 4 * np.log(partmasses_filt / 0.001))
+    ax.plot(center_x, center_y, "kX", markersize= 4 * np.log(partmasses_filt[ii] / 0.001))
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     hl_radius = 2. * sfc.GN * partmasses_filt[ii] / partvel_filt[ii]**2.
     circle = patches.Circle((center_x, center_y), hl_radius, color='red', fill=False, linewidth=2, label='Circle')
