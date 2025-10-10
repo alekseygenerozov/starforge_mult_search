@@ -161,7 +161,7 @@ base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Ha
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
-arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.4)
+arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 
 if center is not None:
     center = ast.literal_eval(center)
@@ -258,8 +258,9 @@ ax.plot(partpos_filt[arr_index2, 0] - center[0], partpos_filt[arr_index2, 1] - c
 
 fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 
-prop_cycle = plt.rcParams['axes.prop_cycle']
-colors = prop_cycle.by_key()['color']
+# prop_cycle = plt.rcParams['axes.prop_cycle']
+# colors = prop_cycle.by_key()['color']
+colors = ["w", "gold"]
 
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
@@ -279,7 +280,7 @@ if tracer_file:
     tmp_halo_pos = tmp_halo_pos[random_selection]
     is_accreted = is_accreted[random_selection]
 
-    arrow_cols = [colors[1] if row else colors[4] for row in is_accreted]
+    arrow_cols = [colors[0] if row else colors[1] for row in is_accreted]
     try:
         ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
                     (tmp_halo_pos[:, 3]  - center[3]) * v_scale * snap_interval,
