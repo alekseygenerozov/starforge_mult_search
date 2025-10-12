@@ -116,6 +116,27 @@ def add_colorbar_to_axes(ax, mappable, label='', orientation='vertical', size='5
     return cbar
 
 
+def sigmoid(x):
+    return 0.5 * (1. + x / (1. + x**2.)**.5)
+
+def ad_index(u):
+    delta = (-.38, 0.22, -0.068, -0.42, 0.65)
+    a = (5.95, 6,18, 10.26, 7.71, 98.87)
+    b = (9.25, 9.89, 10.24, 11.13, 14.28)
+
+    u_cgs = u * 100**2.
+    gamma = 5. / 3.
+    for kk in range(5):
+        gamma += delta[kk] * sigmoid(a[kk] * (np.log10(u_cgs) - b[kk]))
+
+    return gamma
+
+def u_to_cs(u1):
+    gamma_eff = ad_index(u1)
+    # print("gamma:",gamma_eff)
+    return u1**.5 * (gamma_eff * (gamma_eff - 1))**.5
+
+
 units.registry["au"] = AUnit()
 colorblind_palette = sns.color_palette("colorblind")
 # Set the matplotlib color cycle to the seaborn colorblind palette
@@ -215,6 +236,7 @@ center = np.array(center)
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
 sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
+sel2_gas = np.copy(sel2)
 
 ##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
 xuniq_center = xuniq - center[:3]
@@ -254,8 +276,14 @@ for ii in range(len(partpos_filt)):
     center_x, center_y = partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1]
     ax.plot(center_x, center_y, "kX", markersize= 4 * np.log(partmasses_filt[ii] / 0.001))
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
-    hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
-    circle = patches.Circle((center_x, center_y), hl_radius, color='red', fill=False, linewidth=2, label='Circle')
+    # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
+    ##Arbitrary cutoff for gas neighbors...
+    gas_neighbors = np.linalg.norm(xuniq[sel2_gas] - partpos_filt) < 0.005
+    gas_neighbors_vel = np.mean(vuniq[sel2_gas][gas_neighbors], axis=0)
+    gas_neighbors_cs = np.mean(u_to_cs(uuniq[sel2_gas][gas_neighbors]))
+    bhl_radius = 2. * sfc.GN * partmasses_filt[ii] / (np.linalg.norm(partvel_filt[ii] - gas_neighbors_vel)**2. + gas_neighbors_cs**2.)
+
+    circle = patches.Circle((center_x, center_y), bhl_radius, color='orange', fill=False, linewidth=2, label='Circle')
     # Add the circle to the axes
     ax.add_patch(circle)
 arr_index1 = np.where(partids_filt.astype(int)==bin_id1)[0]
