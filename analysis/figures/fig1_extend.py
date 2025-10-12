@@ -303,7 +303,8 @@ fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 # prop_cycle = plt.rcParams['axes.prop_cycle']
 # colors = prop_cycle.by_key()['color']
 colors = ["w", "gold"]
-breakpoint()
+del sel2
+del sel2_gas
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
     tracer_ids = tracer_data[:, 0]
