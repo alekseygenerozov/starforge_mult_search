@@ -278,7 +278,7 @@ for ii in range(len(partpos_filt)):
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
     ##Arbitrary cutoff for gas neighbors...
-    gas_neighbors = np.linalg.norm(xuniq[sel2_gas] - partpos_filt) < 0.005
+    gas_neighbors = np.linalg.norm(xuniq[sel2_gas] - partpos_filt[ii]) < 0.005
     gas_neighbors_vel = np.mean(vuniq[sel2_gas][gas_neighbors], axis=0)
     gas_neighbors_cs = np.mean(u_to_cs(uuniq[sel2_gas][gas_neighbors]))
     bhl_radius = 2. * sfc.GN * partmasses_filt[ii] / (np.linalg.norm(partvel_filt[ii] - gas_neighbors_vel)**2. + gas_neighbors_cs**2.)
