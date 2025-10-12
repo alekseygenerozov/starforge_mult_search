@@ -3,6 +3,7 @@ import configparser
 import pickle
 import sys
 
+import gc
 import h5py
 import matplotlib.pyplot as plt
 import matplotlib.units as units
@@ -305,6 +306,9 @@ fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 colors = ["w", "gold"]
 del sel2
 del sel2_gas
+del den 
+del denuniq
+gc.collect()
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
     tracer_ids = tracer_data[:, 0]
