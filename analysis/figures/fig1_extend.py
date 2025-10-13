@@ -187,6 +187,9 @@ snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
+ms = config.getfloat("params", "ms", fallback=1)
+ma = config.getfloat("params", "ma", fallback=1)
+
 
 v_scale = 100. / cgs.pc * cgs.year * v_rescale
 ##snapshot interval in code units.
@@ -287,7 +290,7 @@ partmasses_filt = partmasses[dist_filter]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
     center_x, center_y = partpos_filt[ii, 0] - center[0], partpos_filt[ii, 1] - center[1]
-    ax.plot(center_x, center_y, "kX", markersize= 4 * np.log(partmasses_filt[ii] / 0.001))
+    ax.plot(center_x, center_y, "kX", markersize= ms * np.log(partmasses_filt[ii] / 0.001), alpha=ma)
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
     ##Arbitrary cutoff for gas neighbors...
