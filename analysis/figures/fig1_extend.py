@@ -318,6 +318,9 @@ del sel2
 del sel2_gas
 del den 
 del denuniq
+del uuniq
+del huniq
+del muniq
 gc.collect()
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
