@@ -256,7 +256,7 @@ X = np.linspace(- rmax, rmax, res)
 Y = np.linspace(- rmax, rmax, res)
 X, Y = np.meshgrid(X, Y, indexing='ij')
 sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.array((0,0,0)))  # *1e4
-
+breakpoint()
 ############################################################################################################
 
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
