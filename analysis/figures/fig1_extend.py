@@ -249,7 +249,6 @@ sel2 = np.abs(xuniq - center[:3])
 sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
 sel2_gas = np.copy(sel2)
 
-breakpoint()
 ##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
 xuniq_center = xuniq - center[:3]
 M = Meshoid(xuniq_center[sel2], muniq[sel2], huniq[sel2])
@@ -257,7 +256,6 @@ X = np.linspace(- rmax, rmax, res)
 Y = np.linspace(- rmax, rmax, res)
 X, Y = np.meshgrid(X, Y, indexing='ij')
 sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.array((0,0,0)))  # *1e4
-breakpoint()
 ############################################################################################################
 
 fig,ax = plt.subplots(figsize=(8,8), constrained_layout=True)
