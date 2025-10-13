@@ -179,6 +179,7 @@ ins = config.getfloat("params", "ins", fallback=-1.0)
 ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
 v_rescale = config.getfloat("params", "v_rescale", fallback=2)
+center_file = config.get("params", "center_file", fallback=None)
 center = config.get("params", "center", fallback=None)
 center_time = config.getint("params", "center_time", fallback=snap_idx)
 base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_")
@@ -223,20 +224,23 @@ partsink = partsink.astype(np.float64)
 
 ##Hack for xz plane--flip y and z...in all the arrays??? For some reason cannot seem to set plane in Meshoid?
 ##xuniq, vuniq, partpos, partvels
-
-if center is not None:
+if center_file is not None:
+    centers = np.genfromtxt(center_file)
+    center = centers[np.where(centers[:,0]==snap_idx)[0][0]]
+elif center is not None:
     center = ast.literal_eval(center)
     center = np.array(center)
     center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
-print(center)
+
+tmp_pos = np.concatenate((partpos[partids==bin_id1], partvels[partids==bin_id1])).ravel()
+tmp_mass = partmasses[partids==bin_id1]
+tmp_pos2 = np.concatenate((partpos[partids==bin_id2], partvels[partids==bin_id2])).ravel()
+tmp_mass2 = partmasses[partids==bin_id2]
+bin_center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
 if center is None:
     # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
     #                                                                                        bin_id1, bin_id2, my_ft)
-    tmp_pos = np.concatenate((partpos[partids==bin_id1], partvels[partids==bin_id1])).ravel()
-    tmp_mass = partmasses[partids==bin_id1]
-    tmp_pos2 = np.concatenate((partpos[partids==bin_id2], partvels[partids==bin_id2])).ravel()
-    tmp_mass2 = partmasses[partids==bin_id2]
-    center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
+    center = bin_center
 center = np.array(center)
 
 
@@ -335,9 +339,10 @@ if tracer_file:
 
     arrow_cols = [colors[0] if row else colors[1] for row in is_accreted]
     try:
+        ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
         ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
-                    (tmp_halo_pos[:, 3]  - center[3]) * v_scale * snap_interval,
-                    (tmp_halo_pos[:, 4]  - center[4]) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 3]  - bin_center[3]) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 4]  - bin_center[4]) * v_scale * snap_interval,
                     scale=1, scale_units="xy", angles="xy",alpha=arrow_opacity, color=arrow_cols)#color=colors[int(partids_filt[ii]) % len(colors)])
     except IndexError:
         breakpoint()
