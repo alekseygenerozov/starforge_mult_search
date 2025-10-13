@@ -187,6 +187,7 @@ tracer_file = config.get("params", "tracers", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 
+v_scale = 100. / cgs.pc * cgs.year * v_rescale
 ##snapshot interval in code units.
 snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.)
 d_cut = rmax
