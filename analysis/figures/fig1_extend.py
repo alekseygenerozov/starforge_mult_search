@@ -226,7 +226,7 @@ partsink = partsink.astype(np.float64)
 if center is not None:
     center = ast.literal_eval(center)
     center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
-
+print(center)
 if center is None:
     # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
     #                                                                                        bin_id1, bin_id2, my_ft)
