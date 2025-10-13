@@ -180,16 +180,15 @@ ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
 v_rescale = config.getfloat("params", "v_rescale", fallback=2)
 center = config.get("params", "center", fallback=None)
+center_time = config.get("params", "center_time", fallback=snap_idx)
 base = config.get("params", "base", fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_")
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 
-if center is not None:
-    center = ast.literal_eval(center)
-
-v_scale = 100. / cgs.pc * cgs.year * v_rescale
+##snapshot interval in code units.
+snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.)
 d_cut = rmax
 base = base + f"{seed}/"
 
@@ -224,6 +223,10 @@ partsink = partsink.astype(np.float64)
 ##Hack for xz plane--flip y and z...in all the arrays??? For some reason cannot seem to set plane in Meshoid?
 ##xuniq, vuniq, partpos, partvels
 
+if center is not None:
+    center = ast.literal_eval(center)
+    center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
+
 if center is None:
     # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
     #                                                                                        bin_id1, bin_id2, my_ft)
@@ -232,8 +235,9 @@ if center is None:
     tmp_pos2 = np.concatenate((partpos[partids==bin_id2], partvels[partids==bin_id2])).ravel()
     tmp_mass2 = partmasses[partids==bin_id2]
     center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
-
 center = np.array(center)
+
+
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
 sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
