@@ -226,7 +226,7 @@ partsink = partsink.astype(np.float64)
 ##xuniq, vuniq, partpos, partvels
 if center_file is not None:
     centers = np.genfromtxt(center_file)
-    center = centers[np.where(centers[:,0]==snap_idx)[0][0]]
+    center = centers[np.where(centers[:,0]==snap_idx)[0][0]][1:]
 elif center is not None:
     center = ast.literal_eval(center)
     center = np.array(center)
