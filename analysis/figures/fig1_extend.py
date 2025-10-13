@@ -249,6 +249,7 @@ sel2 = np.abs(xuniq - center[:3])
 sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
 sel2_gas = np.copy(sel2)
 
+breakpoint()
 ##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
 xuniq_center = xuniq - center[:3]
 M = Meshoid(xuniq_center[sel2], muniq[sel2], huniq[sel2])
