@@ -18,12 +18,12 @@ import matplotlib.units as units
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 
-import scienceplots
-plt.style.use('nature')
-mpl.rcParams['font.sans-serif'] = "Arial"
+# import scienceplots
+# plt.style.use('nature')
+# mpl.rcParams['font.sans-serif'] = "Arial"
 fsize = (3.3, 3.3)
-mpl.rcParams['figure.figsize'] = fsize
-mpl.rcParams['pdf.fonttype'] = 42
+# mpl.rcParams['figure.figsize'] = fsize
+# mpl.rcParams['pdf.fonttype'] = 42
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
@@ -156,7 +156,7 @@ rmax = config.getfloat("params", "rmax", fallback=0.5)
 res = config.getint("params", "res", fallback=800)
 savetype = config.get("params","savetype", fallback="pdf")
 vmin = config.getfloat("params", "vmin", fallback=1.0)
-vmax = config.getfloat("params", "vmin", fallback=3e4)
+vmax = config.getfloat("params", "vmax", fallback=3e4)
 plimit = config.getfloat("params", "plimit", fallback=-1)
 ins = config.getfloat("params", "ins", fallback=-1.0)
 ins_loc = config.get("params", "ins_loc", fallback="upper right")
