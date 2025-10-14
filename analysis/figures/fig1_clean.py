@@ -92,7 +92,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         partspin = []
         tage_myr = []
 
-    print("Snapshot time in %f Myr" % (tsnap_myr))
+    print("Snapshot time is %f Myr" % (tsnap_myr))
 
     del f
     return (
@@ -165,7 +165,6 @@ plimit = config.getfloat("params", "plimit", fallback=-1)
 ##fixed center (if none use com of star 1 and star 2)
 center = config.get("params", "center", fallback=None)
 savetype = config.get("params", "savetype", fallback="png")
-print(vmin, vmax)
 ############################################################################################################
 ##PARSING SIMULATION DATA
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
@@ -228,6 +227,7 @@ else:
     center = (star_mass * star_pos + star_mass2 * star_pos2) / (star_mass + star_mass2)
 
 center = np.array(center)
+print("Center:", center)
 ############################################################################################################
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
@@ -263,6 +263,6 @@ else:
     ax.set_xlim(-rmax, rmax)
     ax.set_ylim(-rmax, rmax)
 
-plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot}$]")
+plt.colorbar(p, label=r"$\Sigma$ [$M_{\odot}$ pc$^{-2}$]")
 fig.savefig(f"surface_density_{snap_idx}." + savetype, dpi=300)
 ############################################################################################################
