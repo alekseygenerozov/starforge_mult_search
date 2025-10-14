@@ -113,7 +113,8 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         tage_myr,
         unit_base,
         partspin,
-        
+    )
+
 ############################################################################################################
 ##PARSING CONFIG OPTIONS
 config = configparser.ConfigParser()
