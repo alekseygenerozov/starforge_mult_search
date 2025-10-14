@@ -113,34 +113,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         tage_myr,
         unit_base,
         partspin,
-    )
-
-
-def add_colorbar_to_axes(
-    ax, mappable, label="", orientation="vertical", size="5%", pad=0.05
-):
-    """
-        Add a colorbar to an existing axes.
-    `
-        Parameters:
-        - ax: The axes to which the colorbar should be added.
-        - mappable: The image or plot object to which the colorbar applies (e.g., the result of ax.imshow()).
-        - label: The label for the colorbar.
-        - orientation: The orientation of the colorbar ('vertical' or 'horizontal').
-        - size: The size of the colorbar relative to the axes.
-        - pad: The padding between the axes and the colorbar.
-    """
-    divider = make_axes_locatable(ax)
-    if orientation == "vertical":
-        cax = divider.append_axes("right", size=size, pad=pad)
-    else:
-        cax = divider.append_axes("bottom", size=size, pad=pad)
-
-    cbar = plt.colorbar(mappable, cax=cax, orientation=orientation)
-    cbar.set_label(label, rotation=90 if orientation == "vertical" else 0, labelpad=15)
-    return cbar
-
-
+        
 ############################################################################################################
 ##PARSING CONFIG OPTIONS
 config = configparser.ConfigParser()
