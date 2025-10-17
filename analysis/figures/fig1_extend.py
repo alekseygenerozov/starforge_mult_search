@@ -38,61 +38,6 @@ def subtract_path(p1, p2):
 
     return diff
 
-def get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft):
-    with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
-        path_lookup = (pickle.load(ff))
-
-    tmp_pos = path_lookup[f"{bin_id1}"][snap_idx, pxcol:vzcol+1]
-    tmp_mass = path_lookup[f"{bin_id1}"][snap_idx, mcol]
-    with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-        tmp_halo_pos = np.hstack((hf[f"halo_{bin_id1}_x"][...], hf[f"halo_{bin_id1}_v"][...]))
-        tmp_halo_mass = (hf[f"halo_{bin_id1}_m"][...])
-        tmp_halo_rho = (hf[f"halo_{bin_id1}_rho"][...])
-
-    tmp_pos2 = path_lookup[f"{bin_id2}"][snap_idx, pxcol:vzcol+1]
-    tmp_mass2 = path_lookup[f"{bin_id2}"][snap_idx, mcol]
-    with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-        tmp_halo_pos2 = np.hstack((hf[f"halo_{bin_id2}_x"][...], hf[f"halo_{bin_id2}_v"][...]))
-        tmp_halo_mass2 = (hf[f"halo_{bin_id2}_m"][...])
-        tmp_halo_rho2 = (hf[f"halo_{bin_id2}_rho"][...])
-
-    center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
-    tmp_pos_center = tmp_pos - center
-    tmp_halo_pos_center = tmp_halo_pos - center
-    tmp_pos2_center = tmp_pos2 - center
-    tmp_halo_pos2_center = tmp_halo_pos2 - center
-
-    ###Getting com of each star + halo
-    com_w_halo = (tmp_pos * tmp_mass + np.sum(tmp_halo_mass[:, np.newaxis] * tmp_halo_pos, axis=0)) / (tmp_mass + np.sum(tmp_halo_mass))
-    com2_w_halo = (tmp_pos2 * tmp_mass2 + np.sum(tmp_halo_mass2[:, np.newaxis] * tmp_halo_pos2, axis=0)) / (tmp_mass2 + np.sum(tmp_halo_mass2))
-
-    ##Be careful with the different coordinates here...
-    return center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo - center, com2_w_halo - center
-
-def get_phalo_limits(base, aa, snap_idx, bin_id1, bin_id2):
-    center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
-                                                                                                   bin_id1, bin_id2, "8.0")
-    ##Automatically set axis extent based on the size of the halos -- TO DO PLOT CONSI
-    halos_x = (np.concatenate(
-        (tmp_halo_pos_center[:, 0], tmp_halo_pos2_center[:, 0], [tmp_pos_center[0]], [tmp_pos2_center[0]])))
-    halos_y = (np.concatenate(
-        (tmp_halo_pos_center[:, 1], tmp_halo_pos2_center[:, 1], [tmp_pos_center[1]], [tmp_pos2_center[1]])))
-    xmin, xmax = min(halos_x), max(halos_x)
-    ymin, ymax = min(halos_y), max(halos_y)
-
-    return xmin, xmax, ymin, ymax
-
-def get_initial_orbit(tmp1, tmp2):
-    tmp_filt = (~np.isinf(tmp1[:, 0])) & (~np.isinf(tmp2[:,0]))
-    tmp1_fst = tmp1[tmp_filt][0]
-    tmp2_fst = tmp2[tmp_filt][0]
-    tmp_orb = find_multiples_new2.get_orbit(tmp1_fst[pxcol:pzcol+1], tmp2_fst[pxcol:pzcol+1],\
-                                            tmp1_fst[vxcol:vzcol+1], tmp2_fst[vxcol:vzcol+1],\
-                                            tmp1_fst[mtotcol], tmp2_fst[mtotcol],\
-                                           tmp1_fst[hcol], tmp2_fst[hcol])
-
-    return tmp_orb
-
 
 def add_colorbar_to_axes(ax, mappable, label='', orientation='vertical', size='5%', pad=0.05):
     """
@@ -343,11 +288,16 @@ if tracer_file:
     is_accreted = is_accreted[random_selection]
 
     arrow_cols = [colors[0] if row else colors[1] for row in is_accreted]
+    v_offset_x = 0
+    v_offset_y = 0
+    if len(bin_center)>0:
+        v_offset_x = bin_center[3]
+        v_offset_y = bin_center[4]
     try:
         ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
         ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
-                    (tmp_halo_pos[:, 3]  - bin_center[3]) * v_scale * snap_interval,
-                    (tmp_halo_pos[:, 4]  - bin_center[4]) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 3]  - v_offset_x) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 4]  - v_offset_y) * v_scale * snap_interval,
                     scale=1, scale_units="xy", angles="xy",alpha=arrow_opacity, color=arrow_cols)#color=colors[int(partids_filt[ii]) % len(colors)])
     except IndexError:
         breakpoint()
