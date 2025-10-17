@@ -267,7 +267,7 @@ del den
 del denuniq
 del uuniq
 del huniq
-del muniq
+# del muniq
 gc.collect()
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
