@@ -274,7 +274,7 @@ if tracer_file:
     tracer_ids = tracer_data[:, 0]
     # is_accreted = tracer_data[:, 1].astype(bool)
     tracer_filt = np.isin(gas_ids, tracer_ids)
-    tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
+    tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis]))
     is_accreted = pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int).set_index("id").loc[gas_ids[tracer_filt]]
     is_accreted = is_accreted["acc"].to_numpy().astype(bool)
 
@@ -287,9 +287,10 @@ if tracer_file:
     tmp_halo_pos = tmp_halo_pos[random_selection]
     is_accreted = is_accreted[random_selection]
 
+    halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
     arrow_cols = [colors[0] if row else colors[1] for row in is_accreted]
-    v_offset_x = 0
-    v_offset_y = 0
+    v_offset_x = halo_com[3]
+    v_offset_y = halo_com[4]
     if len(bin_center)>0:
         v_offset_x = bin_center[3]
         v_offset_y = bin_center[4]
