@@ -297,7 +297,10 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
 
     path_diff_all = []
     keys_all = []
-    mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list")
+    mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
+    mult_table["t"] = mult_table.index
+    mult_table = mult_table.explode("mult_ids_list_og").set_index(["t", "mult_ids_list_og"])
+    companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
     for ii, uu in enumerate(path_lookup_keys):
         # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
@@ -311,10 +314,11 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
             ##Could be cleaner / more symmetric[?]
             ##Useful for filtering out higher multiples -- assuming tmp_row corresponds to a bound pair...
             ##Could move the first selection out of the loop for efficiency.a
-            overlap_times = mult_table.loc[
-                lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
-
-            
+            # overlap_times = mult_table.loc[
+            #     lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
+            if uu in companions_first_star:
+                overlap_times = mult_table.xs(int(uu), level="mult_ids_list_og").index.values
+              
         ##Displacement from binary com
         path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
