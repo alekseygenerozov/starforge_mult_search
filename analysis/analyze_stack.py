@@ -297,6 +297,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
 
     path_diff_all = []
     keys_all = []
+    mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list")
     for ii, uu in enumerate(path_lookup_keys):
         # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
@@ -309,7 +310,8 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         if mult_table is not None:
             ##Could be cleaner / more symmetric[?]
             ##Useful for filtering out higher multiples -- assuming tmp_row corresponds to a bound pair...
-            overlap_times = mult_table.xs(tmp_row[0], level="mult_ids_list").loc[
+            ##Could move the first selection out of the loop for efficiency.a
+            overlap_times = mult_table.loc[
                 lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
 
             
