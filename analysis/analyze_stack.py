@@ -283,7 +283,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     return closest_val, closest_idx, keys_all[closest_idx]
 
 
-def get_dynamics_binary(path_lookup, tmp_row, two_body):
+def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16):
     """
     Get time series of separations between binary and other stars
     """
@@ -316,32 +316,30 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body):
 
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
-    nn = 4
-    partition = np.argpartition(path_diff_all, nn)
-    keys_closest = keys_all[partition][:, :nn]
+    ##Note argmpartition will *not* give the sorted order. 
+    partition = np.argpartition(path_diff_all, nneighbors)
+    keys_closest = keys_all[partition][:, :nneighbors]
 
-    ndens = np.ones(len(keys_closest)) * np.inf
-    sigmas = np.ones(len(keys_closest)) * np.inf
-    mass_tot_closest = np.ones(len(keys_closest)) * np.inf
-    mass_closest = np.ones(len(keys_closest)) * np.inf
+    ndens = np.zeros((len(keys_closest), nneighbors))
+    # sigmas = np.ones(len(keys_closest)) * np.inf
+    mass_tot_closest = np.ones((len(keys_closest), nneighbors)) * np.inf
+    mass_closest = np.ones((len(keys_closest), nneighbors)) * np.inf
+    ##Iterating over all times
     for ii, row in enumerate(keys_closest):
-        if np.any(np.isinf(path_diff_all[ii, partition[ii, :nn]])):
-            continue
-        vclosest = np.array([path_lookup[kk][ii, vxcol:vzcol + 1] for kk in row])
-        vclosest = np.sum(vclosest * vclosest, axis=1) ** .5
-        # pclosest = np.array([path_lookup[kk][ii, pxcol:pzcol + 1] for kk in row])
-        # pclosest = np.sum(pclosest * pclosest, axis=1) ** .5
-        ##Maybe better to do 1D velocity dispersion...
-        # if np.all(~np.isinf(vclosest)):
-        #     sigmas[ii] = np.std(vclosest)
-        #     ndens[ii] = nn / np.max(pclosest)**3.
+        dist_neighbors = path_diff_all[ii, partition[ii, :nneighbors]]
+        order = np.argsort(dist_neighbors)
+        ##Trying to do n-densities simultaneously
+        ndens[ii] = np.array([(nn + 1) / (4. * np.pi / 3.) / dist_neighbors[order[nn]]**3 for nn in range(nneighbors)])
 
-        sigmas[ii] = np.std(vclosest)
-        ndens[ii] = nn / (4. * np.pi / 3.) / np.max(path_diff_all[ii, partition[ii, :nn]])**3
-        mass_closest[ii] = np.mean([path_lookup[kk][ii, mcol] for kk in row])
-        mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
+        mass_neighbors = np.array([path_lookup[kk][ii, mcol] for kk in row])[order]
+        mass_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
+        mass_neighbors = np.array([path_lookup[kk][ii, mtotcol] for kk in row])[order]
+        mass_tot_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
+        # mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
 
-    return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
+    return {"mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
+    # return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
+
 
 # def get_min_dist_binary_og(path_lookup, tmp_row):
 #     """
