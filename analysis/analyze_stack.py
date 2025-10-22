@@ -283,7 +283,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     return closest_val, closest_idx, keys_all[closest_idx]
 
 
-def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16):
+def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_table=None):
     """
     Get time series of separations between binary and other stars
     """
@@ -301,16 +301,29 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16):
         # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
             continue
-        ##Filtering out other seeds? Could be done more robustly/elegantly
+        ##Filtering out other seeds. Could be done more robustly/elegantly
         if len(path_lookup[uu]) != len(p1_raw):
             continue
+        ##Filtering out higher multiples.
+        overlap_times = np.array([], dtype=int)
+        if mult_table is not None:
+            ##Could be cleaner / more symmetric[?]
+            ##Useful for filtering out higher multiples -- assuming tmp_row corresponds to a bound pair...
+            overlap_times = mult_table.xs(tmp_row[0], level="mult_ids_list").loc[
+                lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
 
+            
         ##Displacement from binary com
         path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
         path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
-        # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
+        ##Patch for higher companions??
+
+        ##Take minimum of distances from two stars...
         path_diff = np.min((path_diff1, path_diff2), axis=0)
+        ##Trick to exclude particles that are in the same multiple...
+        path_diff[overlap_times] = np.inf
+
         path_diff_all.append(path_diff)
         keys_all.append(uu)
 
@@ -320,6 +333,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16):
     partition = np.argpartition(path_diff_all, nneighbors)
     keys_closest = keys_all[partition][:, :nneighbors]
 
+    ##TO DO: Make placeholder for everything 0...(i.e. the particles does not exist yet or there are not enough neighbors)
     ndens = np.zeros((len(keys_closest), nneighbors))
     # sigmas = np.ones(len(keys_closest)) * np.inf
     mass_tot_closest = np.ones((len(keys_closest), nneighbors)) * np.inf
