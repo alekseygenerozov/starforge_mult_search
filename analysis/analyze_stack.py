@@ -297,10 +297,11 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
 
     path_diff_all = []
     keys_all = []
-    mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
-    mult_table["t"] = mult_table.index
-    mult_table = mult_table.explode("mult_ids_list_og").set_index(["t", "mult_ids_list_og"])
-    companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
+    if mult_table:
+        mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
+        mult_table["t"] = mult_table.index
+        mult_table = mult_table.explode("mult_ids_list_og").set_index(["t", "mult_ids_list_og"])
+        companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
     for ii, uu in enumerate(path_lookup_keys):
         # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
@@ -319,7 +320,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
             if uu in companions_first_star:
                 overlap_times = mult_table.xs(int(uu), level="mult_ids_list_og").index.values
               
-        ##Displacement from binary com
+        ##Displacement from binary stars
         path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
         path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
@@ -339,11 +340,11 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     partition = np.argpartition(path_diff_all, nneighbors)
     keys_closest = keys_all[partition][:, :nneighbors]
 
-    ##TO DO: Make placeholder for everything 0...(i.e. the particles does not exist yet or there are not enough neighbors)
+    ##Placeholder for everything 0...(i.e. the particles does not exist yet or there are not enough neighbors)
     ndens = np.zeros((len(keys_closest), nneighbors))
     # sigmas = np.ones(len(keys_closest)) * np.inf
-    mass_tot_closest = np.ones((len(keys_closest), nneighbors)) * np.inf
-    mass_closest = np.ones((len(keys_closest), nneighbors)) * np.inf
+    mass_tot_closest = np.zeros((len(keys_closest), nneighbors))
+    mass_closest = np.zeros((len(keys_closest), nneighbors))
     ##Iterating over all times
     for ii, row in enumerate(keys_closest):
         dist_neighbors = path_diff_all[ii, partition[ii, :nneighbors]]
