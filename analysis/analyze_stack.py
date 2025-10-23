@@ -283,12 +283,12 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     return closest_val, closest_idx, keys_all[closest_idx]
 
 
+##TO DO: GENERALIZE FOR ARBITRARY COLLECTIONS OF STARS
 def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_table=None):
     """
     Get time series of separations between binary and other stars
     """
-    p1_raw = path_lookup[tmp_row[0]]
-    p2_raw = path_lookup[tmp_row[1]]
+    p_raw = [path_lookup[part] for part in tmp_row]
     path_lookup_keys = path_lookup.keys()
 
     my_subtract_func = subtract_path_opt_vanilla
@@ -303,11 +303,12 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         mult_table = mult_table.explode("mult_ids_list_og").set_index(["t", "mult_ids_list_og"])
         companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
     for ii, uu in enumerate(path_lookup_keys):
-        # Want only closest approach of stars external to the binary.
+        # Want only closest approach of stars external to the group.
         if uu in tmp_row:
             continue
-        ##Filtering out other seeds. Could be done more robustly/elegantly
-        if len(path_lookup[uu]) != len(p1_raw):
+        ##Filtering out other seeds. Could be done more robustly/elegantly --
+        ##e.g. to deal with the edge case that different seeds could have the same number of snapshots
+        if len(path_lookup[uu]) != len(p_raw[0]):
             continue
         ##Filtering out higher multiples.
         overlap_times = np.array([], dtype=int)
@@ -321,13 +322,13 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
                 overlap_times = mult_table.xs(int(uu), level="mult_ids_list_og").index.values
               
         ##Displacement from binary stars
-        path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff = [my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], tmp_path[:, pxcol:pzcol + 1]) for tmp_path in p_raw]
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        # path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
         ##Patch for higher companions??
 
         ##Take minimum of distances from two stars...
-        path_diff = np.min((path_diff1, path_diff2), axis=0)
+        path_diff = np.min(path_diff, axis=0)
         ##Trick to exclude particles that are in the same multiple...
         path_diff[overlap_times] = np.inf
 
