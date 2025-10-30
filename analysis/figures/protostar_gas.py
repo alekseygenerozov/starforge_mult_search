@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--snap_base", default="snapshot", help="First part of snapshot name")
 
     args = parser.parse_args()
-    acc_data_lookup = pd.read_parquet(args.acc_data_lookup)
+    acc_data_lookup = pd.read_csv(args.acc_data_lookup).set_index(["first_time", "id"],inplace=True)
     first_times = acc_data_lookup.index.get_level_values(level="first_time").unique()
 
     dat_all = []
