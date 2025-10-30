@@ -65,6 +65,8 @@ def main():
     a2s = []
     a3s = []
     ##Missing seed 1
+    clean_keys = []
+
     for seed in (1, 2, 42):
         my_ft = 8.0
         sim_tag = f"M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}"
@@ -80,10 +82,10 @@ def main():
         fst = np.load(base2 + aa + "/fst_mult.npz", allow_pickle=True)['arr_0']
         with open(base2 + aa + "/path_lookup.p", "rb") as ff:
             path_lookup = pickle.load(ff)
-
         for ii, pid in enumerate(tqdm.tqdm(path_lookup.keys())):
             path1 = path_lookup[pid]
             path1 = path1[~np.isinf(path1[:,0])]
+            ##Should use time of maximum halo...for consistency
             ss = int(path1[0, 0])
             # final_masses.append()
             fmass = path1[-1, mcol]
@@ -106,13 +108,13 @@ def main():
 
                     if len(tmp_pos.shape) != 2:
                         breakpoint()
-                        print("bad", tmp_bound)
+                        print("bad1", tmp_bound)
                     elif np.sum(tmp_pos) == 0:
                         if len(tmp_bound) > 0:
                             breakpoint()
-                        print("bad", tmp_bound)
+                        print("bad2", tmp_bound)
                     elif len(tmp_pos) < 10:
-                        print("bad", tmp_bound)
+                        print("bad3", tmp_bound)
                     else:
                         #dx = tmp_pos
                         # dx = tmp_pos - np.median(tmp_pos, axis=0)
@@ -120,7 +122,7 @@ def main():
                         cs_mean = u_to_cs(np.mean(tmp_u))
                         dx = tmp_pos - sink_pos
                         rs = np.sum(dx * dx, axis=1)**.5
-                        print("cs:", cs_mean * 100 / 1e5)
+                        # print("cs:", cs_mean * 100 / 1e5)
 
                         evals, evecs = get_shape_eigen(dx)
                         a1, a2, a3 = evals
@@ -135,6 +137,7 @@ def main():
                         #     breakpoint()
                         rjeans.append(jeans(rho_mean, cs_mean))
                         final_masses.append(fmass)
+                        clean_keys.append(pid)
 
                         # fig, axs = plt.subplots(figsize=(16, 8), ncols = 2, constrained_layout=True)
                         # ax = axs[0]
@@ -157,7 +160,7 @@ def main():
                         # fig.savefig(f"tmp_{seed}_{my_ft}_{ii:03d}.png")
                         # plt.close()
 
-        np.savez(f"halo_sizes_{my_ft}.npz", rhalos=rhalos, rjeans=rjeans, final_masses=final_masses, a1s=a1s, a2s=a2s, a3s=a3s)
+        np.savez(f"halo_sizes_{my_ft}.npz", rhalos=rhalos, rjeans=rjeans, final_masses=final_masses, a1s=a1s, a2s=a2s, a3s=a3s, clean_keys=clean_keys)
 
 if __name__=="__main__":
     main()
