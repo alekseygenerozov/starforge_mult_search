@@ -57,7 +57,7 @@ def main():
             mtot = np.sum(mfilt)
             dat_all.append((star, reff, mtot))
         
-        np.savez("dat_all.npz")
+        np.savez("dat_all.npz", dat_all)
 
 if __name__ == "__main__":
     main()
