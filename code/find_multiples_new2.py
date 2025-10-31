@@ -7,7 +7,7 @@ import pytreegrav
 import argparse
 import starforge_mult_search.code.starforge_constants as sfc
 # import tqdm
-
+import warnings
 
 def load_gas_ids(file, res_limit=0.0):
     """ file - h5pdf5 STARFORGE snapshot
@@ -161,7 +161,8 @@ def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     j_com = (m1 + m2)*np.cross(com, com_vel)
 
     #Inclination
-    i_bin = np.arccos(np.dot(j_bin, j_com)/np.linalg.norm(j_bin)/np.linalg.norm(j_com))*180./np.pi
+    #i_bin = np.arccos(np.dot(j_bin, j_com)/np.linalg.norm(j_bin)/np.linalg.norm(j_com))*180./np.pi
+    i_bin = np.arccos(j_bin[2] / np.linalg.norm(j_bin))
     mu = m1*m2/(m1+m2)
     ##Eccentricity of the binary
     e_bin = np.sqrt(1.-np.linalg.norm(j_bin)**2./(sfc.GN*(m1+m2)*a_bin)/(mu**2.))
