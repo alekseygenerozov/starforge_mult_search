@@ -29,8 +29,7 @@ def main():
         gas_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
         ##Getting the count
         ordered_count = pd.Series(gas_ids).value_counts().loc[gas_ids].to_numpy()
-        gas_ids[ordered_count > 1]
-        repeaters.append(gas_ids)
+        repeaters.append(gas_ids[ordered_count > 1])
         np.savez("repeaters.npz", repeaters)
 
 if __name__ == "__main__":
