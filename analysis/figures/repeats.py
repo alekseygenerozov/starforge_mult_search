@@ -20,7 +20,8 @@ def main():
     start = 0 
     end = len(snaps) 
 
-    repeaters = []
+    ##For collecting all the repeaters
+    repeaters_all = []
     ##Iterate over all snapshots
     for ss in range(start, end):
         print(ss)
@@ -29,8 +30,10 @@ def main():
         gas_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
         ##Getting the count
         ordered_count = pd.Series(gas_ids).value_counts().loc[gas_ids].to_numpy()
-        repeaters.append(gas_ids[ordered_count > 1])
-        np.savez("repeaters.npz", repeaters)
+        gas_ids_repeat = gas_ids[ordered_count > 1]
+        repeaters_all.append(np.transpose([[ss] * len(gas_ids_repeat), gas_ids_repeat]))
+
+        np.savez("repeaters.npz", np.vstack(repeaters_all))
 
 if __name__ == "__main__":
     main()
