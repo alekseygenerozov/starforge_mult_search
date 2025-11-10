@@ -23,7 +23,7 @@ def main():
     ##For collecting all the repeaters
     repeaters_all = []
     ##Iterate over all snapshots
-    for ss in range(399, end):
+    for ss in range(start, end):
         print(ss)
         snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(ss))
         ##Getting all the counts of all the ids.
