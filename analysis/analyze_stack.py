@@ -554,6 +554,26 @@ def get_closest_star_time_series_T(path_lookup, my_key, t):
 def var_g23(N, k):
     return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
 
+def make_binned_data_cont(absc, ords, bins):
+    """
+    Binning of (boolean) ords according to absc and bins
+    """
+    binned_num = np.zeros(len(bins) - 1)
+    binned_err = np.zeros(len(bins) - 1)
+    binned_err2 = np.zeros(len(bins) - 1)
+
+
+    for bidx in range(1, len(bins)):
+        tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
+        tmp_ords = ords[tmp_filt]
+        tmp_ords = tmp_ords[~np.isinf(tmp_ords)]
+
+        binned_num[bidx - 1] = np.mean(tmp_ords)
+        binned_err[bidx - 1] = np.std(tmp_ords)
+        binned_err2[bidx -1] = np.std(tmp_ords) / (len(tmp_ords))**.5
+
+    return binned_num, binned_err, binned_err2
+
 def make_binned_data(absc, ords, bins):
     """
     Binning of (boolean) ords according to absc and bins

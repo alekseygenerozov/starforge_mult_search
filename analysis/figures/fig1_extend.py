@@ -258,9 +258,9 @@ ax.plot(partpos_filt[arr_index2, 0] - center[0], partpos_filt[arr_index2, 1] - c
 
 fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
 
-# prop_cycle = plt.rcParams['axes.prop_cycle']
-# colors = prop_cycle.by_key()['color']
-colors = ["w", "gold"]
+prop_cycle = plt.rcParams['axes.prop_cycle']
+colors = prop_cycle.by_key()['color']
+# colors = ["w", "gold"]
 del sel2
 del sel2_gas
 del den 
@@ -288,7 +288,7 @@ if tracer_file:
     is_accreted = is_accreted[random_selection]
 
     halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
-    arrow_cols = [colors[0] if row else colors[1] for row in is_accreted]
+    arrow_cols = [colors[row] for row in is_accreted.astype(int)]
     v_offset_x = halo_com[3]
     v_offset_y = halo_com[4]
     if len(bin_center)>0:

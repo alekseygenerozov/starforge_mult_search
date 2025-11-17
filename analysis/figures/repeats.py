@@ -23,11 +23,12 @@ def main():
     ##For collecting all the repeaters
     repeaters_all = []
     ##Iterate over all snapshots
-    for ss in range(start, end):
+    for ss in range(399, 400):
         print(ss)
         snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(ss))
         ##Getting all the counts of all the ids.
         gas_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
+        breakpoint()
         ##Getting the count
         ordered_count = pd.Series(gas_ids).value_counts()#.loc[gas_ids].to_numpy()
         gas_ids_repeat = np.transpose((ordered_count.loc[ordered_count>1].index, ordered_count.loc[ordered_count>1].values, [ss] * len(ordered_count.loc[ordered_count>1]))) 

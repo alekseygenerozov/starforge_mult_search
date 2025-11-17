@@ -26,6 +26,30 @@ def bash_command(cmd, **kwargs):
 	process = subprocess.Popen(['/bin/bash', '-c', cmd],  **kwargs)
 	return process.communicate()[0]
 
+def PE_vector(xc, mc, hc):
+    """ xc - array of positions
+        mc - array of masses
+        hc - array of smoothing lengths
+        bc - array of magnetic field strengths
+    """
+    ## gravitational potential energy
+    phic = pytreegrav.Potential(xc, mc, hc, G=sfc.GN, theta=0.5, method='bruteforce')  # G in code units
+    return (phic * mc)
+
+
+# Calculate kinetic energy of a set of cells, include internal energy
+def KE_vector(xc, mc, vc, uc):
+    """ xc - array of positions
+        mc - array of masses
+        vc - array of velocities
+        uc - array of internal energies
+    """
+    ## velocity w.r.t. com velocity
+    v_bulk = np.average(vc, weights=mc, axis=0)
+    v_well = vc - v_bulk
+    vSqr = np.sum(v_well ** 2, axis=1)
+    return (mc * (vSqr / 2 + uc))
+
 def PE(xc, mc, hc):
     """ xc - array of positions
         mc - array of masses
