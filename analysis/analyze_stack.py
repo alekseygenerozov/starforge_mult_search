@@ -6,6 +6,7 @@ import numpy as np
 from numba import njit
 from scipy.interpolate import interp1d
 
+import starforge_mult_search.code.starforge_constants as sfc
 from pytreegrav.kernel import PotentialKernel
 
 LOOKUP_SNAP = 0
@@ -58,6 +59,17 @@ def subtract_path(p1, p2):
     diff = np.ones((len(p1), 3)) * np.inf
     filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
     diff[filt] = p1[filt] - p2[filt]
+
+    return diff
+
+def divide_path(p1, p2):
+    """
+    Function to get displacement of 2 stars accounting for infinity placeholders
+    """
+    assert len(p1)==len(p2)
+    diff = np.ones((p1.shape[0], p1.shape[1])) * np.inf
+    filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
+    diff[filt] = p1[filt] / p2[filt]
 
     return diff
 
@@ -282,6 +294,36 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
 
     return closest_val, closest_idx, keys_all[closest_idx]
 
+def get_sigma(vels):
+    """
+    Get velocity distribution from list of velocities
+
+    :vels (list-like): List
+
+    :return: 3D velocity dispersion
+    """
+    sigma_x = np.std(vels[:,0])
+    sigma_y = np.std(vels[:,1])
+    sigma_z = np.std(vels[:,2])
+
+    return (sigma_x**2. + sigma_y**2. + sigma_z**2.)**.5
+
+def get_com_series(path_lookup, tmp_row):
+    """
+    Get velocity distribution from list of velocities
+
+    :path_lookup (dict): Lookup dictionary for particle paths over time...
+    :tmp_row (list-like): List of particles.
+
+    :return: Time series of COM positions and velocities.
+    """
+    coms = np.zeros((len(path_lookup[tmp_row[0]]), 6))
+    tot_mass = np.zeros(len(path_lookup[tmp_row[0]]))
+    for part in tmp_row:
+        coms += path_lookup[part][:, pxcol:vzcol + 1] * path_lookup[part][:,mcol][:,np.newaxis] 
+        tot_mass += path_lookup[part][:,mcol]
+    coms = divide_path(coms , tot_mass[:, np.newaxis])
+    return coms, tot_mass
 
 ##TO DO: GENERALIZE FOR ARBITRARY COLLECTIONS OF STARS
 def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_table=None):
@@ -335,6 +377,8 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         path_diff_all.append(path_diff)
         keys_all.append(uu)
 
+    ##Getting coms of stars over all times...
+    coms_row, tot_mass_row = get_com_series(path_lookup, tmp_row)
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
     ##Note argmpartition will *not* give the sorted order. 
@@ -346,20 +390,33 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     # sigmas = np.ones(len(keys_closest)) * np.inf
     mass_tot_closest = np.zeros((len(keys_closest), nneighbors))
     mass_closest = np.zeros((len(keys_closest), nneighbors))
+    sigma = np.zeros((len(keys_closest), nneighbors))
+    coll_rate = np.zeros((len(keys_closest), nneighbors))
+    coll_rate_focused = np.zeros((len(keys_closest), nneighbors))
+
     ##Iterating over all times
     for ii, row in enumerate(keys_closest):
         dist_neighbors = path_diff_all[ii, partition[ii, :nneighbors]]
         order = np.argsort(dist_neighbors)
         ##Trying to do n-densities simultaneously
         ndens[ii] = np.array([(nn + 1) / (4. * np.pi / 3.) / dist_neighbors[order[nn]]**3 for nn in range(nneighbors)])
+        v_neighbors =  np.array([path_lookup[kk][ii, vxcol:vzcol+1] for kk in row])[order]
 
         mass_neighbors = np.array([path_lookup[kk][ii, mcol] for kk in row])[order]
         mass_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
         mass_neighbors = np.array([path_lookup[kk][ii, mtotcol] for kk in row])[order]
         mass_tot_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
         # mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
+        ##Need to add the velocity dispersion of of the star itself...
+        
+        sigma[ii] = np.array([get_sigma(np.vstack((v_neighbors[:nn + 1], coms_row[ii, 3:]))) for nn in range(nneighbors)])
+        ##Hard-coded for a target size of 1e4 au
+        b = 0.048
+        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.
+        coll_rate_focused[ii] = coll_rate[ii] * (1 + 2. * sfc.GN * (tot_mass_row[ii] + mass_closest[ii]) / (b * sigma[ii]**2.))
 
-    return {"mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
+    return {"mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens, 
+            "sigma": sigma, "coll_rate": coll_rate, "coll_rate_focused": coll_rate_focused}
     # return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
 
 

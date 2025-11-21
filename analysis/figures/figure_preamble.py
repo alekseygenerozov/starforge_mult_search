@@ -9,15 +9,15 @@ from omegaconf import OmegaConf
 import pandas as pd
 import seaborn as sns
 colorblind_palette = sns.color_palette("colorblind")
-import scienceplots
+# import scienceplots
 
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
-plt.style.use('nature')
-print(mpl.rcParams['figure.figsize'] )
-mpl.rcParams['font.sans-serif'] = "Arial"
-mpl.rcParams['figure.figsize'] = (3.3, 3.3)
-mpl.rcParams['pdf.fonttype'] = 42
+# plt.style.use('nature')
+# print(mpl.rcParams['figure.figsize'] )
+# mpl.rcParams['font.sans-serif'] = "Arial"
+# mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+# mpl.rcParams['pdf.fonttype'] = 42
 
 ##Keep the default parameters the same as the submitted paper...
 default_config = OmegaConf.create({

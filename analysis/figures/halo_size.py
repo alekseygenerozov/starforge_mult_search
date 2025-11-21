@@ -68,7 +68,7 @@ def main():
     clean_keys = []
 
     for seed in (1, 2, 42):
-        my_ft = 8.0
+        my_ft = 1.0
         sim_tag = f"M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}"
         base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
         r1 = "/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/{0}/M2e4_snapshot_".format(sim_tag)
