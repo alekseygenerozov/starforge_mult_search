@@ -33,7 +33,6 @@ def main():
         snapshot_file = args.snap_base + "_{0:03d}.hdf5".format(int(ss))
         ##Getting all the counts of all the ids.
         gas_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
-        breakpoint()
         ##Getting the count
         ordered_count = pd.Series(gas_ids).value_counts()  # .loc[gas_ids].to_numpy()
         gas_ids_repeat = np.transpose(
