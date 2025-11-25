@@ -131,7 +131,7 @@ def main():
                     if len(tmp_bound) > 0:
                         breakpoint()
                     print("bad2", tmp_bound)
-                elif len(tmp_pos) < 1:
+                elif len(tmp_pos) < 2:
                     print("bad3", tmp_bound)
                 else:
                     # dx = tmp_pos
@@ -142,8 +142,10 @@ def main():
                     rs = np.sum(dx * dx, axis=1) ** 0.5
                     # print("cs:", cs_mean * 100 / 1e5)
                     npts.append(len(tmp_pos))
-
-                    evals, evecs = get_shape_eigen(dx)
+                    try:
+                        evals, evecs = get_shape_eigen(dx)
+                    except np.linalg.LinAlgError:
+                        breakpoint()
                     a1, a2, a3 = evals
                     a1s.append(a1)
                     a2s.append(a2)

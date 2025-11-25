@@ -5,14 +5,16 @@ import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from omegaconf import OmegaConf
 import pandas as pd
 import seaborn as sns
+from omegaconf import OmegaConf
+
 colorblind_palette = sns.color_palette("colorblind")
 # import scienceplots
 
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
+
 # plt.style.use('nature')
 # print(mpl.rcParams['figure.figsize'] )
 # mpl.rcParams['font.sans-serif'] = "Arial"
@@ -20,12 +22,15 @@ from starforge_mult_search.analysis.analyze_stack import npz_stack
 # mpl.rcParams['pdf.fonttype'] = 42
 
 ##Keep the default parameters the same as the submitted paper...
-default_config = OmegaConf.create({
-    "contig_suff": "",
-    "flat_suff": "_flat",
-    "smao":"False",
-    "two_body":"False",
-    "my_ft": 1.0})
+default_config = OmegaConf.create(
+    {
+        "contig_suff": "",
+        "flat_suff": "_flat",
+        "smao": "False",
+        "two_body": "False",
+        "my_ft": 1.0,
+    }
+)
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -52,6 +57,7 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 
 # user_config_path = "fig_config.yaml"
 user_config_path = sys.argv[1]
+print(user_config_path)
 if os.path.exists(user_config_path):
     user_config = OmegaConf.load(user_config_path)
     config = OmegaConf.merge(default_config, user_config)
@@ -88,13 +94,36 @@ npzs_list = []
 suff = "_mult"
 npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]
 seeds_lookup = np.concatenate(
-    [[seed] * len(np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)["bin_ids"]) for
-     seed in seeds])
-seeds_lookup_idx = np.concatenate([[seeds_idx[seed_idx]] * len(
-    np.load(base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz", allow_pickle=True)["bin_ids"]) for seed_idx, seed
-                                   in enumerate(seeds)])
+    [
+        [seed]
+        * len(
+            np.load(
+                base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz",
+                allow_pickle=True,
+            )["bin_ids"]
+        )
+        for seed in seeds
+    ]
+)
+seeds_lookup_idx = np.concatenate(
+    [
+        [seeds_idx[seed_idx]]
+        * len(
+            np.load(
+                base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz",
+                allow_pickle=True,
+            )["bin_ids"]
+        )
+        for seed_idx, seed in enumerate(seeds)
+    ]
+)
 my_data = npz_stack(npzs_list)
-coll_full_df_life = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
+coll_full_df_life = pd.concat(
+    [
+        pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq")
+        for seed in seeds
+    ]
+)
 
 path_lookup = {}
 spin_lookup = {}
@@ -118,8 +147,10 @@ for seed in seeds:
 
 snap_interval = my_data["snap_interval"][0]
 ##Getting the final multiplicity of the binary stars, and whether they are in the same multiple system at the end.
-npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz" for seed in seeds]
+npzs_list = [
+    base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz"
+    for seed in seeds
+]
 fates_corr = npz_stack(npzs_list)
 same_sys_filt = fates_corr["same_sys_filt"]
 end_states = fates_corr["end_states"]
-
