@@ -1,24 +1,28 @@
-import time
-import numpy as np
-import h5py
-from itertools import combinations
-import pickle
-import pytreegrav
 import argparse
-import starforge_mult_search.code.starforge_constants as sfc
+import pickle
+import time
+
 # import tqdm
 import warnings
+from itertools import combinations
+
+import h5py
+import numpy as np
+import pytreegrav
+
+import starforge_mult_search.code.starforge_constants as sfc
+
 
 def load_gas_ids(file, res_limit=0.0):
-    """ file - h5pdf5 STARFORGE snapshot
-        res_limit - minimum mass resolution to include in analyis (in code units)
+    """file - h5pdf5 STARFORGE snapshot
+    res_limit - minimum mass resolution to include in analyis (in code units)
     """
     # Load snapshot data
-    f = h5py.File(file, 'r')
+    f = h5py.File(file, "r")
 
     # Mask to remove any cells with mass below the cell resolution
     # (implemented specifically to remove feedback cells if desired)
-    mask = (f['PartType0']['Masses'][:] >= res_limit * 0.999)
+    mask = f["PartType0"]["Masses"][:] >= res_limit * 0.999
     mask3d = np.array([mask, mask, mask]).T
 
     gas_id = f["PartType0"]["ParticleIDs"][:] * mask
@@ -26,64 +30,79 @@ def load_gas_ids(file, res_limit=0.0):
     del f
     return gas_id
 
+
 def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
-    """ file - h5pdf5 STARFORGE snapshot
-        res_limit - minimum mass resolution to include in analyis (in code units)
+    """file - h5pdf5 STARFORGE snapshot
+    res_limit - minimum mass resolution to include in analyis (in code units)
     """
     # Load snapshot data
-    f = h5py.File(file, 'r')
+    f = h5py.File(file, "r")
 
     # Mask to remove any cells with mass below the cell resolution
     # (implemented specifically to remove feedback cells if desired)
-    mask = (f['PartType0']['Masses'][:] >= res_limit * 0.999)
+    mask = f["PartType0"]["Masses"][:] >= res_limit * 0.999
     mask3d = np.array([mask, mask, mask]).T
+    breakpoint()
 
     # Read in gas properties
     # Mass density
-    den = f['PartType0']['Density'][:] * mask
+    den = f["PartType0"]["Density"][:] * mask
     # Spatial positions
-    x = f['PartType0']['Coordinates'] * mask3d
+    x = f["PartType0"]["Coordinates"] * mask3d
 
     # Mass of each cell/partical
-    m = f['PartType0']['Masses'][:] * mask
+    m = f["PartType0"]["Masses"][:] * mask
     # Calculation smoothing length, useful for weighting and/or visualization
-    h = f['PartType0']['SmoothingLength'][:] * mask
+    h = f["PartType0"]["SmoothingLength"][:] * mask
     # Internal (thermal) energy
-    u = f['PartType0']['InternalEnergy'][:] * mask
-    v = f['PartType0']['Velocities'] * mask3d
-    b = f['PartType0']['MagneticField'][:] * mask3d
-    #t = f['PartType0']['Temperature'][:] * mask
+    u = f["PartType0"]["InternalEnergy"][:] * mask
+    v = f["PartType0"]["Velocities"] * mask3d
+    b = f["PartType0"]["MagneticField"][:] * mask3d
+    # t = f['PartType0']['Temperature'][:] * mask
     # Fraction of molecular material in each cell
     try:
-        fmol = f['PartType0']['MolecularMassFraction'][:] * mask
+        fmol = f["PartType0"]["MolecularMassFraction"][:] * mask
     except KeyError:
         fmol = np.ones_like(u) * np.inf
     # To get molecular gas density do: den*fmol*fneu*(1-helium_mass_fraction)/(2.0*mh), helium_mass_fraction=0.284
-    fneu = f['PartType0']['NeutralHydrogenAbundance'][:] * mask
+    fneu = f["PartType0"]["NeutralHydrogenAbundance"][:] * mask
 
     ## Units and snapshot time
     try:
-        unitlen = f['Header'].attrs['UnitLength_In_CGS']
-        unitmass = f['Header'].attrs['UnitMass_In_CGS']
-        unitvel = f['Header'].attrs['UnitVelocity_In_CGS']
+        unitlen = f["Header"].attrs["UnitLength_In_CGS"]
+        unitmass = f["Header"].attrs["UnitMass_In_CGS"]
+        unitvel = f["Header"].attrs["UnitVelocity_In_CGS"]
     ##Fallback for units...
     except KeyError:
-        unitlen = 3.085678e+18
-        unitmass = 1.989e+33
+        unitlen = 3.085678e18
+        unitmass = 1.989e33
         unitvel = 100.0
     unitb = 1e4  # f['Header'].attrs['UnitMagneticField_In_CGS'] If not defined
-    unit_base = {'UnitLength': unitlen, 'UnitMass': unitmass, 'UnitVel': unitvel, 'UnitB': unitb}
-    time = f['Header'].attrs['Time']
-    tsnap_myr = time * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
+    unit_base = {
+        "UnitLength": unitlen,
+        "UnitMass": unitmass,
+        "UnitVel": unitvel,
+        "UnitB": unitb,
+    }
+    time = f["Header"].attrs["Time"]
+    tsnap_myr = (
+        time
+        * (unit_base["UnitLength"] / unit_base["UnitVel"])
+        / (3600.0 * 24.0 * 365.0 * 1e6)
+    )
 
-    if 'PartType5' in f.keys():
-        partpos = f['PartType5']['Coordinates'][:]
-        partmasses = f['PartType5']['Masses'][:]
-        partvels = f['PartType5']['Velocities'][:]
-        partids = f['PartType5']['ParticleIDs'][:]
-        partsink = (f['PartType5']['SinkRadius'][:])
-        partspin = (f['PartType5']['BH_Specific_AngMom'][:])
-        tstar_form_Myr = f['PartType5'][star_age_key][...] * (unit_base['UnitLength'] / unit_base['UnitVel']) / (3600.0 * 24.0 * 365.0 * 1e6)
+    if "PartType5" in f.keys():
+        partpos = f["PartType5"]["Coordinates"][:]
+        partmasses = f["PartType5"]["Masses"][:]
+        partvels = f["PartType5"]["Velocities"][:]
+        partids = f["PartType5"]["ParticleIDs"][:]
+        partsink = f["PartType5"]["SinkRadius"][:]
+        partspin = f["PartType5"]["BH_Specific_AngMom"][:]
+        tstar_form_Myr = (
+            f["PartType5"][star_age_key][...]
+            * (unit_base["UnitLength"] / unit_base["UnitVel"])
+            / (3600.0 * 24.0 * 365.0 * 1e6)
+        )
         tage_myr = tsnap_myr - tstar_form_Myr
     ##Had some non-empty values here...
     else:
@@ -98,30 +117,53 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     print("Snapshot time in %f Myr" % (tsnap_myr))
 
     del f
-    return den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin
+    return (
+        den,
+        x,
+        m,
+        h,
+        u,
+        b,
+        v,
+        fmol,
+        fneu,
+        partpos,
+        partmasses,
+        partvels,
+        partids,
+        partsink,
+        tage_myr,
+        unit_base,
+        partspin,
+    )
+
 
 def PE(xc, mc, hc):
-    """ xc - array of positions
-        mc - array of masses
-        hc - array of smoothing lengths
-        bc - array of magnetic field strengths
+    """xc - array of positions
+    mc - array of masses
+    hc - array of smoothing lengths
+    bc - array of magnetic field strengths
     """
     ## gravitational potential energy
-    phic = pytreegrav.Potential(xc, mc, hc, G=sfc.GN, theta=0.5, method='bruteforce') # G in code units
-    return 0.5 * (phic*mc).sum()
+    phic = pytreegrav.Potential(
+        xc, mc, hc, G=sfc.GN, theta=0.5, method="bruteforce"
+    )  # G in code units
+    return 0.5 * (phic * mc).sum()
+
 
 # Calculate kinetic energy of a set of cells, include internal energy
 def KE(xc, mc, vc, uc):
-    """ xc - array of positions
-        mc - array of masses
-        vc - array of velocities
-        uc - array of internal energies
+    """xc - array of positions
+    mc - array of masses
+    vc - array of velocities
+    uc - array of internal energies
     """
     ## velocity w.r.t. com velocity
     v_bulk = np.average(vc, weights=mc, axis=0)
     v_well = vc - v_bulk
-    vSqr = np.sum(v_well ** 2, axis=1)
+    vSqr = np.sum(v_well**2, axis=1)
     return (mc * (vSqr / 2 + uc)).sum()
+
 
 def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     """
@@ -139,36 +181,50 @@ def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     """
     dp = np.linalg.norm(p1 - p2)
 
-    com = (m1*p1 + m2*p2)/(m1 + m2)
-    com_vel = (m1*v1 + m2*v2)/(m1 + m2)
+    com = (m1 * p1 + m2 * p2) / (m1 + m2)
+    com_vel = (m1 * v1 + m2 * v2) / (m1 + m2)
     ##Particle velocities in com frame
     p1_com = p1 - com
     p2_com = p2 - com
     v1_com = v1 - com_vel
     v2_com = v2 - com_vel
 
-    v12 = (v1_com[0]**2. + v1_com[1]**2. + v1_com[2]**2.)
-    v22 = (v2_com[0]**2. + v2_com[1]**2. + v2_com[2]**2.)
+    v12 = v1_com[0] ** 2.0 + v1_com[1] ** 2.0 + v1_com[2] ** 2.0
+    v22 = v2_com[0] ** 2.0 + v2_com[1] ** 2.0 + v2_com[2] ** 2.0
 
     ##Kinetic and potential energies
-    ke = 0.5*m1*v12 + 0.5*m2*v22
+    ke = 0.5 * m1 * v12 + 0.5 * m2 * v22
     pe = -PE(np.array([p1_com, p2_com]), np.array([m1, m2]), np.array([h1, h2]))
 
-    a_bin = sfc.GN*(m1*m2)/(2.*(pe-ke))
+    a_bin = sfc.GN * (m1 * m2) / (2.0 * (pe - ke))
     ##Angular momentum in binary com
-    j_bin = m1*np.cross(p1_com, v1_com) + m2*np.cross(p2_com, v2_com)
+    j_bin = m1 * np.cross(p1_com, v1_com) + m2 * np.cross(p2_com, v2_com)
     ##Angular momentum of binary com
-    j_com = (m1 + m2)*np.cross(com, com_vel)
+    j_com = (m1 + m2) * np.cross(com, com_vel)
 
-    #Inclination
-    #i_bin = np.arccos(np.dot(j_bin, j_com)/np.linalg.norm(j_bin)/np.linalg.norm(j_com))*180./np.pi
+    # Inclination
+    # i_bin = np.arccos(np.dot(j_bin, j_com)/np.linalg.norm(j_bin)/np.linalg.norm(j_com))*180./np.pi
     i_bin = np.arccos(j_bin[2] / np.linalg.norm(j_bin))
-    mu = m1*m2/(m1+m2)
+    mu = m1 * m2 / (m1 + m2)
     ##Eccentricity of the binary
-    e_bin = np.sqrt(1.-np.linalg.norm(j_bin)**2./(sfc.GN*(m1+m2)*a_bin)/(mu**2.))
+    e_bin = np.sqrt(
+        1.0 - np.linalg.norm(j_bin) ** 2.0 / (sfc.GN * (m1 + m2) * a_bin) / (mu**2.0)
+    )
 
-
-    return a_bin, e_bin, i_bin, dp, com[0], com[1], com[2], com_vel[0], com_vel[1], com_vel[2], m1, m2
+    return (
+        a_bin,
+        e_bin,
+        i_bin,
+        dp,
+        com[0],
+        com[1],
+        com[2],
+        com_vel[0],
+        com_vel[1],
+        com_vel[2],
+        m1,
+        m2,
+    )
 
 
 def get_energy(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
@@ -187,25 +243,25 @@ def get_energy(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     """
     dp = np.linalg.norm(p1 - p2)
 
-    com = (m1*p1 + m2*p2)/(m1 + m2)
-    com_vel = (m1*v1 + m2*v2)/(m1 + m2)
+    com = (m1 * p1 + m2 * p2) / (m1 + m2)
+    com_vel = (m1 * v1 + m2 * v2) / (m1 + m2)
     ##Particle velocities in com frame
     p1_com = p1 - com
     p2_com = p2 - com
     v1_com = v1 - com_vel
     v2_com = v2 - com_vel
 
-    v12 = (v1_com[0]**2. + v1_com[1]**2. + v1_com[2]**2.)
-    v22 = (v2_com[0]**2. + v2_com[1]**2. + v2_com[2]**2.)
+    v12 = v1_com[0] ** 2.0 + v1_com[1] ** 2.0 + v1_com[2] ** 2.0
+    v22 = v2_com[0] ** 2.0 + v2_com[1] ** 2.0 + v2_com[2] ** 2.0
 
     ##Kinetic and potential energies
-    ke = 0.5*m1*v12 + 0.5*m2*v22
+    ke = 0.5 * m1 * v12 + 0.5 * m2 * v22
     ##Potential energy ##TRY REPLACING WITH FUNCTIONALITY FROM PYTREEGRAV...
     # pe = G*m1*m2/dp
     pe = -PE(np.array([p1_com, p2_com]), np.array([m1, m2]), np.array([h1, h2]))
 
-
     return pe, ke
+
 
 def select_in_subregion(x, Ngrid1D=1):
     """
@@ -216,27 +272,35 @@ def select_in_subregion(x, Ngrid1D=1):
     """
     xmin = np.min(x[:, 0])
     xmax = np.max(x[:, 0])
-    dx = (xmax-xmin)/(Ngrid1D)
+    dx = (xmax - xmin) / (Ngrid1D)
 
     ymin = np.min(x[:, 1])
     ymax = np.max(x[:, 1])
-    dy = (ymax-ymin)/(Ngrid1D)
+    dy = (ymax - ymin) / (Ngrid1D)
 
     zmin = np.min(x[:, 2])
     zmax = np.max(x[:, 2])
-    dz = (zmax-zmin)/(Ngrid1D)
+    dz = (zmax - zmin) / (Ngrid1D)
 
     regions = []
-    for grid_ind in range(Ngrid1D*Ngrid1D*Ngrid1D):
-        x_ind = (grid_ind % Ngrid1D)
-        y_ind = ((grid_ind-x_ind) % (Ngrid1D*Ngrid1D))/Ngrid1D
-        z_ind = (grid_ind-x_ind-y_ind*Ngrid1D)/(Ngrid1D*Ngrid1D)
-        xlim = xmin+x_ind*dx
-        ylim = ymin+y_ind*dy
-        zlim = zmin+z_ind*dz
+    for grid_ind in range(Ngrid1D * Ngrid1D * Ngrid1D):
+        x_ind = grid_ind % Ngrid1D
+        y_ind = ((grid_ind - x_ind) % (Ngrid1D * Ngrid1D)) / Ngrid1D
+        z_ind = (grid_ind - x_ind - y_ind * Ngrid1D) / (Ngrid1D * Ngrid1D)
+        xlim = xmin + x_ind * dx
+        ylim = ymin + y_ind * dy
+        zlim = zmin + z_ind * dz
 
-        regions.append((x[:, 0] >= xlim) & (x[:, 0] <= (xlim+dx)) & (x[:, 1] >= ylim) & (x[:, 1] <= (ylim+dy)) & (x[:, 2] >= zlim) & (x[:, 2] <= (zlim+dz)))
+        regions.append(
+            (x[:, 0] >= xlim)
+            & (x[:, 0] <= (xlim + dx))
+            & (x[:, 1] >= ylim)
+            & (x[:, 1] <= (ylim + dy))
+            & (x[:, 2] >= zlim)
+            & (x[:, 2] <= (zlim + dz))
+        )
     return regions
+
 
 def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
     """
@@ -251,7 +315,7 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
     :rtype: bool
 
     """
-    #System 1
+    # System 1
     sys1_pos = sys1.sub_pos
     sys1_mass = sys1.sub_mass
     sys1_soft = sys1.sub_soft
@@ -263,17 +327,24 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
     com_2 = np.average(sys2_pos, weights=sys2_mass, axis=0)
     ##Acceleration of system 1 particles due to system 2 particles
     ##Acceleration here??
-    a_internal = pytreegrav.AccelTarget(np.atleast_2d(sys1_pos), np.atleast_2d(sys2_pos),
-                                                   np.atleast_1d(sys2_mass), softening_target=np.atleast_1d(sys1_soft),
-                                                   softening_source=np.atleast_1d(sys2_soft), G=sfc.GN)
+    a_internal = pytreegrav.AccelTarget(
+        np.atleast_2d(sys1_pos),
+        np.atleast_2d(sys2_pos),
+        np.atleast_1d(sys2_mass),
+        softening_target=np.atleast_1d(sys1_soft),
+        softening_source=np.atleast_1d(sys2_soft),
+        G=sfc.GN,
+    )
     ##Acceleration of com of system 1 due to system 2.
     a_internal_com = np.dot(sys1_mass, a_internal) / np.sum(sys1_mass)
     ##Acceleration of com of whole system
-    com_accel = (np.sum(sys1_mass) * sys1.accel + np.sum(sys2_mass) * sys2.accel) / (np.sum(sys1_mass) + np.sum(sys2_mass))
+    com_accel = (np.sum(sys1_mass) * sys1.accel + np.sum(sys2_mass) * sys2.accel) / (
+        np.sum(sys1_mass) + np.sum(sys2_mass)
+    )
     ##Difference acceleration of system and com acceleration of com ##How do we want to order the subtraction?
     a_tides = (sys1.accel - com_accel) - a_internal_com
     ##Tidal criterion
-    tidal_crit = (np.linalg.norm(a_tides) < tides_factor * np.linalg.norm(a_internal_com))
+    tidal_crit = np.linalg.norm(a_tides) < tides_factor * np.linalg.norm(a_internal_com)
     ##Check if tides are actually destructive
     if compress:
         compress_check = np.dot(a_tides, com_2 - com_1) > 0
@@ -282,18 +353,23 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
         return tidal_crit, sys1.accel, com_accel, a_internal_com, a_tides
     return (tidal_crit), a_tides
 
+
 def flatten_ids(ids):
     """
     Convert arbitrary nested list/array of numbers into a 1D numpy array of ints.
     """
+
     def _flatten(x):
         if isinstance(x, (list, tuple, np.ndarray)):
             for item in x:
                 yield from _flatten(item)
         else:
-            yield int(x)  # handles numpy.int64, np.str_ holding a number, plain int, etc.
+            yield int(
+                x
+            )  # handles numpy.int64, np.str_ holding a number, plain int, etc.
 
     return np.fromiter(_flatten(ids), dtype=int)
+
 
 class system(object):
     """
@@ -308,6 +384,7 @@ class system(object):
     :param int sysID: ID that can be used to tag a system
 
     """
+
     def __init__(self, p1, v1, m1, h1, id1, accel, sysID, pos_to_spos=False):
         self.pos = np.copy(p1)
         self.vel = np.copy(v1)
@@ -365,7 +442,6 @@ class system(object):
         """
         self.sub_accel = np.concatenate((self.sub_accel, accel))
 
-
     def add_sub_mass(self, mass):
         """
         Add mass of system subcomponent
@@ -398,8 +474,22 @@ class cluster(object):
     :param Array-like accels: Particle accelerations
 
     """
-    def __init__(self, ps, vs, ms, partsink, ids, accels, tides=True, Ngrid1D=1,
-                 sma_order=False, mult_max=4, tides_factor=8, compress=False):
+
+    def __init__(
+        self,
+        ps,
+        vs,
+        ms,
+        partsink,
+        ids,
+        accels,
+        tides=True,
+        Ngrid1D=1,
+        sma_order=False,
+        mult_max=4,
+        tides_factor=8,
+        compress=False,
+    ):
         self.mult_max = mult_max
         self.Ngrid1D = Ngrid1D
         self.sma_order = sma_order
@@ -408,13 +498,26 @@ class cluster(object):
         self.systems = []
         ##Adding each star as a system
         for ii in range(len(ps)):
-            self.systems.append(system(ps[ii], vs[ii], ms[ii], partsink[ii], ids[ii], accels[ii], ii, pos_to_spos=True))
+            self.systems.append(
+                system(
+                    ps[ii],
+                    vs[ii],
+                    ms[ii],
+                    partsink[ii],
+                    ids[ii],
+                    accels[ii],
+                    ii,
+                    pos_to_spos=True,
+                )
+            )
         self.systems = np.array(self.systems)
         self.tides = tides
         ##Partition stars into different subregions -- copied from one of existing binary-finding codes.
         ##Can help with performance.
-        self.regions = select_in_subregion(self.get_system_position, Ngrid1D=self.Ngrid1D)
-        if Ngrid1D==1:
+        self.regions = select_in_subregion(
+            self.get_system_position, Ngrid1D=self.Ngrid1D
+        )
+        if Ngrid1D == 1:
             self.regions = [np.ones(len(self.get_system_position)).astype(bool)]
         self.orb_all = []
         self._calculate_orbits()
@@ -424,7 +527,7 @@ class cluster(object):
             systems_start = [ss.multiplicity for ss in self.systems]
             self._find_binaries_all()
             systems_end = [ss.multiplicity for ss in self.systems]
-            conv = (systems_start == systems_end)
+            conv = systems_start == systems_end
         # print("test")
 
     @property
@@ -483,11 +586,31 @@ class cluster(object):
 
             for i in range(len(pos)):
                 d = pos - pos[i]
-                d = np.sum(d * d, axis=1) ** .5
+                d = np.sum(d * d, axis=1) ** 0.5
                 ord = np.argsort(d)
                 for j in ord[1:51]:
-                    orb_region.append(np.concatenate((get_orbit(pos[i], pos[j], vel[i], vel[j], mass[i], mass[j], h1=soft[i], h2=soft[j]),
-                                                      [self.systems[idx[i]].ids[0], self.systems[idx[j]].ids[0], self.systems[idx[i]].sysID, self.systems[idx[j]].sysID])))
+                    orb_region.append(
+                        np.concatenate(
+                            (
+                                get_orbit(
+                                    pos[i],
+                                    pos[j],
+                                    vel[i],
+                                    vel[j],
+                                    mass[i],
+                                    mass[j],
+                                    h1=soft[i],
+                                    h2=soft[j],
+                                ),
+                                [
+                                    self.systems[idx[i]].ids[0],
+                                    self.systems[idx[j]].ids[0],
+                                    self.systems[idx[i]].sysID,
+                                    self.systems[idx[j]].sysID,
+                                ],
+                            )
+                        )
+                    )
             self.orb_all.append(np.array(orb_region))
 
     def _find_binaries_all(self):
@@ -512,7 +635,7 @@ class cluster(object):
         soft = self.get_system_soft
         accel = self.get_system_accel
 
-        ens = -sfc.GN*orb_all[:, 10]*orb_all[:, 11]/(2.*orb_all[:, 0])
+        ens = -sfc.GN * orb_all[:, 10] * orb_all[:, 11] / (2.0 * orb_all[:, 0])
         if self.sma_order:
             ens = orb_all[:, 0]
         en_order = np.argsort(ens)
@@ -526,13 +649,23 @@ class cluster(object):
             idx1 = np.where(sysIDs == ID1)[0][0]
             idx2 = np.where(sysIDs == ID2)[0][0]
 
-            mult_total = self.systems[idx1].multiplicity + self.systems[idx2].multiplicity
+            mult_total = (
+                self.systems[idx1].multiplicity + self.systems[idx2].multiplicity
+            )
             ###Tidal criterion:  (Symmetrized)
             if self.tides:
-                tidal_crit_1, at1 = check_tides_sys(self.systems[idx1], self.systems[idx2],
-                                                    tides_factor=self.tides_factor, compress=self.compress)
-                tidal_crit_2, at2 = check_tides_sys(self.systems[idx2], self.systems[idx1],
-                                                    tides_factor=self.tides_factor, compress=self.compress)
+                tidal_crit_1, at1 = check_tides_sys(
+                    self.systems[idx1],
+                    self.systems[idx2],
+                    tides_factor=self.tides_factor,
+                    compress=self.compress,
+                )
+                tidal_crit_2, at2 = check_tides_sys(
+                    self.systems[idx2],
+                    self.systems[idx1],
+                    tides_factor=self.tides_factor,
+                    compress=self.compress,
+                )
                 tidal_crit = tidal_crit_1 and tidal_crit_2
             else:
                 tidal_crit = True
@@ -576,10 +709,19 @@ class cluster(object):
         m2 = self.systems[idx2].mass
         h1 = self.systems[idx1].soft
         h2 = self.systems[idx2].soft
-        a_com = (m1 * self.systems[idx1].accel + m2 * self.systems[idx2].accel) / (m1 + m2)
+        a_com = (m1 * self.systems[idx1].accel + m2 * self.systems[idx2].accel) / (
+            m1 + m2
+        )
 
-        ss_new = system(row[4:7], row[7:10], row[10] + row[11], h1 + h2, [hierarchies[idx1], hierarchies[idx2]], a_com,
-                        sysID_max + 1)
+        ss_new = system(
+            row[4:7],
+            row[7:10],
+            row[10] + row[11],
+            h1 + h2,
+            [hierarchies[idx1], hierarchies[idx2]],
+            a_com,
+            sysID_max + 1,
+        )
         ss_new.add_orbit(self.systems[idx1].orbits)
         ss_new.add_orbit(self.systems[idx2].orbits)
         ss_new.add_orbit([row])
@@ -637,7 +779,7 @@ class cluster(object):
         regionIDs = np.unique(self.orb_all[ii][:, -2:].astype(int).ravel())
         sysIDs = self.get_system_ids_b
         regionIDs = regionIDs[np.isin(regionIDs, sysIDs)]
-        ##Taking care of edge case where there are no further IDs in region -- 
+        ##Taking care of edge case where there are no further IDs in region --
         if len(regionIDs) == 0:
             return
         pos = self.get_system_position
@@ -652,57 +794,113 @@ class cluster(object):
         r_idx = [np.where(rr == sysIDs)[0][0] for rr in regionIDs]
         r_idx = np.array(r_idx)
         d = d[r_idx]
-        d = np.sum(d * d, axis=1) ** .5
+        d = np.sum(d * d, axis=1) ** 0.5
         order = np.argsort(d)
 
         ##new systems will not be included in regionIDs, so we have slightly different indexing fron _calc_orbits
         for id_it in regionIDs[order][:50]:
             j = np.where(id_it == sysIDs)[0][0]
-            tmp = get_orbit(pos[idx1], pos[j], vel[idx1], vel[j], mass[idx1], mass[j], h1=soft[idx1], h2=soft[j])
+            tmp = get_orbit(
+                pos[idx1],
+                pos[j],
+                vel[idx1],
+                vel[j],
+                mass[idx1],
+                mass[j],
+                h1=soft[idx1],
+                h2=soft[j],
+            )
             tmp = np.concatenate((tmp, [ids[idx1][0], ids[j][0], ID_NEW, id_it]))
             self.orb_all[ii] = np.append(self.orb_all[ii], tmp)
             self.orb_all[ii].shape = (-1, 16)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse starforge snapshot, and get multiple data.")
+    parser = argparse.ArgumentParser(
+        description="Parse starforge snapshot, and get multiple data."
+    )
     parser.add_argument("snap", help="Snapshot index")
-    parser.add_argument("--snap_base", default="snapshot", help="First part of snapshot name")
+    parser.add_argument(
+        "--snap_base", default="snapshot", help="First part of snapshot name"
+    )
     parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
-    parser.add_argument("--sma_order", action="store_true", help="Assemble hierarchy by sma instead of binding energy")
-    parser.add_argument("--halo_mass_file", default="", help="Start of the file containing gas halo mass around sink particles")
+    parser.add_argument(
+        "--sma_order",
+        action="store_true",
+        help="Assemble hierarchy by sma instead of binding energy",
+    )
+    parser.add_argument(
+        "--halo_mass_file",
+        default="",
+        help="Start of the file containing gas halo mass around sink particles",
+    )
     parser.add_argument("--mult_max", type=int, default=4, help="Multiplicity cut (4).")
-    parser.add_argument("--ngrid", type=int, default=1, help="Number of subgrids to use. Higher number will be faster,"
-                                                             " but less accurate (1)")
-    parser.add_argument("--compress", action="store_true", help="Filter out compressive tidal forces")
-    parser.add_argument("--tides_factor", type=float, default=8.0, help="Prefactor for check of tidal criterion (8.0)")
+    parser.add_argument(
+        "--ngrid",
+        type=int,
+        default=1,
+        help="Number of subgrids to use. Higher number will be faster,"
+        " but less accurate (1)",
+    )
+    parser.add_argument(
+        "--compress", action="store_true", help="Filter out compressive tidal forces"
+    )
+    parser.add_argument(
+        "--tides_factor",
+        type=float,
+        default=8.0,
+        help="Prefactor for check of tidal criterion (8.0)",
+    )
     parser.add_argument("--nhalo", action="store_true", help="Turn off halo")
     parser.add_argument("--ntides", action="store_true", help="Turn off tides")
-    parser.add_argument("--star_age_key", default="ProtoStellarAge", help="Key for stellar age")
+    parser.add_argument(
+        "--star_age_key", default="ProtoStellarAge", help="Key for stellar age"
+    )
 
     args = parser.parse_args()
-    inc_halo =  not args.nhalo
+    inc_halo = not args.nhalo
     star_age_key = args.star_age_key
     inc_tides = not args.ntides
-    snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(args.snap))
+    snapshot_file = args.snap_base + "_{0:03d}.hdf5".format(int(args.snap))
     sma_order = args.sma_order
     name_tag = args.name_tag
-    snapshot_num = f'{int(args.snap):03d}'
+    snapshot_num = f"{int(args.snap):03d}"
 
     # den, x, m, h, u, b, v, t, fmol, fneu, partpos, partmasses, partvels, partids, tage_myr, unit_base = load_data(snapshot_file, res_limit=1e-3)
     # cl = cluster(partpos, partvels, partmasses, partids)
-    den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
-    if len(partpos)==0:
+    (
+        den,
+        x,
+        m,
+        h,
+        u,
+        b,
+        v,
+        fmol,
+        fneu,
+        partpos,
+        partmasses,
+        partvels,
+        partids,
+        partsink,
+        tage_myr,
+        unit_base,
+        partspin,
+    ) = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
+    if len(partpos) == 0:
         print("No particles!")
         return
     halo_masses = np.zeros(len(partmasses))
     if inc_halo:
-        halo_mass_file = args.halo_mass_file + "_{0}_comp{1}_tf{2}".format(args.snap, args.compress, args.tides_factor)
-        halo_masses = np.atleast_2d(np.genfromtxt(halo_mass_file))[:,0]
+        halo_mass_file = args.halo_mass_file + "_{0}_comp{1}_tf{2}".format(
+            args.snap, args.compress, args.tides_factor
+        )
+        halo_masses = np.atleast_2d(np.genfromtxt(halo_mass_file))[:, 0]
 
     partmasses += halo_masses
 
     xuniq, indx = np.unique(x, return_index=True, axis=0)
+    breakpoint()
     muniq = m[indx]
     huniq = h[indx]
     xuniq = xuniq.astype(np.float64)
@@ -719,18 +917,29 @@ def main():
     ##Exclude particles that are in halos, so that the halos are collapsed once and for all(!!!)
     halo_mask = np.ones(len(xuniq), bool)
     if inc_halo:
-        with h5py.File(args.halo_mass_file.replace("M2e4", "") + f"_{args.snap}_comp{args.compress}_tf{args.tides_factor}.hdf5", 'r') as gas_dat_h5:
+        with h5py.File(
+            args.halo_mass_file.replace("M2e4", "")
+            + f"_{args.snap}_comp{args.compress}_tf{args.tides_factor}.hdf5",
+            "r",
+        ) as gas_dat_h5:
             for ii in range(len(partpos)):
                 halo_idx = gas_dat_h5["halo_{0}".format(partids[ii])]
-                if (halo_idx.shape == (1, 2)) or len(halo_idx)==0:
+                if (halo_idx.shape == (1, 2)) or len(halo_idx) == 0:
                     continue
                 halo_mask[halo_idx] = False
     ##To save time -- don't bother calculating if we are not including tides(!!!)
     accel_gas = np.ones((len(partpos), 3)) * np.inf
     if inc_tides:
-        accel_gas = pytreegrav.AccelTarget(partpos, xuniq[halo_mask], muniq[halo_mask],
-                                               softening_target=partsink, softening_source=huniq[halo_mask],
-                                               theta=0.5, G=sfc.GN, method='tree')
+        accel_gas = pytreegrav.AccelTarget(
+            partpos,
+            xuniq[halo_mask],
+            muniq[halo_mask],
+            softening_target=partsink,
+            softening_source=huniq[halo_mask],
+            theta=0.5,
+            G=sfc.GN,
+            method="tree",
+        )
     # print("Old accel:", start_time - time.time())
     print("New acceleration method.")
     start_time = time.time()
@@ -738,17 +947,43 @@ def main():
     print("New accel 2:", time.time() - start_time)
     accel_stars = np.ones((len(partpos), 3)) * np.inf
     if inc_tides:
-        accel_stars = pytreegrav.Accel(partpos, partmasses, partsink, theta=0.5, G=sfc.GN, method='bruteforce')
-    cl = cluster(partpos, partvels, partmasses, partsink, partids, accel_stars + accel_gas,
-                 sma_order=sma_order, mult_max=args.mult_max, Ngrid1D=args.ngrid, tides=inc_tides,
-                 tides_factor=args.tides_factor, compress=args.compress)
-    with open(name_tag+"_snapshot_"+snapshot_num+f"_Tides{inc_tides}" +
-              "_smao{0}_mult{1}_ngrid{2}_hm{3}_ft{4}_co{5}".format(sma_order, args.mult_max, args.ngrid, inc_halo, args.tides_factor, args.compress) + ".p", "wb") as ff:
+        accel_stars = pytreegrav.Accel(
+            partpos, partmasses, partsink, theta=0.5, G=sfc.GN, method="bruteforce"
+        )
+    cl = cluster(
+        partpos,
+        partvels,
+        partmasses,
+        partsink,
+        partids,
+        accel_stars + accel_gas,
+        sma_order=sma_order,
+        mult_max=args.mult_max,
+        Ngrid1D=args.ngrid,
+        tides=inc_tides,
+        tides_factor=args.tides_factor,
+        compress=args.compress,
+    )
+    with open(
+        name_tag
+        + "_snapshot_"
+        + snapshot_num
+        + f"_Tides{inc_tides}"
+        + "_smao{0}_mult{1}_ngrid{2}_hm{3}_ft{4}_co{5}".format(
+            sma_order,
+            args.mult_max,
+            args.ngrid,
+            inc_halo,
+            args.tides_factor,
+            args.compress,
+        )
+        + ".p",
+        "wb",
+    ) as ff:
         pickle.dump(cl, ff)
     print("Binary search:", time.time() - start_time)
     # cl = cluster(partpos, partvels, partmasses, partsink, partids, accel_stars + accel_gas, tides=False,
     #              sma_order=sma_order, mult_max=args.mult_max, Ngrid1D=args.ngrid, tides_factor=args.tides_factor, compress=args.compress)
-
 
 
 if __name__ == "__main__":
