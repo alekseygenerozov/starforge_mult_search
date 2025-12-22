@@ -10,7 +10,6 @@ import time
 import h5py
 import numpy as np
 import pytreegrav
-
 import starforge_mult_search.code.starforge_constants as sfc
 
 ##Code uses functionality in find_multiples_new2
@@ -181,15 +180,17 @@ def get_gas_mass_bound_refactor(
             break
         dall = xuniq1[idx] - sinkpos
         dall = np.sum(dall * dall, axis=1) ** 0.5
-        # if not np.isclose(np.min(dall), d[idx]):
-        #     continue
+        if not np.isclose(np.min(dall), d[idx]):
+            continue
 
         ##Use velocity relative to the cumulative center-of-mass
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob["com_vel"])
         ##Performance shortcut-- logic is softening will only make things more unbound.
         ## But can get unexpected (small?) decreases in the bound gas
-        # if tmp_vrel > np.sqrt((2. * sfc.GN * (blob['com_masses'] + muniq1[idx])) / d[idx]):
-        #     continue
+        if tmp_vrel > np.sqrt(
+            (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
+        ):
+            continue
 
         pe1 = (
             muniq1[idx]
