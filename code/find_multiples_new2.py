@@ -42,7 +42,6 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     # (implemented specifically to remove feedback cells if desired)
     mask = f["PartType0"]["Masses"][:] >= res_limit * 0.999
     mask3d = np.array([mask, mask, mask]).T
-    breakpoint()
 
     # Read in gas properties
     # Mass density
