@@ -366,45 +366,45 @@ def main():
 
     ##############################################################################################################################
     ##Put coarse-graining here -- Coarse-grain velocities, positions and internal energy--then proceed with analysis as normal[?]
-    def combine(closest):
-        ##Straight average may be sensitive to outliers
-        x = np.average(xuniq[closest], weights=muniq[closest], axis=0)
-        v = np.average(vuniq[closest], weights=muniq[closest], axis=0)
-        u = np.average(uuniq[closest], weights=muniq[closest], axis=0)
+    # def combine(closest):
+    #     ##Straight average may be sensitive to outliers
+    #     x = np.average(xuniq[closest], weights=muniq[closest], axis=0)
+    #     v = np.average(vuniq[closest], weights=muniq[closest], axis=0)
+    #     u = np.average(uuniq[closest], weights=muniq[closest], axis=0)
 
-        m = np.sum(muniq[closest])
+    #     m = np.sum(muniq[closest])
 
-        return x, m, v, u
+    #     return x, m, v, u
 
-    visited = np.zeros(len(xuniq), dtype=bool)
-    x_new = []
-    v_new = []
-    u_new = []
-    m_new = []
-    ck1 = ckdtree.cKDTree(xuniq)
-    for ii in tqdm.tqdm(range(len(xuniq))):
-        if ii in visited:
-            continue
+    # visited = np.zeros(len(xuniq), dtype=bool)
+    # x_new = []
+    # v_new = []
+    # u_new = []
+    # m_new = []
+    # ck1 = ckdtree.cKDTree(xuniq)
+    # for ii in tqdm.tqdm(range(len(xuniq))):
+    #     if ii in visited:
+    #         continue
 
-        d, neigh = ck1.query(xuniq[ii], k=20)  # overshoot
-        neigh = [n for n in neigh if not visited[n]][:10]
-        for n in neigh:
-            visited[n] = True
+    #     d, neigh = ck1.query(xuniq[ii], k=20)  # overshoot
+    #     neigh = [n for n in neigh if not visited[n]][:10]
+    #     for n in neigh:
+    #         visited[n] = True
 
-        if len(neigh) > 0:
-            x, m, v, u = combine(neigh)
-            x_new.append(x)
-            m_new.append(m)
-            v_new.append(v)
-            u_new.append(u)
+    #     if len(neigh) > 0:
+    #         x, m, v, u = combine(neigh)
+    #         x_new.append(x)
+    #         m_new.append(m)
+    #         v_new.append(v)
+    #         u_new.append(u)
 
-    print(np.sum(muniq))
-    xuniq = np.vstack(x_new)
-    muniq = np.array(m_new)
-    vuniq = np.vstack(v_new)
-    uuniq = np.array(u_new)
-    huniq = np.zeros_like(muniq)
-    print(np.sum(muniq))
+    # print(np.sum(muniq))
+    # xuniq = np.vstack(x_new)
+    # muniq = np.array(m_new)
+    # vuniq = np.vstack(v_new)
+    # uuniq = np.array(u_new)
+    # huniq = np.zeros_like(muniq)
+    # print(np.sum(muniq))
 
     #############################################################################################################################
     ##Combined positions for computing accelerations
