@@ -9,7 +9,6 @@ from itertools import combinations
 import h5py
 import numpy as np
 import pytreegrav
-
 import starforge_mult_search.code.starforge_constants as sfc
 
 
@@ -899,7 +898,6 @@ def main():
     partmasses += halo_masses
 
     xuniq, indx = np.unique(x, return_index=True, axis=0)
-    breakpoint()
     muniq = m[indx]
     huniq = h[indx]
     xuniq = xuniq.astype(np.float64)
