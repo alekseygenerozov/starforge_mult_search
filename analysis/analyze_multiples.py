@@ -7,17 +7,26 @@ import h5py
 import hydra
 import matplotlib.pyplot as plt
 import numpy as np
-from starforge_mult_search.code import (find_multiples_new2,
-                                        halo_masses_single_double_par)
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, LOOKUP_PID, LOOKUP_SNAP, sink_cols
-
 import pandas as pd
+
+from starforge_mult_search.analysis.analyze_stack import (
+    LOOKUP_PID,
+    LOOKUP_SNAP,
+    get_fpaths,
+    get_snap_info,
+    sink_cols,
+)
+from starforge_mult_search.code import (
+    find_multiples_new2,
+    halo_masses_single_double_par,
+)
+from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
 
 def snap_lookup(tmp_dat, pid, ID_COLUMN=0):
     tmp_idx = np.where(tmp_dat[:, ID_COLUMN].astype(int) == pid)[0][0]
     return tmp_dat[tmp_idx], tmp_idx
+
 
 def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
     """
@@ -49,7 +58,7 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
             masses_sorted = np.sort(cl.systems[ii].sub_mass)[::-1]
             for jj, elem1 in enumerate(ids_a[ii]):
                 m1 = cl.systems[ii].sub_mass[jj]
-                star_order = np.where(masses_sorted==m1)[0][0]
+                star_order = np.where(masses_sorted == m1)[0][0]
                 tmp_orb = cl.systems[ii].orbits
                 w1_row, w1_idx = snap_lookup(tmp_sink, elem1)
                 if len(tmp_orb) == 0:
@@ -65,9 +74,25 @@ def create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence):
                     sma1 = tmp_orb[0]
                     ecc1 = tmp_orb[1]
                     q1 = m1 / (np.sum(tmp_orb[10:12]) - m1)
-                lookup.append([ss, elem1, ii, len(ids_a[ii]), m1, w1_row[-1], sma1, ecc1, q1, mprim, mprim_id, star_order])
+                lookup.append(
+                    [
+                        ss,
+                        elem1,
+                        ii,
+                        len(ids_a[ii]),
+                        m1,
+                        w1_row[-1],
+                        sma1,
+                        ecc1,
+                        q1,
+                        mprim,
+                        mprim_id,
+                        star_order,
+                    ]
+                )
 
     return np.array(lookup)
+
 
 def get_sink_df(base_sink, start_snap, end_snap, cadence):
     """
@@ -83,12 +108,15 @@ def get_sink_df(base_sink, start_snap, end_snap, cadence):
     """
     sinks_df = []
     for ss in range(start_snap, end_snap + 1, cadence):
-        tmp_sink = pd.DataFrame(np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss))),
-                                columns=["pid", "x", "y", "z", "vx", "vy", "vz", "h", "m"])
+        tmp_sink = pd.DataFrame(
+            np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss))),
+            columns=["pid", "x", "y", "z", "vx", "vy", "vz", "h", "m"],
+        )
         tmp_sink.insert(0, "t", np.ones(len(tmp_sink)) * ss)
         sinks_df.append(tmp_sink)
     sinks_df = pd.concat(sinks_df).reset_index(drop=True)
     return sinks_df
+
 
 def get_spin_df(base_sink, start_snap, end_snap, cadence):
     """
@@ -105,13 +133,16 @@ def get_spin_df(base_sink, start_snap, end_snap, cadence):
     spins_df = []
     for ss in range(start_snap, end_snap + 1, cadence):
         tmp_sink = np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.sink".format(ss)))
-        tmp_spin = pd.DataFrame(np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.spin".format(ss))),
-                                columns=["sx", "sy", "sz"])
-        tmp_spin.insert(0, "pid", tmp_sink[:,0])
+        tmp_spin = pd.DataFrame(
+            np.atleast_2d(np.genfromtxt(base_sink + "{0:03d}.spin".format(ss))),
+            columns=["sx", "sy", "sz"],
+        )
+        tmp_spin.insert(0, "pid", tmp_sink[:, 0])
         tmp_spin.insert(0, "t", np.ones(len(tmp_spin)) * ss)
         spins_df.append(tmp_spin)
     spins_df = pd.concat(spins_df).reset_index(drop=True)
     return spins_df
+
 
 def get_fst(first_snapshot_idx, uids):
     """
@@ -126,8 +157,11 @@ def get_fst(first_snapshot_idx, uids):
 
     return fst_idx
 
+
 def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
-    sinks_all = pd.concat([sinks_df, lookup_df[["sys_id", "mtot", "sma", "ecc"]]], axis=1)
+    sinks_all = pd.concat(
+        [sinks_df, lookup_df[["sys_id", "mtot", "sma", "ecc"]]], axis=1
+    )
     ##Collecting all tags and particle ids.
     utags = sinks_all["pid"].unique()
     utags = np.sort(utags)
@@ -170,9 +204,16 @@ def get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap):
 
     return path_lookup
 
+
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
-    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
+    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(
+        params["base_path"],
+        params["cloud_tag"],
+        params["seed"],
+        params["analysis_tag"],
+        v_str=params["v_str"],
+    )
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
     cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
@@ -197,11 +238,15 @@ def main(params):
     sinks_df.reset_index(inplace=True, drop=True)
     spins_df.reset_index(inplace=True, drop=True)
 
-    lookup_df = pd.DataFrame(np.ones((len(sinks_df), 4)) * np.inf, columns=["sys_id", "mtot", "sma", "ecc"])
+    lookup_df = pd.DataFrame(
+        np.ones((len(sinks_df), 4)) * np.inf, columns=["sys_id", "mtot", "sma", "ecc"]
+    )
     if not params["skip"]:
         ##System lookup table
-        lookup = create_sys_lookup_table(r1, r2, base_sink, start_snap, end_snap, cadence)
-        #Add the final snapshot -- Useful for when we have to stack multiple seeds.
+        lookup = create_sys_lookup_table(
+            r1, r2, base_sink, start_snap, end_snap, cadence
+        )
+        # Add the final snapshot -- Useful for when we have to stack multiple seeds.
         lookup = np.hstack((lookup, np.ones(len(lookup))[:, np.newaxis] * end_snap))
         np.savez(save_path + "/system_lookup_table", lookup)
         lookup_dict = {}
@@ -216,13 +261,39 @@ def main(params):
         ##Look pairs that are in the same system with the same semi-major axis.
         ##Should get all the binaries ever -- including those in higher order multiples.
         ##Semi-major axes are from same underlying data so don't have to worry about floating point issues.
-        lookup_df = pd.DataFrame(lookup, columns=("time", "pid", "sys_id", "mult", "mtot", "x",
-                                                "sma", "ecc", "q", "mprim+mhalo", "mprim_id", "order", "tf"))
-        sys_group = lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]].apply(lambda group: [list(group['time'])[0]] + list(group["pid"]) if len(group) == 2 and group["mult"].min() >= 2 else None).dropna()
+        lookup_df = pd.DataFrame(
+            lookup,
+            columns=(
+                "time",
+                "pid",
+                "sys_id",
+                "mult",
+                "mtot",
+                "x",
+                "sma",
+                "ecc",
+                "q",
+                "mprim+mhalo",
+                "mprim_id",
+                "order",
+                "tf",
+            ),
+        )
+        sys_group = (
+            lookup_df.groupby(["time", "sys_id", "sma"])[["time", "pid", "mult"]]
+            .apply(
+                lambda group: (
+                    [list(group["time"])[0]] + list(group["pid"])
+                    if len(group) == 2 and group["mult"].min() >= 2
+                    else None
+                )
+            )
+            .dropna()
+        )
         sys_group = sys_group.to_list()
         ##Can try assert here to be sure that the array is sorted in time
         sys_group = np.array(sys_group)
-        tfirst_bin_in_mult = sys_group[:,0]
+        tfirst_bin_in_mult = sys_group[:, 0]
         bin_in_mult = sys_group[:, [1, 2]].astype(int)
         bin_in_mult_str = [str(np.sort(row)) for row in bin_in_mult]
         tmp, tmp_uidx = np.unique(bin_in_mult_str, return_index=True)
@@ -233,14 +304,17 @@ def main(params):
         lookup_df = lookup_df.sort_values(["pid", "time"])
         lookup_df.reset_index(inplace=True, drop=True)
         ###################################################################################################################
-        np.savez(save_path + "/unique_bin_ids_mult", bin_in_mult, tfirst_bin_in_mult[:, np.newaxis])
+        np.savez(
+            save_path + "/unique_bin_ids_mult",
+            bin_in_mult,
+            tfirst_bin_in_mult[:, np.newaxis],
+        )
         fst = get_fst(first_snap_idx, bin_in_mult)
         np.savez(save_path + "/fst_mult", fst)
 
     ##Have dummy lookup_df...
     get_paths(sinks_df, spins_df, lookup_df, save_path, end_snap)
     ##################################################################################################################
-
 
 
 if __name__ == "__main__":
