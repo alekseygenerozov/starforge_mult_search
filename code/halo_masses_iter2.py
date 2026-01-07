@@ -170,18 +170,18 @@ def get_gas_mass_bound_refactor(
             break
         dall = xuniq1[idx] - sinkpos
         dall = np.sum(dall * dall, axis=1) ** 0.5
-        # if not np.isclose(np.min(dall), d[idx]):
-        #     continue
+        if not np.isclose(np.min(dall), d[idx]):
+            continue
 
         ##Use velocity relative to the cumulative center-of-mass
         tmp_vrel = np.linalg.norm(vuniq1[idx] - blob["com_vel"])
         ##Performance shortcut-- logic is softening and thermal energy will only make things more unbound
         ##Though note the geometry is not accurately captured in this conditional, which can mean some bound particles will be rejected[?]
         ##So this is not ideal (though note this is a conservative choice)
-        # if tmp_vrel > np.sqrt(
-        #     (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
-        # ):
-        #     continue
+        if tmp_vrel > np.sqrt(
+            (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
+        ):
+            continue
 
         pe1 = (
             muniq1[idx]
