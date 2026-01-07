@@ -1,20 +1,38 @@
 import ast
 import copy
 import glob
-import hydra
-import numpy as np
 import os
-import pandas as pd
 import pickle
 import sys
-import tqdm
 from collections import deque
 
-from starforge_mult_search.code.find_multiples_new2 import cluster, system, PE, KE, get_orbit
-from starforge_mult_search.analysis.analyze_stack import get_fpaths, get_snap_info, get_end_time_set, pxcol, pzcol, vxcol, vzcol, mcol, mtotcol, hcol
-from starforge_mult_search.analysis import cgs_const as cgs
-
+import hydra
+import numpy as np
+import pandas as pd
+import tqdm
 from bash_command import bash_command as bc
+
+from starforge_mult_search.analysis import cgs_const as cgs
+from starforge_mult_search.analysis.analyze_stack import (
+    get_end_time_set,
+    get_fpaths,
+    get_snap_info,
+    hcol,
+    mcol,
+    mtotcol,
+    pxcol,
+    pzcol,
+    vxcol,
+    vzcol,
+)
+from starforge_mult_search.code.find_multiples_new2 import (
+    KE,
+    PE,
+    cluster,
+    get_orbit,
+    system,
+)
+
 
 class SystemNode:
     """
@@ -76,6 +94,25 @@ def removeNestings(l, output):
         else:
             output.append(i)
 
+
+def _sanitize(x):
+    if isinstance(x, np.integer):
+        return int(x)
+    if isinstance(x, int):
+        return x
+    if isinstance(x, list):
+        return [_sanitize(y) for y in x]
+    raise TypeError(f"Unexpected hierarchy element: {x!r} ({type(x)})")
+
+
+def sanitize_hierarchy(x):
+    """
+    Sanitize hierarchy and guarantee list output.
+    """
+    y = _sanitize(x)
+    return y if isinstance(y, list) else [y]
+
+
 def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
     p1_flat = []
     p2_flat = []
@@ -103,8 +140,19 @@ def get_energy_wrap(p1, p2, p_dict, v_dict, m_dict, h_dict):
 
     m_flat1 = np.sum(m_flat1)
     m_flat2 = np.sum(m_flat2)
-    return (PE(np.array([pos_flat1, pos_flat2]), np.array([m_flat1, m_flat2]), np.array([h_flat1, h_flat2])),
-            KE(np.array([pos_flat1, pos_flat2]), np.array([m_flat1, m_flat2]), np.array([v_flat1, v_flat2]), np.array([0, 0])))
+    return (
+        PE(
+            np.array([pos_flat1, pos_flat2]),
+            np.array([m_flat1, m_flat2]),
+            np.array([h_flat1, h_flat2]),
+        ),
+        KE(
+            np.array([pos_flat1, pos_flat2]),
+            np.array([m_flat1, m_flat2]),
+            np.array([v_flat1, v_flat2]),
+            np.array([0, 0]),
+        ),
+    )
 
 
 def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
@@ -145,8 +193,15 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
             removeNestings(h_copy, sid)
             sid.sort()
         node = SystemNode(
-            data={"id": sid, "orbit": tmp_orb[[0, 1, 10, 11]], "pos": tmp_orb[4:7], "vel": tmp_orb[7:10],
-                  "mult": len(tmp_flat), "hier": sid_full})
+            data={
+                "id": sid,
+                "orbit": tmp_orb[[0, 1, 10, 11]],
+                "pos": tmp_orb[4:7],
+                "vel": tmp_orb[7:10],
+                "mult": len(tmp_flat),
+                "hier": sid_full,
+            }
+        )
         # Extract the last two components from the hierarchy
         p1 = h_copy.pop()
         p2 = h_copy.pop()
@@ -156,20 +211,45 @@ def make_hier(hier1, orbs1, p_dict, v_dict, m_dict, h_dict, flat_id=False):
 
         # Handle nested structures recursively
         if isinstance(p1, list):
-            child1, orbs_copy = make_hier(p1, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
+            child1, orbs_copy = make_hier(
+                p1, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id
+            )
             node.add_child(child1)
         else:
             node.add_child(
-                SystemNode(data={"id": p1, "orbit": None, "pos": p_dict[p1], "vel": v_dict[p1], "mass": m_dict[p1], "h": h_dict[p1]}))
+                SystemNode(
+                    data={
+                        "id": p1,
+                        "orbit": None,
+                        "pos": p_dict[p1],
+                        "vel": v_dict[p1],
+                        "mass": m_dict[p1],
+                        "h": h_dict[p1],
+                    }
+                )
+            )
 
         if isinstance(p2, list):
-            child2, orbs_copy = make_hier(p2, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
+            child2, orbs_copy = make_hier(
+                p2, orbs_copy, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id
+            )
             node.add_child(child2)
         else:
             node.add_child(
-                SystemNode(data={"id": p2, "orbit": None, "pos": p_dict[p2], "vel": v_dict[p2], "mass": m_dict[p2], "h": h_dict[p2]}))
+                SystemNode(
+                    data={
+                        "id": p2,
+                        "orbit": None,
+                        "pos": p_dict[p2],
+                        "vel": v_dict[p2],
+                        "mass": m_dict[p2],
+                        "h": h_dict[p2],
+                    }
+                )
+            )
 
     return node, orbs_copy
+
 
 def is_soft_orbit(node):
     ##Add children to queue -- we can assume there will always be at least one child...
@@ -184,12 +264,12 @@ def is_soft_orbit(node):
         soft = 0
         ##Iterate through children
         for child in children:
-            if child.data["orbit"] is None: 
+            if child.data["orbit"] is None:
                 soft = max(soft, child.data["h"])
             else:
                 is_simple = False
                 my_queue.append(child)
-            
+
         ##If the children have no orbit data -- that means they are plain stars (a binary system)
         ##In this case we compute the ratio of the pericenter of the orbit to the softening length...
         ##If it is less than 1 -- we update accordingly...
@@ -203,6 +283,7 @@ def is_soft_orbit(node):
 
     return minimum_ratio
 
+
 ##This will not work -- and pericenter should be enough in any case(!) -- mathematically pericenter must be <= current separation...
 # def is_soft_separation(n1):
 #     my_leaves = n1.leaves
@@ -215,8 +296,9 @@ def is_soft_orbit(node):
 #             new_ratio = np.linalg.norm(my_pos[ii] - my_pos[jj]) / max(my_soft[ii], my_soft[jj])
 #             if new_ratio < minimum_ratio:
 #                 minimum_ratio = new_ratio
-    
+
 #     return minimum_ratio
+
 
 def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     """
@@ -233,21 +315,40 @@ def get_inc_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     p1 = tmp_path_lookup[i1][snap]
     p2 = tmp_path_lookup[i2][snap]
     p3 = tmp_path_lookup[i3][snap]
-    bin_r = p1[pxcol:pzcol + 1] - p2[pxcol:pzcol + 1]
-    bin_v = p1[vxcol:vzcol + 1] - p2[vxcol:vzcol + 1]
+    bin_r = p1[pxcol : pzcol + 1] - p2[pxcol : pzcol + 1]
+    bin_v = p1[vxcol : vzcol + 1] - p2[vxcol : vzcol + 1]
 
-    bin_com = (p1[my_mcol] * p1[pxcol:vzcol + 1] + p2[my_mcol] * p2[pxcol:vzcol + 1]) / (p1[my_mcol] + p2[my_mcol])
-    t_r = p3[pxcol:pzcol + 1] - bin_com[:3]
-    t_v = p3[vxcol:vzcol + 1] - bin_com[3:]
+    bin_com = (
+        p1[my_mcol] * p1[pxcol : vzcol + 1] + p2[my_mcol] * p2[pxcol : vzcol + 1]
+    ) / (p1[my_mcol] + p2[my_mcol])
+    t_r = p3[pxcol : pzcol + 1] - bin_com[:3]
+    t_v = p3[vxcol : vzcol + 1] - bin_com[3:]
 
     jhat_1 = np.cross(bin_r, bin_v)
     jhat_1 = jhat_1 / np.linalg.norm(jhat_1)
     jhat_2 = np.cross(t_r, t_v)
     jhat_2 = jhat_2 / np.linalg.norm(jhat_2)
-    orb = get_orbit(p1[pxcol:pzcol + 1], p2[pxcol:pzcol + 1], p1[vxcol:vzcol + 1], p2[vxcol:vzcol + 1], p1[my_mcol], p2[my_mcol], p1[hcol], p2[hcol])
+    orb = get_orbit(
+        p1[pxcol : pzcol + 1],
+        p2[pxcol : pzcol + 1],
+        p1[vxcol : vzcol + 1],
+        p2[vxcol : vzcol + 1],
+        p1[my_mcol],
+        p2[my_mcol],
+        p1[hcol],
+        p2[hcol],
+    )
 
-    return {"ang": np.dot(jhat_1, jhat_2), "inner_sep":np.linalg.norm(bin_r), "outer_sep":np.linalg.norm(t_r),
-             "inner_a":orb[0], "inner_e":orb[1], "inner_sep_proj":np.linalg.norm(bin_r[:-1]), "outer_sep_proj":np.linalg.norm(t_r[:-1])}
+    return {
+        "ang": np.dot(jhat_1, jhat_2),
+        "inner_sep": np.linalg.norm(bin_r),
+        "outer_sep": np.linalg.norm(t_r),
+        "inner_a": orb[0],
+        "inner_e": orb[1],
+        "inner_sep_proj": np.linalg.norm(bin_r[:-1]),
+        "outer_sep_proj": np.linalg.norm(t_r[:-1]),
+    }
+
 
 def get_q_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     """
@@ -272,7 +373,8 @@ def get_q_trip(i1, i2, i3, tmp_path_lookup, snap, inc_halo=False):
     ##Tertiary / Inner binary.
     q2 = p3[my_mcol] / (p1[my_mcol] + p2[my_mcol])
 
-    return {"q1":q1, "q2":q2, "m1":m1, "m2":m2, "m3":p3[my_mcol]}
+    return {"q1": q1, "q2": q2, "m1": m1, "m2": m2, "m3": p3[my_mcol]}
+
 
 def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False):
     if n1.data["orbit"] is None:
@@ -288,7 +390,9 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(tmp_orb[0])
         tab_dat.append(tmp_orb[1])
 
-        tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (tmp_orb[2] + tmp_orb[3]) ** .5
+        tmp_per = (tmp_orb[0] * cgs.pc / cgs.au) ** 1.5 / (
+            tmp_orb[2] + tmp_orb[3]
+        ) ** 0.5
         tab_dat.append(tmp_per)
         tab_dat.append(sub_sys)
         tab_dat.append(str(n1.data["hier"]))
@@ -302,13 +406,19 @@ def add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=Fal
         tab_dat.append(str(n1.children[1].data["id"]))
         coll_full.append(tab_dat)
 
-        add_node_to_orbit_tab_streamlined(n1.children[0], snap, coll_full, end_snap, sub_sys=True)
-        add_node_to_orbit_tab_streamlined(n1.children[1], snap, coll_full, end_snap, sub_sys=True)
+        add_node_to_orbit_tab_streamlined(
+            n1.children[0], snap, coll_full, end_snap, sub_sys=True
+        )
+        add_node_to_orbit_tab_streamlined(
+            n1.children[1], snap, coll_full, end_snap, sub_sys=True
+        )
+
 
 def get_mult(my_id):
-    kk_flat=[]
+    kk_flat = []
     removeNestings(ast.literal_eval(my_id), kk_flat)
     return len(kk_flat)
+
 
 def lookup_star_mult(my_df, star_id, target, pre_filtered=False, contig_suff=""):
     """
@@ -320,17 +430,27 @@ def lookup_star_mult(my_df, star_id, target, pre_filtered=False, contig_suff="")
     tmp_sel = my_df
     if not pre_filtered:
         tmp_sel = my_df.xs(target, level="t")
-        tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{contig_suff}"]>1) & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)]
+        tmp_sel = tmp_sel.loc[
+            (tmp_sel[f"nbound_snaps{contig_suff}"] > 1)
+            & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)
+        ]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     mults_with_star = tmp_sel.loc[star_in_mult]
-    if len(mults_with_star)==0:
+    if len(mults_with_star) == 0:
         return star_id, 1
-    tmp_mults = mults_with_star.groupby("id", sort=False).apply(lambda x: get_mult(x.name)).values
+    tmp_mults = (
+        mults_with_star.groupby("id", sort=False)
+        .apply(lambda x: get_mult(x.name))
+        .values
+    )
 
-    tmp_idx = np.where(tmp_mults==np.max(tmp_mults))[0][0]
+    tmp_idx = np.where(tmp_mults == np.max(tmp_mults))[0][0]
     return mults_with_star.index.get_level_values("id")[tmp_idx], tmp_mults[tmp_idx]
 
-def lookup_star_mult_with_mass(my_df, star_id, target, path_lookup, pre_filtered=False, contig_suff=""):
+
+def lookup_star_mult_with_mass(
+    my_df, star_id, target, path_lookup, pre_filtered=False, contig_suff=""
+):
     """
     Get the multiplicity and id of max multiplicity
     system, containing star_id at time target.
@@ -340,18 +460,26 @@ def lookup_star_mult_with_mass(my_df, star_id, target, path_lookup, pre_filtered
     tmp_sel = my_df
     if not pre_filtered:
         tmp_sel = my_df.xs(target, level="t")
-        tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{contig_suff}"]>1) & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)]
+        tmp_sel = tmp_sel.loc[
+            (tmp_sel[f"nbound_snaps{contig_suff}"] > 1)
+            & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)
+        ]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     mults_with_star = tmp_sel.loc[star_in_mult]
-    if len(mults_with_star)==0:
+    if len(mults_with_star) == 0:
         return star_id, 1, np.array([path_lookup[star_id][target, mcol]])
-    tmp_mults = mults_with_star.groupby("id", sort=False).apply(lambda x: get_mult(x.name)).values
-    tmp_idx = np.where(tmp_mults==np.max(tmp_mults))[0][0]
+    tmp_mults = (
+        mults_with_star.groupby("id", sort=False)
+        .apply(lambda x: get_mult(x.name))
+        .values
+    )
+    tmp_idx = np.where(tmp_mults == np.max(tmp_mults))[0][0]
     host_sys = mults_with_star.iloc[tmp_idx]
     tmp_mult, tmp_time = host_sys["mult_ids_list"], target
     tmp_masses = [path_lookup[str(uu)][tmp_time, mcol] for uu in tmp_mult]
 
     return host_sys.name, tmp_mults[tmp_idx], np.array(tmp_masses)
+
 
 def lookup_star_mult_b(my_df, star_id):
     """
@@ -361,10 +489,11 @@ def lookup_star_mult_b(my_df, star_id):
     for row in my_df.iterrows():
         if (row[1]["mult"] > mult) and (star_id in row[1]["mult_ids_list"]):
             mult = row[1]["mult"]
-        if mult==4:
+        if mult == 4:
             break
-    
+
     return mult
+
 
 def filter_maximal_sets(sets):
     result = []
@@ -375,6 +504,7 @@ def filter_maximal_sets(sets):
             result.append(False)
     return result
 
+
 def get_pair_state(my_df, id1, id2, target, **kwargs):
     """
     Get multiplicity of stars id1 and id2 from dataframe my_df at time target. Also, find out
@@ -383,13 +513,26 @@ def get_pair_state(my_df, id1, id2, target, **kwargs):
     s1, m1 = lookup_star_mult(my_df, id1, target, **kwargs)
     s2, m2 = lookup_star_mult(my_df, id2, target, **kwargs)
 
-    return (f"{min(m1, m2)} {max(m1, m2)}"), s1==s2
+    return (f"{min(m1, m2)} {max(m1, m2)}"), s1 == s2
+
 
 def parse_mult_id(id_str):
-    return set(map(int, id_str.replace("[", "").replace("]", "").split(",")))
+    return set(
+        map(
+            int,
+            id_str.replace("[", "").replace("]", "").split(","),
+        )
+    )
+
 
 def parse_mult_id_list(id_str):
-    return list(map(int, id_str.replace("[", "").replace("]", "").split(",")))
+    return list(
+        map(
+            int,
+            id_str.replace("[", "").replace("]", "").split(","),
+        )
+    )
+
 
 def subset_count(ids1, ids):
     subsets = []
@@ -399,15 +542,19 @@ def subset_count(ids1, ids):
 
     return len(subsets[subsets])
 
+
 def filter_top_level(my_df):
     """
     Get only the top level of the multiples
     """
     mult_ids = my_df.index.get_level_values("id")
     mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
-    my_counts = np.array([subset_count(row, mult_ids_set.to_list()) for row in mult_ids_set.to_list()])
+    my_counts = np.array(
+        [subset_count(row, mult_ids_set.to_list()) for row in mult_ids_set.to_list()]
+    )
 
-    return my_df.loc[my_counts==1]
+    return my_df.loc[my_counts == 1]
+
 
 def assign_contiguous_segments(group, cadence=1):
     diffs = np.diff(group.index.get_level_values("t"))
@@ -415,18 +562,24 @@ def assign_contiguous_segments(group, cadence=1):
     segment_ids[1:] = np.cumsum(diffs != cadence)
     return pd.Series(segment_ids, index=group.index, name="segment")
 
+
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")
 def main(params):
-    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(params["base_path"], params["cloud_tag"], params["seed"], params["analysis_tag"], v_str=params["v_str"])
+    base, base_sink, r1, r2, cloud_tag0, sim_tag = get_fpaths(
+        params["base_path"],
+        params["cloud_tag"],
+        params["seed"],
+        params["analysis_tag"],
+        v_str=params["v_str"],
+    )
     r2_nosuff = r2.replace(".p", "")
     v_str = params["v_str"]
     cadence, snap_interval, start_snap, end_snap = get_snap_info(base, base_sink)
     flat_id = False
     tail_out = ""
-    if ("flat_id" in params):
+    if "flat_id" in params:
         flat_id = params["flat_id"]
         tail_out = "_flat"
-
 
     coll_full = []
     aa = "analyze_multiples_output_{0}/".format(r2_nosuff)
@@ -436,13 +589,12 @@ def main(params):
         path_lookup = pickle.load(ff)
 
     for snap in range(start_snap, end_snap + 1, cadence):
-        with open(
-                f"{r1}{snap:03d}{r2}", "rb") as ff:
+        with open(f"{r1}{snap:03d}{r2}", "rb") as ff:
             cl = pickle.load(ff)
         sidx = 0
         for ss in cl.systems:
             if ss.multiplicity >= 2:
-                h1, o1 = list(ss.hierarchy), list(ss.orbits)
+                h1, o1 = sanitize_hierarchy(ss.hierarchy), list(ss.orbits)
                 p_dict = {ss.ids[ii]: ss.sub_pos[ii] for ii in range(len(ss.ids))}
                 v_dict = {ss.ids[ii]: ss.sub_vel[ii] for ii in range(len(ss.ids))}
                 m_dict = {ss.ids[ii]: ss.sub_mass[ii] for ii in range(len(ss.ids))}
@@ -450,29 +602,79 @@ def main(params):
                 ##Can calculate effective minimum separation distance here -- just iterating over the lists of particles and orbits[?]
                 ##Issues getting pairwise softening length...
 
-                n1, x1 = make_hier(h1, o1, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id)
+                n1, x1 = make_hier(
+                    h1, o1, p_dict, v_dict, m_dict, h_dict, flat_id=flat_id
+                )
                 ##Could we simply add the full node to the table??
-                add_node_to_orbit_tab_streamlined(n1, snap, coll_full, end_snap, sub_sys=False)
+                add_node_to_orbit_tab_streamlined(
+                    n1, snap, coll_full, end_snap, sub_sys=False
+                )
                 sidx += 1
 
-    coll_full_df = pd.DataFrame(coll_full, columns=("id", "t", "tf", "a", "e", "p", "ss", "hier", "pe", "ke", "m1", "m2", "soft_ratio", "child1", "child2"))
+    coll_full_df = pd.DataFrame(
+        coll_full,
+        columns=(
+            "id",
+            "t",
+            "tf",
+            "a",
+            "e",
+            "p",
+            "ss",
+            "hier",
+            "pe",
+            "ke",
+            "m1",
+            "m2",
+            "soft_ratio",
+            "child1",
+            "child2",
+        ),
+    )
     coll_full_df.set_index(["id", "t"], inplace=True)
     ##TO DO: Try to homogenize this code...##group_keys is true by default, so it may be unnecessary.
-    frac_of_orbit = coll_full_df.groupby("id", group_keys=True).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit")
-    nbound_snaps = coll_full_df.groupby("id", group_keys=True).apply(lambda x: len(x)).rename("nbound_snaps")
+    frac_of_orbit = (
+        coll_full_df.groupby("id", group_keys=True)
+        .apply(lambda x: np.sum(snap_interval / x["p"]))
+        .rename("frac_of_orbit")
+    )
+    nbound_snaps = (
+        coll_full_df.groupby("id", group_keys=True)
+        .apply(lambda x: len(x))
+        .rename("nbound_snaps")
+    )
     coll_full_df_life = coll_full_df.join(frac_of_orbit, on="id")
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on="id")
     ##Getting cumulative number of snapshots and orbits
-    tmp1 = coll_full_df_life.groupby("id", group_keys=True)[["tf"]].transform(lambda x: list(range(len(x))))
-    tmp2 = coll_full_df_life.groupby("id")[["p"]].transform(lambda x: (snap_interval / x).cumsum())
-    coll_full_df_life = pd.merge(coll_full_df_life, tmp1, left_index=True, right_index=True)
-    coll_full_df_life = pd.merge(coll_full_df_life, tmp2, left_index=True, right_index=True)
+    tmp1 = coll_full_df_life.groupby("id", group_keys=True)[["tf"]].transform(
+        lambda x: list(range(len(x)))
+    )
+    tmp2 = coll_full_df_life.groupby("id")[["p"]].transform(
+        lambda x: (snap_interval / x).cumsum()
+    )
+    coll_full_df_life = pd.merge(
+        coll_full_df_life, tmp1, left_index=True, right_index=True
+    )
+    coll_full_df_life = pd.merge(
+        coll_full_df_life, tmp2, left_index=True, right_index=True
+    )
 
-    coll_full_df_life.rename(columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"}, inplace=True)
+    coll_full_df_life.rename(
+        columns={"p_x": "p", "tf_x": "tf", "p_y": "cumul_frac", "tf_y": "cumul_snaps"},
+        inplace=True,
+    )
     ##Get orbits and bound snapshots by segments...
-    coll_full_df_life["segment"] = coll_full_df_life.groupby("id", group_keys=False).apply(lambda x: assign_contiguous_segments(x, cadence=cadence))
-    frac_of_orbit = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: np.sum(snap_interval / x["p"])).rename("frac_of_orbit_seg")
-    nbound_snaps = coll_full_df_life.groupby(["id", "segment"]).apply(lambda x: len(x)).rename("nbound_snaps_seg")
+    coll_full_df_life["segment"] = coll_full_df_life.groupby(
+        "id", group_keys=False
+    ).apply(lambda x: assign_contiguous_segments(x, cadence=cadence))
+
+    frac_of_orbit = snap_interval * coll_full_df_life.assign(
+        inv_p=lambda df: 1.0 / df["p"]
+    ).groupby(["id", "segment"])["inv_p"].sum().rename("frac_of_orbit_seg")
+    nbound_snaps = (
+        coll_full_df_life.groupby(["id", "segment"]).size().rename("nbound_snaps_seg")
+    )
+
     coll_full_df_life = coll_full_df_life.join(frac_of_orbit, on=["id", "segment"])
     coll_full_df_life = coll_full_df_life.join(nbound_snaps, on=["id", "segment"])
 
@@ -480,16 +682,22 @@ def main(params):
     mult_hiers = coll_full_df_life["hier"]
     mult_ids_list = mult_hiers.apply(parse_mult_id_list)
     coll_full_df_life["mult_ids_list"] = mult_ids_list
-    coll_full_df_life["mult"] = coll_full_df_life["mult_ids_list"].apply(lambda ss: len(ss))
+    coll_full_df_life["mult"] = coll_full_df_life["mult_ids_list"].apply(
+        lambda ss: len(ss)
+    )
     ##Getting end times for all stars, and final primary mass for multiple.
     ##TO DO: Also store version with halo mass.
-    coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life["mult_ids_list"].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
+    coll_full_df_life[["end_stars", "mult_prim_final"]] = coll_full_df_life[
+        "mult_ids_list"
+    ].apply(lambda ss: pd.Series(get_end_time_set(ss, path_lookup)))
     ##Write out dataframe with the higher order multiples.
     coll_full_df_life.to_parquet(save_path + f"/mults{tail_out}.pq")
 
     analysis_suff = "_mult"
     ##Maybe we should do both versions here -- with and without segment...
-    bin_ids = np.load(save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True)["arr_0"]
+    bin_ids = np.load(
+        save_path + f"/unique_bin_ids{analysis_suff}.npz", allow_pickle=True
+    )["arr_0"]
     my_data = np.load(save_path + f"/dat_coll{analysis_suff}.npz", allow_pickle=True)
 
     with open(save_path + f"/lookup_dict.p", "rb") as ff:
@@ -509,24 +717,36 @@ def main(params):
         end_time2 = lookup_dict[id2][-1, 0]
 
         end_time = min(end_time1, end_time2)
-        es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
+        es, ss = get_pair_state(
+            tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True
+        )
         end_states.append(es)
         same_sys_filt[ii] = ss
 
-    np.savez(save_path + f"/fates_corr{tail_out}_seg.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+    np.savez(
+        save_path + f"/fates_corr{tail_out}_seg.npz",
+        end_states=end_states,
+        same_sys_filt=same_sys_filt,
+    )
 
-    bin_list = tmp_sel[tmp_sel["mult"]==2]
+    bin_list = tmp_sel[tmp_sel["mult"] == 2]
     bin_set = set(bin_list.index.get_level_values(level="id"))
     quasi_filter_contig = np.zeros(len(bin_ids)).astype(bool)
 
     ##Adding contiguous persistence filter for binaries.
     for ii, row in enumerate(bin_ids):
-        tmp_id = list(row)
+        tmp_id = sanitize_hierarchy(list(row))
         tmp_id.sort()
-        quasi_filter_contig[ii] = (str(tmp_id) in bin_set)
+        quasi_filter_contig[ii] = str(tmp_id) in bin_set
     my_data = dict(my_data)
     my_data["quasi_filter_seg"] = quasi_filter_contig
-    bc.bash_command("cp " + save_path + f"/dat_coll{analysis_suff}.npz " + save_path + f"/dat_coll{analysis_suff}_bk.npz")
+    bc.bash_command(
+        "cp "
+        + save_path
+        + f"/dat_coll{analysis_suff}.npz "
+        + save_path
+        + f"/dat_coll{analysis_suff}_bk.npz"
+    )
     np.savez(save_path + f"/dat_coll{analysis_suff}.npz", **my_data)
     ######################################################################################################
     f1 = coll_full_df_life["frac_of_orbit"]
@@ -543,11 +763,17 @@ def main(params):
         end_time2 = lookup_dict[id2][-1, 0]
 
         end_time = min(end_time1, end_time2)
-        es, ss = get_pair_state(tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True)
+        es, ss = get_pair_state(
+            tmp_sel.xs(end_time, level="t"), id1, id2, end_time, pre_filtered=True
+        )
         end_states.append(es)
         same_sys_filt[ii] = ss
 
-    np.savez(save_path + f"/fates_corr{tail_out}.npz", end_states=end_states, same_sys_filt=same_sys_filt)
+    np.savez(
+        save_path + f"/fates_corr{tail_out}.npz",
+        end_states=end_states,
+        same_sys_filt=same_sys_filt,
+    )
 
 
 if __name__ == "__main__":
