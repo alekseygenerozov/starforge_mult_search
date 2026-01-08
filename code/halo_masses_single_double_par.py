@@ -10,6 +10,7 @@ import time
 import h5py
 import numpy as np
 import pytreegrav
+
 import starforge_mult_search.code.starforge_constants as sfc
 
 ##Code uses functionality in find_multiples_new2
@@ -322,28 +323,24 @@ def main():
     star_age_key = args.star_age_key
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
-    ##TO DO: Need an alternative head to load data from a Rebound simulation(!)
-    (
-        den,
-        x,
-        m,
-        h,
-        u,
-        b,
-        v,
-        fmol,
-        fneu,
-        partpos,
-        partmasses,
-        partvels,
-        partids,
-        partsink,
-        tage_myr,
-        unit_base,
-        partspin,
-    ) = find_multiples_new2.load_data(
+
+    out = find_multiples_new2.load_data_with_ids(
         snap_file, res_limit=1e-3, star_age_key=star_age_key
     )
+    den = out["den"]
+    x = out["x"]
+    m = out["m"]
+    h = out["h"]
+    u = out["u"]
+    v = out["v"]
+    gas_ids = out["gas_ids"]
+
+    partpos = out["partpos"]
+    partmasses = out["partmasses"]
+    partvels = out["partvels"]
+    partids = out["partids"]
+    partsink = out["partsink"]
+    tage_myr = out["tage_myr"]
     if len(partpos) == 0:
         print("No particles!")
         return
@@ -354,6 +351,8 @@ def main():
     vuniq = v[indx]
     uuniq = u[indx]
     denuniq = den[indx]
+    gas_ids_uniq = gas_ids[indx]
+
     vuniq = vuniq.astype(np.float64)
     xuniq = xuniq.astype(np.float64)
     muniq = muniq.astype(np.float64)
@@ -486,6 +485,9 @@ def main():
             ##ADDING OTHER DATA TO HDF5 FILE--SO THAT WE DO NOT HAVE TO SEPARATELY RUN HALO_PROPS
             gas_dat_h5.create_dataset(
                 "halo_{0}_h".format(partids[ii]), data=huniq[halo_idx]
+            )
+            gas_dat_h5.create_dataset(
+                "halo_{0}_pid".format(partids[ii]), data=gas_ids_uniq[halo_idx]
             )
             gas_dat_h5.create_dataset(
                 "halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx]

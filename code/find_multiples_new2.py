@@ -9,6 +9,7 @@ from itertools import combinations
 import h5py
 import numpy as np
 import pytreegrav
+
 import starforge_mult_search.code.starforge_constants as sfc
 
 
@@ -64,6 +65,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         fmol = np.ones_like(u) * np.inf
     # To get molecular gas density do: den*fmol*fneu*(1-helium_mass_fraction)/(2.0*mh), helium_mass_fraction=0.284
     fneu = f["PartType0"]["NeutralHydrogenAbundance"][:] * mask
+    gas_ids = f["PartType0"]["ParticleIDs"][:] * mask
 
     ## Units and snapshot time
     try:
@@ -115,25 +117,26 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     print("Snapshot time in %f Myr" % (tsnap_myr))
 
     del f
-    return (
-        den,
-        x,
-        m,
-        h,
-        u,
-        b,
-        v,
-        fmol,
-        fneu,
-        partpos,
-        partmasses,
-        partvels,
-        partids,
-        partsink,
-        tage_myr,
-        unit_base,
-        partspin,
-    )
+    return {
+        "den": den,
+        "x": x,
+        "m": m,
+        "h": h,
+        "u": u,
+        "b": b,
+        "v": v,
+        "fmol": fmol,
+        "fneu": fneu,
+        "gas_ids": gas_ids,
+        "partpos": partpos,
+        "partmasses": partmasses,
+        "partvel": partvels,
+        "partids": partids,
+        "partsink": partsink,
+        "tage_myr": tage_myr,
+        "unit_base": unit_base,
+        "partspin": partspin,
+    }
 
 
 def PE(xc, mc, hc):
@@ -864,27 +867,17 @@ def main():
     name_tag = args.name_tag
     snapshot_num = f"{int(args.snap):03d}"
 
-    # den, x, m, h, u, b, v, t, fmol, fneu, partpos, partmasses, partvels, partids, tage_myr, unit_base = load_data(snapshot_file, res_limit=1e-3)
     # cl = cluster(partpos, partvels, partmasses, partids)
-    (
-        den,
-        x,
-        m,
-        h,
-        u,
-        b,
-        v,
-        fmol,
-        fneu,
-        partpos,
-        partmasses,
-        partvels,
-        partids,
-        partsink,
-        tage_myr,
-        unit_base,
-        partspin,
-    ) = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
+    out = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
+    x = out["x"]
+    m = out["m"]
+    h = out["h"]
+    partpos = out["partpos"]
+    partmasses = out["partmasses"]
+    partvels = out["partvels"]
+    partids = out["partids"]
+    partsink = out["partsink"]
+
     if len(partpos) == 0:
         print("No particles!")
         return
