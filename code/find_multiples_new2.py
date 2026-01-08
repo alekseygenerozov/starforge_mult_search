@@ -130,7 +130,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         "gas_ids": gas_ids,
         "partpos": partpos,
         "partmasses": partmasses,
-        "partvel": partvels,
+        "partvels": partvels,
         "partids": partids,
         "partsink": partsink,
         "tage_myr": tage_myr,
