@@ -1,13 +1,13 @@
-from collections import defaultdict
 import copy
 import glob
+from collections import defaultdict
 
 import numpy as np
 from numba import njit
+from pytreegrav.kernel import PotentialKernel
 from scipy.interpolate import interp1d
 
 import starforge_mult_search.code.starforge_constants as sfc
-from pytreegrav.kernel import PotentialKernel
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -31,6 +31,7 @@ mcol = np.where(sink_cols == "m")[0][0]
 mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
 
+
 def npz_stack(npz_list):
     """
     Stack data from different seeds
@@ -46,32 +47,37 @@ def npz_stack(npz_list):
         # Iterate over keys in the .npz file
         for key in data.keys():
             data_dict[key].append(data[key])  # Append data for this key
-    concatenated_data_dict = {key: np.concatenate(arrays) for key, arrays in data_dict.items()}
+    concatenated_data_dict = {
+        key: np.concatenate(arrays) for key, arrays in data_dict.items()
+    }
 
     return concatenated_data_dict
+
 
 # @njit
 def subtract_path(p1, p2):
     """
     Function to get displacement of 2 stars accounting for infinity placeholders
     """
-    assert len(p1)==len(p2)
+    assert len(p1) == len(p2)
     diff = np.ones((len(p1), 3)) * np.inf
-    filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
+    filt = (~np.isinf(p1[:, 0])) & (~np.isinf(p2[:, 0]))
     diff[filt] = p1[filt] - p2[filt]
 
     return diff
+
 
 def divide_path(p1, p2):
     """
     Function to get displacement of 2 stars accounting for infinity placeholders
     """
-    assert len(p1)==len(p2)
+    assert len(p1) == len(p2)
     diff = np.ones((p1.shape[0], p1.shape[1])) * np.inf
-    filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
+    filt = (~np.isinf(p1[:, 0])) & (~np.isinf(p2[:, 0]))
     diff[filt] = p1[filt] / p2[filt]
 
     return diff
+
 
 ##Use different variable instead of mtot here...
 @njit
@@ -89,20 +95,29 @@ def get_peri(x, y, z, vx, vy, vz, mtot, eps):
     ell = np.sqrt(ell[0] * ell[0] + ell[1] * ell[1] + ell[2] * ell[2])
 
     ##This formula must also be adjusted for softening--solve numerically, but watch out for multiple roots
-    return -GN * mtot / (2. * en) * (1. - np.sqrt(1. + 2. * en * ell**2. / (GN * mtot)**2.))
+    return (
+        -GN
+        * mtot
+        / (2.0 * en)
+        * (1.0 - np.sqrt(1.0 + 2.0 * en * ell**2.0 / (GN * mtot) ** 2.0))
+    )
+
 
 @njit
 def phi_softened(r, mtot, eps):
     GN = 4.301e3
     return GN * mtot * PotentialKernel(r, eps)
 
+
 @njit
 def eff_pot(r, L2, mtot, eps):
     return 0.5 * L2 / (r * r) + phi_softened(r, mtot, eps)
 
+
 @njit
 def root_function(r, E, L2, mtot, eps):
     return E - eff_pot(r, L2, mtot, eps)
+
 
 @njit
 def bisect_root(E, L2, mtot, eps, a, b):
@@ -121,7 +136,7 @@ def bisect_root(E, L2, mtot, eps, a, b):
 
     for _ in range(maxiter):
         log_mid = 0.5 * (log_a + log_b)
-        mid = 10.0 ** log_mid
+        mid = 10.0**log_mid
         fc = root_function(mid, E, L2, mtot, eps)
 
         if abs(log_b - log_a) < rtol:
@@ -134,7 +149,8 @@ def bisect_root(E, L2, mtot, eps, a, b):
             log_a = log_mid
             fa = fc
 
-    return 10.0 ** log_mid  # return last midpoint if no convergence
+    return 10.0**log_mid  # return last midpoint if no convergence
+
 
 @njit
 def get_peri_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
@@ -150,9 +166,10 @@ def get_peri_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
     L2 = Lx * Lx + Ly * Ly + Lz * Lz
 
     rmin = 1e-20  # Avoid divide-by-zero
-    rmax = r0    # Assume current sep is outside pericenter
+    rmax = r0  # Assume current sep is outside pericenter
 
     return bisect_root(E, L2, mtot, eps, rmin, rmax)
+
 
 @njit
 def get_apo_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
@@ -167,8 +184,8 @@ def get_apo_softened_numba(x, y, z, vx, vy, vz, mtot, eps):
     Lz = x * vy - y * vx
     L2 = Lx * Lx + Ly * Ly + Lz * Lz
 
-    rmin = r0 
-    rmax = 10 * r0    
+    rmin = r0
+    rmax = 10 * r0
 
     return bisect_root(E, L2, mtot, eps, rmin, rmax)
 
@@ -210,13 +227,14 @@ def subtract_path_opt(p1, p2, dir=1):
             eps = max(p1[i, 7], p2[i, 7])
             ##Addition criterion: if bound and orbital period is the less than interval(!!)--Need a way to compute the softened orbital period...
             ##Need ability to do both forward and backward integration...
-            if (dir > 0) and (i < n) and (angs[i] * angs[i+1] < 0):
+            if (dir > 0) and (i < n) and (angs[i] * angs[i + 1] < 0):
                 d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
-            elif (dir < 0) and (i > 0) and (angs[i] * angs[i-1] < 0):
+            elif (dir < 0) and (i > 0) and (angs[i] * angs[i - 1] < 0):
                 d[i] = get_peri_softened_numba(dx, dy, dz, dvx, dvy, dvz, mtot, hcol)
             else:
                 d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
+
 
 @njit
 def subtract_path_opt_vanilla(p1, p2):
@@ -237,13 +255,15 @@ def subtract_path_opt_vanilla(p1, p2):
             d[i] = (dx * dx + dy * dy + dz * dz) ** 0.5
     return d
 
+
 def subtract_path_1d(p1, p2):
-    assert len(p1)==len(p2)
+    assert len(p1) == len(p2)
     diff = np.ones(len(p1)) * np.inf
     filt = (~np.isinf(p1)) & (~np.isinf(p2))
     diff[filt] = p1[filt] - p2[filt]
 
     return diff
+
 
 def max_w_infinite(p1):
     """
@@ -253,6 +273,7 @@ def max_w_infinite(p1):
         return np.inf
     else:
         return np.max(p1[~np.isinf(p1)])
+
 
 def get_min_dist_binary(path_lookup, tmp_row, two_body):
     """
@@ -269,7 +290,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
     path_diff_all = []
     keys_all = []
     for ii, uu in enumerate(path_lookup_keys):
-        #Want only closest approach of stars external to the binary.
+        # Want only closest approach of stars external to the binary.
         if uu in tmp_row:
             continue
         ##Filtering out other seeds? Could be done more robustly/elegantly
@@ -277,9 +298,13 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
             continue
 
         ##Displacement from binary com
-        path_diff1 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff1 = my_subtract_func(
+            path_lookup[uu][:, pxcol : pzcol + 1], p1_raw[:, pxcol : pzcol + 1]
+        )
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
-        path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
+        path_diff2 = my_subtract_func(
+            path_lookup[uu][:, pxcol : pzcol + 1], p2_raw[:, pxcol : pzcol + 1]
+        )
         # path_diff2 = np.sum(path_diff2 * path_diff2, axis=1)**.5
         path_diff = np.min((path_diff1, path_diff2), axis=0)
         path_diff_all.append(path_diff)
@@ -294,6 +319,7 @@ def get_min_dist_binary(path_lookup, tmp_row, two_body):
 
     return closest_val, closest_idx, keys_all[closest_idx]
 
+
 def get_sigma(vels):
     """
     Get velocity distribution from list of velocities
@@ -302,11 +328,12 @@ def get_sigma(vels):
 
     :return: 3D velocity dispersion
     """
-    sigma_x = np.std(vels[:,0])
-    sigma_y = np.std(vels[:,1])
-    sigma_z = np.std(vels[:,2])
+    sigma_x = np.std(vels[:, 0])
+    sigma_y = np.std(vels[:, 1])
+    sigma_z = np.std(vels[:, 2])
 
-    return (sigma_x**2. + sigma_y**2. + sigma_z**2.)**.5
+    return (sigma_x**2.0 + sigma_y**2.0 + sigma_z**2.0) ** 0.5
+
 
 def get_com_series(path_lookup, tmp_row):
     """
@@ -320,10 +347,14 @@ def get_com_series(path_lookup, tmp_row):
     coms = np.zeros((len(path_lookup[tmp_row[0]]), 6))
     tot_mass = np.zeros(len(path_lookup[tmp_row[0]]))
     for part in tmp_row:
-        coms += path_lookup[part][:, pxcol:vzcol + 1] * path_lookup[part][:,mcol][:,np.newaxis] 
-        tot_mass += path_lookup[part][:,mcol]
-    coms = divide_path(coms , tot_mass[:, np.newaxis])
+        coms += (
+            path_lookup[part][:, pxcol : vzcol + 1]
+            * path_lookup[part][:, mcol][:, np.newaxis]
+        )
+        tot_mass += path_lookup[part][:, mcol]
+    coms = divide_path(coms, tot_mass[:, np.newaxis])
     return coms, tot_mass
+
 
 ##TO DO: GENERALIZE FOR ARBITRARY COLLECTIONS OF STARS
 def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_table=None):
@@ -342,7 +373,9 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     if mult_table is not None:
         mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
         mult_table["t"] = mult_table.index
-        mult_table = mult_table.explode("mult_ids_list_og").set_index(["t", "mult_ids_list_og"])
+        mult_table = mult_table.explode("mult_ids_list_og").set_index(
+            ["t", "mult_ids_list_og"]
+        )
         companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
     for ii, uu in enumerate(path_lookup_keys):
         # Want only closest approach of stars external to the group.
@@ -361,10 +394,17 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
             # overlap_times = mult_table.loc[
             #     lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
             if uu in companions_first_star:
-                overlap_times = mult_table.xs(int(uu), level="mult_ids_list_og").index.values
-              
+                overlap_times = mult_table.xs(
+                    int(uu), level="mult_ids_list_og"
+                ).index.values
+
         ##Displacement from binary stars
-        path_diff = [my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], tmp_path[:, pxcol:pzcol + 1]) for tmp_path in p_raw]
+        path_diff = [
+            my_subtract_func(
+                path_lookup[uu][:, pxcol : pzcol + 1], tmp_path[:, pxcol : pzcol + 1]
+            )
+            for tmp_path in p_raw
+        ]
         # path_diff1 = np.sum(path_diff1 * path_diff1, axis=1)**.5
         # path_diff2 = my_subtract_func(path_lookup[uu][:, pxcol:pzcol + 1], p2_raw[:, pxcol:pzcol + 1])
         ##Patch for higher companions??
@@ -381,7 +421,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     coms_row, tot_mass_row = get_com_series(path_lookup, tmp_row)
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
-    ##Note argmpartition will *not* give the sorted order. 
+    ##Note argmpartition will *not* give the sorted order.
     partition = np.argpartition(path_diff_all, nneighbors)
     keys_closest = keys_all[partition][:, :nneighbors]
 
@@ -399,24 +439,53 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         dist_neighbors = path_diff_all[ii, partition[ii, :nneighbors]]
         order = np.argsort(dist_neighbors)
         ##Trying to do n-densities simultaneously
-        ndens[ii] = np.array([(nn + 1) / (4. * np.pi / 3.) / dist_neighbors[order[nn]]**3 for nn in range(nneighbors)])
-        v_neighbors =  np.array([path_lookup[kk][ii, vxcol:vzcol+1] for kk in row])[order]
+        ndens[ii] = np.array(
+            [
+                (nn + 1) / (4.0 * np.pi / 3.0) / dist_neighbors[order[nn]] ** 3
+                for nn in range(nneighbors)
+            ]
+        )
+        v_neighbors = np.array([path_lookup[kk][ii, vxcol : vzcol + 1] for kk in row])[
+            order
+        ]
 
         mass_neighbors = np.array([path_lookup[kk][ii, mcol] for kk in row])[order]
-        mass_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
+        mass_closest[ii] = np.array(
+            [np.mean(mass_neighbors[: nn + 1]) for nn in range(nneighbors)]
+        )
         mass_neighbors = np.array([path_lookup[kk][ii, mtotcol] for kk in row])[order]
-        mass_tot_closest[ii] = np.array([np.mean(mass_neighbors[:nn + 1]) for nn in range(nneighbors)])
+        mass_tot_closest[ii] = np.array(
+            [np.mean(mass_neighbors[: nn + 1]) for nn in range(nneighbors)]
+        )
         # mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
         ##Need to add the velocity dispersion of of the star itself...
-        
-        sigma[ii] = np.array([get_sigma(np.vstack((v_neighbors[:nn + 1], coms_row[ii, 3:]))) for nn in range(nneighbors)])
+
+        sigma[ii] = np.array(
+            [
+                get_sigma(np.vstack((v_neighbors[: nn + 1], coms_row[ii, 3:])))
+                for nn in range(nneighbors)
+            ]
+        )
         ##Hard-coded for a target size of 1e4 au
         b = 0.048
-        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.
-        coll_rate_focused[ii] = coll_rate[ii] * (1 + 2. * sfc.GN * (tot_mass_row[ii] + mass_closest[ii]) / (b * sigma[ii]**2.))
+        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.0
+        coll_rate_focused[ii] = coll_rate[ii] * (
+            1
+            + 2.0
+            * sfc.GN
+            * (tot_mass_row[ii] + mass_closest[ii])
+            / (b * sigma[ii] ** 2.0)
+        )
 
-    return {"mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens, 
-            "sigma": sigma, "coll_rate": coll_rate, "coll_rate_focused": coll_rate_focused}
+    return {
+        "mass_closest": mass_closest,
+        "mass_tot_closest": mass_tot_closest,
+        "keys_closest": keys_closest,
+        "ndens": ndens,
+        "sigma": sigma,
+        "coll_rate": coll_rate,
+        "coll_rate_focused": coll_rate_focused,
+    }
     # return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
 
 
@@ -457,16 +526,18 @@ def get_closest_star_time_series(path_lookup, my_key, two_body=False, dir=1):
     ##Filtering out other seeds? Could be done more robustly/elegantly
     path_lookup_keys = np.array(list(path_lookup.keys()))
     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
-    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+    path_lookup_keys = path_lookup_keys[nsnaps == len(p1_raw)]
 
     path_diff_all = []
     for ii, uu in enumerate(path_lookup_keys):
         ##Exclude the star itself
-        if uu==my_key:
+        if uu == my_key:
             continue
 
         ##Getting separations for all particles...
-        tmp_path1 = path_lookup[uu][:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
+        tmp_path1 = path_lookup[uu][
+            :, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]
+        ]
         tmp_path2 = p1_raw[:, [pxcol, pycol, pzcol, vxcol, vycol, vzcol, mcol, hcol]]
         if two_body:
             path_diff = subtract_path_opt(tmp_path1, tmp_path2, dir=dir)
@@ -480,28 +551,41 @@ def get_closest_star_time_series(path_lookup, my_key, two_body=False, dir=1):
     closest_idx = np.argmin(path_diff_all, axis=1)
     closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
     del path_diff_all
-    keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
-    closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii], path_lookup[keys[ii]][ii, 0]] for ii in range(len(keys))]
+    keys = path_lookup_keys[path_lookup_keys != my_key][closest_idx]
+    closest_comp = [
+        [
+            my_key,
+            keys[ii],
+            path_lookup[keys[ii]][ii, mcol],
+            path_lookup[keys[ii]][ii, mtotcol],
+            closest_val[ii],
+            path_lookup[keys[ii]][ii, 0],
+        ]
+        for ii in range(len(keys))
+    ]
     closest_comp = np.array(closest_comp)
-    filt = ~np.isinf(closest_comp[:,-2].astype(float))
+    filt = ~np.isinf(closest_comp[:, -2].astype(float))
 
     return closest_comp[filt]
+
 
 def get_closest_star_time_series_mem_opt(path_lookup, my_key):
     p1_raw = path_lookup[my_key]
     ##Filtering out other seeds? Could be done more robustly/elegantly
     path_lookup_keys = np.array(list(path_lookup.keys()))
     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
-    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+    path_lookup_keys = path_lookup_keys[nsnaps == len(p1_raw)]
 
     # path_diff_all = []
     min_dists = np.full(len(p1_raw), np.inf)
     min_keys = np.full(len(p1_raw), "", dtype=object)
     for ii, uu in enumerate(path_lookup_keys):
         ##Exclude the star itself
-        if uu==my_key:
+        if uu == my_key:
             continue
-        path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+        path_diff = subtract_path_opt(
+            path_lookup[uu][:, pxcol : pzcol + 1], p1_raw[:, pxcol : pzcol + 1]
+        )
         update_mask = path_diff < min_dists
 
         min_dists[update_mask] = path_diff[update_mask]
@@ -509,11 +593,19 @@ def get_closest_star_time_series_mem_opt(path_lookup, my_key):
 
     # print(min_keys)
     closest_comp = [
-        [my_key, min_keys[ii], path_lookup[min_keys[ii]][ii, mcol], path_lookup[min_keys[ii]][ii, mtotcol], min_dists[ii]]
-        for ii in range(len(min_keys)) if not np.isinf(min_dists[ii])
+        [
+            my_key,
+            min_keys[ii],
+            path_lookup[min_keys[ii]][ii, mcol],
+            path_lookup[min_keys[ii]][ii, mtotcol],
+            min_dists[ii],
+        ]
+        for ii in range(len(min_keys))
+        if not np.isinf(min_dists[ii])
     ]
 
     return np.array(closest_comp)
+
 
 # def get_t90(path_lookup, my_key):
 #     p1_raw = path_lookup[my_key]
@@ -528,52 +620,62 @@ def get_closest_star_time_series_mem_opt(path_lookup, my_key):
 #     else:
 #         return interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])
 
+
 def get_t90(path_lookup, my_key):
     p1_raw = path_lookup[my_key]
-    p1_raw = p1_raw[~np.isinf(p1_raw[:,0])]
+    p1_raw = p1_raw[~np.isinf(p1_raw[:, 0])]
 
     m_end = p1_raw[-1, mcol]
     m_series = p1_raw[:, mcol]
     t_series = p1_raw[:, 0]
     idx_crit = np.where(m_series < 0.9 * m_end)[0]
-    if len(idx_crit)==0:
+    if len(idx_crit) == 0:
         return t_series[0], 0, t_series[0]
     else:
-        t90_abs = interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])(0.9 * m_end)
+        t90_abs = interp1d(
+            [m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]],
+            [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]],
+        )(0.9 * m_end)
         return t90_abs, t90_abs - t_series[0], t_series[0]
+
 
 def get_t90_series(t_series, m_series):
     m_end = m_series[-1]
     idx_crit = np.where(m_series < 0.9 * m_end)[0]
-    if len(idx_crit)==0:
+    if len(idx_crit) == 0:
         return t_series[0], 0, t_series[0]
     else:
-        t90_abs = interp1d([m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]], [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]])(0.9 * m_end)
+        t90_abs = interp1d(
+            [m_series[idx_crit[-1]], m_series[idx_crit[-1] + 1]],
+            [t_series[idx_crit[-1]], t_series[idx_crit[-1] + 1]],
+        )(0.9 * m_end)
         return t90_abs, t90_abs - t_series[0], t_series[0]
-    
+
+
 ##Only do 1 seed at a time
 # def get_closest_star_time_series_transposed(path_lookup_time, my_key):
 #     p1_raw = path_lookup[my_key]
-    ##Filtering out other seeds? Could be done more robustly/elegantly
-    #
-    # path_diff_all = []
-    # for ii, uu in enumerate(path_lookup_keys):
-    #     ##Getting separations for all particles...
-    #     path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
-    #     # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
-    #     path_diff_all.append(path_diff)
-    # path_diff_all = np.array(path_diff_all).T
-    # # path_diff_all_order = np.argsort(path_diff_all, axis=1)
-    # # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
-    # closest_idx = np.argmin(path_diff_all, axis=1)
-    # closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
-    #
-    # keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
-    # closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
-    # closest_comp = np.array(closest_comp)
-    # filt = ~np.isinf(closest_comp[:,-1].astype(float))
+##Filtering out other seeds? Could be done more robustly/elegantly
+#
+# path_diff_all = []
+# for ii, uu in enumerate(path_lookup_keys):
+#     ##Getting separations for all particles...
+#     path_diff = subtract_path_opt(path_lookup[uu][:, pxcol:pzcol + 1], p1_raw[:, pxcol:pzcol + 1])
+#     # path_diff = np.sum(path_diff * path_diff, axis=1)**.5
+#     path_diff_all.append(path_diff)
+# path_diff_all = np.array(path_diff_all).T
+# # path_diff_all_order = np.argsort(path_diff_all, axis=1)
+# # path_diff_all = np.take_along_axis(path_diff_all, path_diff_all_order, axis=1)
+# closest_idx = np.argmin(path_diff_all, axis=1)
+# closest_val = path_diff_all[np.arange(path_diff_all.shape[0]), closest_idx]
+#
+# keys = path_lookup_keys[path_lookup_keys!=my_key][closest_idx]
+# closest_comp = [[my_key, keys[ii], path_lookup[keys[ii]][ii, mcol], path_lookup[keys[ii]][ii, mtotcol], closest_val[ii]] for ii in range(len(keys))]
+# closest_comp = np.array(closest_comp)
+# filt = ~np.isinf(closest_comp[:,-1].astype(float))
 
-    # return closest_comp[filt]
+# return closest_comp[filt]
+
 
 def get_closest_star_time_series_T(path_lookup, my_key, t):
     p1_raw = path_lookup[my_key]
@@ -581,14 +683,18 @@ def get_closest_star_time_series_T(path_lookup, my_key, t):
         return "blank", np.inf
     path_lookup_keys = np.array(list(path_lookup.keys()))
     nsnaps = np.array([len(path_lookup[kk]) for kk in path_lookup_keys])
-    path_lookup_keys = path_lookup_keys[nsnaps==len(p1_raw)]
+    path_lookup_keys = path_lookup_keys[nsnaps == len(p1_raw)]
 
-    pos_all = np.array([path_lookup[kk][t, pxcol:pzcol+1] for kk in path_lookup_keys])
-    delta = pos_all - p1_raw[t][pxcol:pzcol+1]
-    delta = np.sum(delta * delta, axis=1)**.5
+    pos_all = np.array(
+        [path_lookup[kk][t, pxcol : pzcol + 1] for kk in path_lookup_keys]
+    )
+    delta = pos_all - p1_raw[t][pxcol : pzcol + 1]
+    delta = np.sum(delta * delta, axis=1) ** 0.5
     order = np.argsort(delta)
 
     return path_lookup_keys[order[1]], delta[order[1]]
+
+
 #
 # def get_closest_star_time_series_exp(path_lookup, my_key):
 #     p1_raw = path_lookup[my_key]
@@ -608,8 +714,10 @@ def get_closest_star_time_series_T(path_lookup, my_key, t):
 # def var_g23(N, k):
 #     return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
 
+
 def var_g23(N, k):
-    return (N - k + 1.) * ( k + 1.) / (N + 3.) / (N + 2.)**2.
+    return (N - k + 1.0) * (k + 1.0) / (N + 3.0) / (N + 2.0) ** 2.0
+
 
 def make_binned_data_cont(absc, ords, bins):
     """
@@ -619,7 +727,6 @@ def make_binned_data_cont(absc, ords, bins):
     binned_err = np.zeros(len(bins) - 1)
     binned_err2 = np.zeros(len(bins) - 1)
 
-
     for bidx in range(1, len(bins)):
         tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
         tmp_ords = ords[tmp_filt]
@@ -627,9 +734,10 @@ def make_binned_data_cont(absc, ords, bins):
 
         binned_num[bidx - 1] = np.mean(tmp_ords)
         binned_err[bidx - 1] = np.std(tmp_ords)
-        binned_err2[bidx -1] = np.std(tmp_ords) / (len(tmp_ords))**.5
+        binned_err2[bidx - 1] = np.std(tmp_ords) / (len(tmp_ords)) ** 0.5
 
     return binned_num, binned_err, binned_err2
+
 
 def make_binned_data(absc, ords, bins):
     """
@@ -644,19 +752,26 @@ def make_binned_data(absc, ords, bins):
         tmp_ords = ords[tmp_filt]
 
         binned_num[bidx - 1] = len(tmp_ords[tmp_ords > 0])
-        binned_numu[bidx - 1] = len(tmp_ords[tmp_ords > 0]) ** .5
+        binned_numu[bidx - 1] = len(tmp_ords[tmp_ords > 0]) ** 0.5
         binned_den[bidx - 1] = len(tmp_ords)
-        true_err[bidx - 1] = var_g23(len(tmp_ords), len(tmp_ords[tmp_ords > 0]))**.5
+        true_err[bidx - 1] = var_g23(len(tmp_ords), len(tmp_ords[tmp_ords > 0])) ** 0.5
 
     return binned_num, binned_numu, binned_den, true_err
 
+
 def get_soft_times(id1, id2, path_lookup):
-    d12 = subtract_path(path_lookup[f"{id1}"][:, pxcol:pzcol+1], path_lookup[f"{id2}"][:, pxcol:pzcol+1])
-    d12 = np.sum(d12 * d12, axis=1)**.5
-    hmax = np.max((path_lookup[f"{id1}"][:, hcol], path_lookup[f"{id2}"][:, hcol]), axis=0)
+    d12 = subtract_path(
+        path_lookup[f"{id1}"][:, pxcol : pzcol + 1],
+        path_lookup[f"{id2}"][:, pxcol : pzcol + 1],
+    )
+    d12 = np.sum(d12 * d12, axis=1) ** 0.5
+    hmax = np.max(
+        (path_lookup[f"{id1}"][:, hcol], path_lookup[f"{id2}"][:, hcol]), axis=0
+    )
     soft_times = np.where(d12 < hmax)[0]
 
     return soft_times
+
 
 def get_fpaths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     """
@@ -679,15 +794,21 @@ def get_snap_info(base, base_sink):
     Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),
     start_snap (first snapshot number), end_snap (last snapshot number)
     """
-    snaps = [xx.replace(base_sink, "").replace(".sink", "") for xx in glob.glob(base_sink + "*.sink")]
+    snaps = [
+        xx.replace(base_sink, "").replace(".sink", "")
+        for xx in glob.glob(base_sink + "*.sink")
+    ]
     snaps = np.array(snaps).astype(int)
     cadence = np.diff(np.sort(snaps))[0]
-    snap_interval = np.atleast_1d(np.genfromtxt(base + "/sinkprop/snap_interval")).astype(float)
+    snap_interval = np.atleast_1d(
+        np.genfromtxt(base + "/sinkprop/snap_interval")
+    ).astype(float)
     ##Get snapshot numbers automatically
     start_snap = min(snaps)
     end_snap = max(snaps)
 
     return cadence, snap_interval, start_snap, end_snap
+
 
 def get_end_time_set(my_set, path_lookup):
     """
@@ -700,6 +821,7 @@ def get_end_time_set(my_set, path_lookup):
     end_stars_row = ps[~np.isinf(np.mean(ps[:, :, 0], axis=1))][-1]
     return end_stars_row[0, 0], max(end_stars_row[:, 1])
 
+
 def get_bound_snaps_adjust(bin_list, high_df):
     ##Use high_df table to get more stringent binary snapshots(!!!)
     curr_bin_list = copy.copy(bin_list)
@@ -708,3 +830,62 @@ def get_bound_snaps_adjust(bin_list, high_df):
 
     return bin_sel
 
+
+def get_star_mapping_closest(high_df):
+    """Transform multiples table to be indexed by stars, picking out minimal multiple for each one.
+
+    :param high_df: Multiples data from starforge simulation
+    :type high_df: Pandas dataframe
+    :return: "Exploded" dataframe indexed by star id. Each id will have one row that corresponds to "minimal" multiples containing that id
+    :rtype: Pandas dataframe
+    """
+    df = high_df.copy()
+    df["mult_len"] = df["mult_ids_list"].apply(len)
+
+    # Step 2: Explode to have one row per star
+    df_exploded = df.explode("mult_ids_list")
+    df_exploded["mult_ids_list_og"] = high_df["mult_ids_list"].copy()
+
+    # Step 3: Sort so the longest lists come first
+    df_exploded = df_exploded.sort_values("mult_len", ascending=True)
+    # Step 6: Create a mapping: star_id → row with longest mult_ids_list containing it
+    star_to_row = df_exploded.drop_duplicates(
+        subset="mult_ids_list", keep="first"
+    ).set_index(
+        "mult_ids_list"
+    )  # or .set_index("id") if you prefer row IDs
+
+    star_mapping = star_to_row.groupby(
+        "mult_ids_list"
+    ).first()  # .to_dict(orient="index")
+    return star_mapping
+
+
+def get_star_mapping(high_df):
+    """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
+
+    :param high_df: Multiples data from starforge simulation
+    :type high_df: Pandas dataframe
+    :return: "Exploded" dataframe indexed by star id. Each id will have one row that corresponds to "maximal" multiples containing that id
+    :rtype: Pandas dataframe
+    """
+    df = high_df.copy()
+    df["mult_len"] = df["mult_ids_list"].apply(len)
+
+    # Step 2: Explode to have one row per star
+    df_exploded = df.explode("mult_ids_list")
+
+    # Step 3: Sort so the longest lists come first
+    df_exploded = df_exploded.sort_values("mult_len", ascending=False)
+
+    # Step 6: Create a mapping: star_id → row with longest mult_ids_list containing it
+    star_to_row = df_exploded.drop_duplicates(
+        subset="mult_ids_list", keep="first"
+    ).set_index(
+        "mult_ids_list"
+    )  # or .set_index("id") if you prefer row IDs
+
+    star_mapping = star_to_row.groupby(
+        "mult_ids_list"
+    ).first()  # .to_dict(orient="index")
+    return star_mapping
