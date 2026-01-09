@@ -2,21 +2,28 @@ import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 colorblind_palette = sns.color_palette("colorblind")
 
 from starforge_mult_search.analysis.analyze_stack import npz_stack
 from labelLine import labelLines
-from starforge_mult_search.analysis.figures.figure_preamble import contig_suff, smao, my_tides, base_new
+from starforge_mult_search.analysis.figures.figure_preamble import (
+    contig_suff,
+    smao,
+    my_tides,
+    base_new,
+)
 import scienceplots
 import matplotlib as mpl
-plt.style.use('nature')
-mpl.rcParams['font.sans-serif'] = "Arial"
-mpl.rcParams['figure.figsize'] = (6.75, 6.75)
-mpl.rcParams['pdf.fonttype'] = 42
+
+plt.style.use("nature")
+mpl.rcParams["font.sans-serif"] = "Arial"
+mpl.rcParams["figure.figsize"] = (6.75, 6.75)
+mpl.rcParams["pdf.fonttype"] = 42
 
 ##Stacking data
 suff = "_mult"
-seeds = (1,2,42)
+seeds = (1, 2, 42)
 
 # Compute ECDF
 def ecdf(data):
@@ -24,16 +31,17 @@ def ecdf(data):
     y = np.arange(1, len(data) + 1) / len(data)
     return x, y
 
+
 my_ft = 1.0
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
-npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
+npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]
 base_data = npz_stack(npzs_list)
 
 my_ft = 8.0
 suff_new = f"/analyze_multiples_output__Tides{my_tides}_smao{smao}_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse"
 npzs_list = []
-npzs_list = [base_new+str(seed)+suff_new+f"/dat_coll{suff}.npz" for seed in seeds]
+npzs_list = [base_new + str(seed) + suff_new + f"/dat_coll{suff}.npz" for seed in seeds]
 comp = npz_stack(npzs_list)
 
 # Load data
@@ -45,7 +53,7 @@ comp_quasi_filter = comp[f"quasi_filter{contig_suff}"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 
-fig,ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
 ax.set_xlim(-2.1, 2)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"log(-PE / KE)")
@@ -68,17 +76,23 @@ x_gas2, y_gas2 = ecdf(log_ens_comp)
 print(interp1d(x_gas1, y_gas1)(0))
 print(interp1d(x_gas2, y_gas2)(0))
 
-x_common = np.linspace(min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500)
+x_common = np.linspace(
+    min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500
+)
 y_gas1_interp = np.interp(x_common, x_gas1, y_gas1)
 y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 
-ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[0], alpha=0.3)
+ax.fill_between(
+    x_common, y_gas1_interp, y_gas2_interp, color=colorblind_palette[0], alpha=0.3
+)
 
 
 x_gas1, y_gas1 = ecdf(log_ens_gas)
 x_gas2, y_gas2 = ecdf(log_ens_gas_comp)
 
-x_common = np.linspace(min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500)
+x_common = np.linspace(
+    min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500
+)
 y_gas1_interp = np.interp(x_common, x_gas1, y_gas1)
 y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 
@@ -86,12 +100,14 @@ print(interp1d(x_gas1, y_gas1)(0))
 print(interp1d(x_gas2, y_gas2)(0))
 
 # Plot ECDF
-ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[1], alpha=0.3)
-ax.plot([0, 0], [0,1], '0.5', linestyle=':')
-ax.annotate("No gas", (-0.2, 0.6), ha='right', color=colorblind_palette[0]) 
-ax.annotate("Gas", (0.95, 0.75), ha='left', color=colorblind_palette[1])
-ax.annotate("Unbound", (-0.05,0.96), ha='right', color='0.5')
-ax.annotate("Bound", (0.03,0.96), ha='left', color='0.5')
+ax.fill_between(
+    x_common, y_gas1_interp, y_gas2_interp, color=colorblind_palette[1], alpha=0.3
+)
+ax.plot([0, 0], [0, 1], "0.5", linestyle=":")
+ax.annotate("No gas", (-0.2, 0.6), ha="right", color=colorblind_palette[0])
+ax.annotate("Gas", (0.95, 0.75), ha="left", color=colorblind_palette[1])
+ax.annotate("Unbound", (-0.05, 0.96), ha="right", color="0.5")
+ax.annotate("Bound", (0.03, 0.96), ha="left", color="0.5")
 
 fig.savefig("fig2a.pdf")
 
@@ -117,12 +133,16 @@ print(interp1d(x_gas1, y_gas1)(0))
 x_gas2, y_gas2 = ecdf(log_ens_ratio_ft1)
 print(interp1d(x_gas2, y_gas2)(0))
 
-x_common = np.linspace(min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500)
+x_common = np.linspace(
+    min(min(x_gas1), min(x_gas2)), max(max(x_gas1), max(x_gas2)), 500
+)
 y_gas1_interp = np.interp(x_common, x_gas1, y_gas1)
 y_gas2_interp = np.interp(x_common, x_gas2, y_gas2)
 
 # # Plot ECDF
-ax.fill_between(x_common, y_gas1_interp,  y_gas2_interp, color=colorblind_palette[2], alpha=0.3)
-ax.annotate("Gas corrected", (0.55, 0.5), ha='left', color=colorblind_palette[2]) 
+ax.fill_between(
+    x_common, y_gas1_interp, y_gas2_interp, color=colorblind_palette[2], alpha=0.3
+)
+ax.annotate("Gas corrected", (0.55, 0.5), ha="left", color=colorblind_palette[2])
 plt.show()
 fig.savefig("ex_fig7.pdf")

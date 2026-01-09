@@ -11,11 +11,21 @@ import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import npz_stack,subtract_path,max_w_infinite,get_min_dist_binary,get_soft_times,get_bound_snaps_adjust
+from starforge_mult_search.analysis.analyze_stack import (
+    npz_stack,
+    subtract_path,
+    max_w_infinite,
+    get_min_dist_binary,
+    get_soft_times,
+    get_bound_snaps_adjust,
+)
 from starforge_mult_search.analysis.analyze_stack import get_dynamics_binary
 
 from starforge_mult_search.analysis import analyze_multiples_part2
-from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult, parse_mult_id
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    lookup_star_mult,
+    parse_mult_id,
+)
 from labelLine import labelLines
 
 ##Try to get rid of this import...
@@ -29,8 +39,16 @@ import starforge_mult_search.code.starforge_constants as sfc
 ## one of the stars was in a persistent multiple before the 2 stars became *binary*
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
-high_df = pd.concat([pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq") for seed in seeds])
-high_df = high_df.loc[(high_df[f"frac_of_orbit{contig_suff}"] >= 1) & (high_df[f"nbound_snaps{contig_suff}"] > 1)]
+high_df = pd.concat(
+    [
+        pd.read_parquet(base_new + str(seed) + suff_new + f"/mults{flat_suff}.pq")
+        for seed in seeds
+    ]
+)
+high_df = high_df.loc[
+    (high_df[f"frac_of_orbit{contig_suff}"] >= 1)
+    & (high_df[f"nbound_snaps{contig_suff}"] > 1)
+]
 
 mult_ids = high_df.index.get_level_values("id")
 mult_ids_set = mult_ids.to_series().apply(parse_mult_id)
@@ -106,11 +124,17 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     pmult_filt[ii] = ex_time[ii] >= ibs
 
 ##Need to get time of the first exchange as well -- this is not quite ex_time
-np.savez(f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz", pmult_filt=pmult_filt, ex_time=ex_time, ex_time_max=ex_time_max,
-         ex_time_end=ex_time_end, ex_time_max_end=ex_time_max_end)
+np.savez(
+    f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz",
+    pmult_filt=pmult_filt,
+    ex_time=ex_time,
+    ex_time_max=ex_time_max,
+    ex_time_end=ex_time_end,
+    ex_time_max_end=ex_time_max_end,
+)
 #########################################################################################################
-#Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
-#persistence filters.
+# Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
+# persistence filters.
 # npzs_list = [base_new + str(seed) + suff_new + f"/fates_corr{flat_suff}{contig_suff}.npz" for seed in seeds]
 # fates_corr = npz_stack(npzs_list)
 # same_sys_filt = fates_corr["same_sys_filt"]

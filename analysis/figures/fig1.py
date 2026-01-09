@@ -34,31 +34,48 @@ class AUnit(units.ConversionInterface):
         "Convert a datetime value to a scalar or array."
         return (value) * cgs.pc / cgs.au
 
+
 def subtract_path(p1, p2):
-    assert len(p1)==len(p2)
+    assert len(p1) == len(p2)
     diff = np.ones((len(p1), 3)) * np.inf
-    filt = (~np.isinf(p1[:,0])) & (~np.isinf(p2[:,0]))
+    filt = (~np.isinf(p1[:, 0])) & (~np.isinf(p2[:, 0]))
     diff[filt] = p1[filt] - p2[filt]
 
     return diff
 
+
 def get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft):
-    with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
-        path_lookup = (pickle.load(ff))
+    with open(
+        base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "")
+        + aa
+        + "/path_lookup.p",
+        "rb",
+    ) as ff:
+        path_lookup = pickle.load(ff)
 
-    tmp_pos = path_lookup[f"{bin_id1}"][snap_idx, pxcol:vzcol+1]
+    tmp_pos = path_lookup[f"{bin_id1}"][snap_idx, pxcol : vzcol + 1]
     tmp_mass = path_lookup[f"{bin_id1}"][snap_idx, mcol]
-    with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-        tmp_halo_pos = np.hstack((hf[f"halo_{bin_id1}_x"][...], hf[f"halo_{bin_id1}_v"][...]))
-        tmp_halo_mass = (hf[f"halo_{bin_id1}_m"][...])
-        tmp_halo_rho = (hf[f"halo_{bin_id1}_rho"][...])
+    with h5py.File(
+        base
+        + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5"
+    ) as hf:
+        tmp_halo_pos = np.hstack(
+            (hf[f"halo_{bin_id1}_x"][...], hf[f"halo_{bin_id1}_v"][...])
+        )
+        tmp_halo_mass = hf[f"halo_{bin_id1}_m"][...]
+        tmp_halo_rho = hf[f"halo_{bin_id1}_rho"][...]
 
-    tmp_pos2 = path_lookup[f"{bin_id2}"][snap_idx, pxcol:vzcol+1]
+    tmp_pos2 = path_lookup[f"{bin_id2}"][snap_idx, pxcol : vzcol + 1]
     tmp_mass2 = path_lookup[f"{bin_id2}"][snap_idx, mcol]
-    with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-        tmp_halo_pos2 = np.hstack((hf[f"halo_{bin_id2}_x"][...], hf[f"halo_{bin_id2}_v"][...]))
-        tmp_halo_mass2 = (hf[f"halo_{bin_id2}_m"][...])
-        tmp_halo_rho2 = (hf[f"halo_{bin_id2}_rho"][...])
+    with h5py.File(
+        base
+        + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5"
+    ) as hf:
+        tmp_halo_pos2 = np.hstack(
+            (hf[f"halo_{bin_id2}_x"][...], hf[f"halo_{bin_id2}_v"][...])
+        )
+        tmp_halo_mass2 = hf[f"halo_{bin_id2}_m"][...]
+        tmp_halo_rho2 = hf[f"halo_{bin_id2}_rho"][...]
 
     center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
     tmp_pos_center = tmp_pos - center
@@ -67,66 +84,108 @@ def get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft):
     tmp_halo_pos2_center = tmp_halo_pos2 - center
 
     ###Getting com of each star + halo
-    com_w_halo = (tmp_pos * tmp_mass + np.sum(tmp_halo_mass[:, np.newaxis] * tmp_halo_pos, axis=0)) / (tmp_mass + np.sum(tmp_halo_mass))
-    com2_w_halo = (tmp_pos2 * tmp_mass2 + np.sum(tmp_halo_mass2[:, np.newaxis] * tmp_halo_pos2, axis=0)) / (tmp_mass2 + np.sum(tmp_halo_mass2))
+    com_w_halo = (
+        tmp_pos * tmp_mass + np.sum(tmp_halo_mass[:, np.newaxis] * tmp_halo_pos, axis=0)
+    ) / (tmp_mass + np.sum(tmp_halo_mass))
+    com2_w_halo = (
+        tmp_pos2 * tmp_mass2
+        + np.sum(tmp_halo_mass2[:, np.newaxis] * tmp_halo_pos2, axis=0)
+    ) / (tmp_mass2 + np.sum(tmp_halo_mass2))
 
     ##Be careful with the different coordinates here...
-    return center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo - center, com2_w_halo - center
+    return (
+        center,
+        tmp_pos_center,
+        tmp_halo_pos_center,
+        tmp_pos2_center,
+        tmp_halo_pos2_center,
+        com_w_halo - center,
+        com2_w_halo - center,
+    )
+
 
 def get_phalo_limits(base, aa, snap_idx, bin_id1, bin_id2):
-    center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
-                                                                                                   bin_id1, bin_id2, "8.0")
+    (
+        center,
+        tmp_pos_center,
+        tmp_halo_pos_center,
+        tmp_pos2_center,
+        tmp_halo_pos2_center,
+        com_w_halo,
+        com2_w_halo,
+    ) = get_phalo(base, aa, snap_idx, bin_id1, bin_id2, "8.0")
     ##Automatically set axis extent based on the size of the halos -- TO DO PLOT CONSI
-    halos_x = (np.concatenate(
-        (tmp_halo_pos_center[:, 0], tmp_halo_pos2_center[:, 0], [tmp_pos_center[0]], [tmp_pos2_center[0]])))
-    halos_y = (np.concatenate(
-        (tmp_halo_pos_center[:, 1], tmp_halo_pos2_center[:, 1], [tmp_pos_center[1]], [tmp_pos2_center[1]])))
+    halos_x = np.concatenate(
+        (
+            tmp_halo_pos_center[:, 0],
+            tmp_halo_pos2_center[:, 0],
+            [tmp_pos_center[0]],
+            [tmp_pos2_center[0]],
+        )
+    )
+    halos_y = np.concatenate(
+        (
+            tmp_halo_pos_center[:, 1],
+            tmp_halo_pos2_center[:, 1],
+            [tmp_pos_center[1]],
+            [tmp_pos2_center[1]],
+        )
+    )
     xmin, xmax = min(halos_x), max(halos_x)
     ymin, ymax = min(halos_y), max(halos_y)
 
     return xmin, xmax, ymin, ymax
 
+
 def get_initial_orbit(tmp1, tmp2):
-    tmp_filt = (~np.isinf(tmp1[:, 0])) & (~np.isinf(tmp2[:,0]))
+    tmp_filt = (~np.isinf(tmp1[:, 0])) & (~np.isinf(tmp2[:, 0]))
     tmp1_fst = tmp1[tmp_filt][0]
     tmp2_fst = tmp2[tmp_filt][0]
-    tmp_orb = find_multiples_new2.get_orbit(tmp1_fst[pxcol:pzcol+1], tmp2_fst[pxcol:pzcol+1],\
-                                            tmp1_fst[vxcol:vzcol+1], tmp2_fst[vxcol:vzcol+1],\
-                                            tmp1_fst[mtotcol], tmp2_fst[mtotcol],\
-                                           tmp1_fst[hcol], tmp2_fst[hcol])
+    tmp_orb = find_multiples_new2.get_orbit(
+        tmp1_fst[pxcol : pzcol + 1],
+        tmp2_fst[pxcol : pzcol + 1],
+        tmp1_fst[vxcol : vzcol + 1],
+        tmp2_fst[vxcol : vzcol + 1],
+        tmp1_fst[mtotcol],
+        tmp2_fst[mtotcol],
+        tmp1_fst[hcol],
+        tmp2_fst[hcol],
+    )
 
     return tmp_orb
 
 
-def add_colorbar_to_axes(ax, mappable, label='', orientation='vertical', size='5%', pad=0.05):
+def add_colorbar_to_axes(
+    ax, mappable, label="", orientation="vertical", size="5%", pad=0.05
+):
     """
-    Add a colorbar to an existing axes.
-`
-    Parameters:
-    - ax: The axes to which the colorbar should be added.
-    - mappable: The image or plot object to which the colorbar applies (e.g., the result of ax.imshow()).
-    - label: The label for the colorbar.
-    - orientation: The orientation of the colorbar ('vertical' or 'horizontal').
-    - size: The size of the colorbar relative to the axes.
-    - pad: The padding between the axes and the colorbar.
+        Add a colorbar to an existing axes.
+    `
+        Parameters:
+        - ax: The axes to which the colorbar should be added.
+        - mappable: The image or plot object to which the colorbar applies (e.g., the result of ax.imshow()).
+        - label: The label for the colorbar.
+        - orientation: The orientation of the colorbar ('vertical' or 'horizontal').
+        - size: The size of the colorbar relative to the axes.
+        - pad: The padding between the axes and the colorbar.
     """
     divider = make_axes_locatable(ax)
-    if orientation == 'vertical':
+    if orientation == "vertical":
         cax = divider.append_axes("right", size=size, pad=pad)
     else:
         cax = divider.append_axes("bottom", size=size, pad=pad)
 
     cbar = plt.colorbar(mappable, cax=cax, orientation=orientation)
-    cbar.set_label(label, rotation=90 if orientation == 'vertical' else 0, labelpad=15)
+    cbar.set_label(label, rotation=90 if orientation == "vertical" else 0, labelpad=15)
     return cbar
 
 
 units.registry["au"] = AUnit()
 colorblind_palette = sns.color_palette("colorblind")
 # Set the matplotlib color cycle to the seaborn colorblind palette
-plt.rcParams['axes.prop_cycle'] = plt.cycler(color=colorblind_palette)
-plt.rcParams['lines.linewidth'] = 3
-plt.rcParams['patch.linewidth'] = 3
+plt.rcParams["axes.prop_cycle"] = plt.cycler(color=colorblind_palette)
+plt.rcParams["lines.linewidth"] = 3
+plt.rcParams["patch.linewidth"] = 3
 col1 = np.array((129, 50, 168)) / 256
 col2 = colorblind_palette[1]
 
@@ -147,14 +206,14 @@ scol = np.where(sink_cols == "sys_id")[0][0]
 config = configparser.ConfigParser()
 config.read(f"config_{sys.argv[1]}")
 
-snap_idx = config.getint("params","snap_idx")
-bin_id1 = config.getint("params","bin1")
+snap_idx = config.getint("params", "snap_idx")
+bin_id1 = config.getint("params", "bin1")
 bin_id2 = config.getint("params", "bin2")
-my_ft = config.get("params","ft", fallback="1.0")
-seed = config.getint("params","seed", fallback=42)
+my_ft = config.get("params", "ft", fallback="1.0")
+seed = config.getint("params", "seed", fallback=42)
 rmax = config.getfloat("params", "rmax", fallback=0.5)
 res = config.getint("params", "res", fallback=800)
-savetype = config.get("params","savetype", fallback="pdf")
+savetype = config.get("params", "savetype", fallback="pdf")
 vmin = config.getfloat("params", "vmin", fallback=1.0)
 vmax = config.getfloat("params", "vmax", fallback=3e4)
 plimit = config.getfloat("params", "plimit", fallback=-1)
@@ -163,7 +222,7 @@ ins_loc = config.get("params", "ins_loc", fallback="upper right")
 annot = config.get("params", "annot", fallback="")
 v_rescale = config.get("params", "v_rescale", fallback=2)
 
-v_scale = 100. / cgs.au / 1e4 * cgs.year * v_rescale
+v_scale = 100.0 / cgs.au / 1e4 * cgs.year * v_rescale
 d_cut = rmax
 base = f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_{seed}/"
 
@@ -172,7 +231,25 @@ aa = "analyze_multiples_output_" + r2 + "/"
 
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
 
-den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin  = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+(
+    den,
+    x,
+    m,
+    h,
+    u,
+    b,
+    v,
+    fmol,
+    fneu,
+    partpos,
+    partmasses,
+    partvels,
+    partids,
+    partsink,
+    tage_myr,
+    unit_base,
+    partspin,
+) = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
 huniq = h[indx]
@@ -190,37 +267,58 @@ partmasses = partmasses.astype(np.float64)
 partsink = partsink.astype(np.float64)
 
 ##GET HALO AND PARTICLE POSITIONS CENTERED ON THE STARS' COM
-center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
-                                                                                       bin_id1, bin_id2, my_ft)
+(
+    center,
+    tmp_pos_center,
+    tmp_halo_pos_center,
+    tmp_pos2_center,
+    tmp_halo_pos2_center,
+    com_w_halo,
+    com2_w_halo,
+) = get_phalo(base, aa, snap_idx, bin_id1, bin_id2, my_ft)
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
-sel2 = (sel2[:,0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:,2] < d_cut)
+sel2 = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
 
 ##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
 xuniq_center = xuniq - center[:3]
 M = Meshoid(xuniq_center[sel2], muniq[sel2], huniq[sel2])
-X = np.linspace(- rmax, rmax, res)
-Y = np.linspace(- rmax, rmax, res)
-X, Y = np.meshgrid(X, Y, indexing='ij')
-sigma_gas_msun_pc2 = M.SurfaceDensity(M.m,  size=2 * rmax, res=res, center=np.array((0,0,0)))  # *1e4
+X = np.linspace(-rmax, rmax, res)
+Y = np.linspace(-rmax, rmax, res)
+X, Y = np.meshgrid(X, Y, indexing="ij")
+sigma_gas_msun_pc2 = M.SurfaceDensity(
+    M.m, size=2 * rmax, res=res, center=np.array((0, 0, 0))
+)  # *1e4
 
 ############################################################################################################
 
-fig,ax = plt.subplots(figsize=fsize, constrained_layout=True)
+fig, ax = plt.subplots(figsize=fsize, constrained_layout=True)
 ax.set_xlabel("x")
 ax.set_ylabel("y")
-ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
+ax.annotate(
+    f"Example {annot}", (0.01, 0.99), xycoords="axes fraction", va="top", ha="left"
+)
 
-p = ax.pcolormesh(X, Y, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k", s=0.2)
-ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k", s=0.2)
+p = ax.pcolormesh(
+    X,
+    Y,
+    sigma_gas_msun_pc2,
+    norm=colors.LogNorm(vmin=vmin, vmax=vmax),
+    cmap="viridis",
+    linewidth=0,
+    rasterized=True,
+)
+ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k", s=0.2)
+ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1], marker="X", color="k", s=0.2)
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
 
 fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 ############################################################################################################
-fig,ax = plt.subplots(figsize=(fsize[0] * (9.5 / 8), fsize[1]), constrained_layout=True)
+fig, ax = plt.subplots(
+    figsize=(fsize[0] * (9.5 / 8), fsize[1]), constrained_layout=True
+)
 ax.set_xlabel("x")
 ax.set_ylabel("y")
 
@@ -231,27 +329,91 @@ xmax *= conv
 ymin *= conv
 ymax *= conv
 
-p = ax.pcolormesh(X * conv, Y * conv, sigma_gas_msun_pc2, norm=colors.LogNorm(vmin=vmin, vmax=vmax), cmap="viridis", linewidth=0, rasterized=True)
-ax.quiver(tmp_halo_pos_center[:, 0] * conv, tmp_halo_pos_center[:, 1] * conv, tmp_halo_pos_center[:,3] * v_scale * snap_interval, tmp_halo_pos_center[:,4] * v_scale * snap_interval,
-          scale=1, scale_units = "xy", angles = "xy",
-          color=col1, alpha=0.5, headwidth=4, headlength=6, headaxislength=5)
-ax.quiver(tmp_halo_pos2_center[:, 0] * conv, tmp_halo_pos2_center[:, 1] * conv, tmp_halo_pos2_center[:,3] * v_scale * snap_interval, tmp_halo_pos2_center[:,4] * v_scale * snap_interval,
-          scale=1, scale_units = "xy", angles = "xy",
-          color="#A52A2A", alpha=0.5, headwidth=4, headlength=6, headaxislength=5)
+p = ax.pcolormesh(
+    X * conv,
+    Y * conv,
+    sigma_gas_msun_pc2,
+    norm=colors.LogNorm(vmin=vmin, vmax=vmax),
+    cmap="viridis",
+    linewidth=0,
+    rasterized=True,
+)
+ax.quiver(
+    tmp_halo_pos_center[:, 0] * conv,
+    tmp_halo_pos_center[:, 1] * conv,
+    tmp_halo_pos_center[:, 3] * v_scale * snap_interval,
+    tmp_halo_pos_center[:, 4] * v_scale * snap_interval,
+    scale=1,
+    scale_units="xy",
+    angles="xy",
+    color=col1,
+    alpha=0.5,
+    headwidth=4,
+    headlength=6,
+    headaxislength=5,
+)
+ax.quiver(
+    tmp_halo_pos2_center[:, 0] * conv,
+    tmp_halo_pos2_center[:, 1] * conv,
+    tmp_halo_pos2_center[:, 3] * v_scale * snap_interval,
+    tmp_halo_pos2_center[:, 4] * v_scale * snap_interval,
+    scale=1,
+    scale_units="xy",
+    angles="xy",
+    color="#A52A2A",
+    alpha=0.5,
+    headwidth=4,
+    headlength=6,
+    headaxislength=5,
+)
 
-center_b, tmp_pos_center_b, tmp_halo_pos_center_b, tmp_pos2_center_b, tmp_halo_pos2_center_b, com_w_halo_b, com2_w_halo_b = get_phalo(base, aa, snap_idx,
-                                                                                       bin_id1, bin_id2, 8.0)
-ax.quiver(tmp_halo_pos_center_b[:, 0] * conv, tmp_halo_pos_center_b[:, 1] * conv, tmp_halo_pos_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos_center_b[:,4]  * v_scale * snap_interval,
-          scale=1, scale_units = "xy", angles = "xy",
-          color=col1, alpha=0.15, headwidth=4, headlength=6, headaxislength=5)
-ax.quiver(tmp_halo_pos2_center_b[:, 0] * conv, tmp_halo_pos2_center_b[:, 1] * conv, tmp_halo_pos2_center_b[:,3] * v_scale * snap_interval, tmp_halo_pos2_center_b[:,4] * v_scale * snap_interval,
-          scale=1, scale_units = "xy", angles = "xy",
-          color="#A52A2A", alpha=0.15, headwidth=4, headlength=6, headaxislength=5)
+(
+    center_b,
+    tmp_pos_center_b,
+    tmp_halo_pos_center_b,
+    tmp_pos2_center_b,
+    tmp_halo_pos2_center_b,
+    com_w_halo_b,
+    com2_w_halo_b,
+) = get_phalo(base, aa, snap_idx, bin_id1, bin_id2, 8.0)
+ax.quiver(
+    tmp_halo_pos_center_b[:, 0] * conv,
+    tmp_halo_pos_center_b[:, 1] * conv,
+    tmp_halo_pos_center_b[:, 3] * v_scale * snap_interval,
+    tmp_halo_pos_center_b[:, 4] * v_scale * snap_interval,
+    scale=1,
+    scale_units="xy",
+    angles="xy",
+    color=col1,
+    alpha=0.15,
+    headwidth=4,
+    headlength=6,
+    headaxislength=5,
+)
+ax.quiver(
+    tmp_halo_pos2_center_b[:, 0] * conv,
+    tmp_halo_pos2_center_b[:, 1] * conv,
+    tmp_halo_pos2_center_b[:, 3] * v_scale * snap_interval,
+    tmp_halo_pos2_center_b[:, 4] * v_scale * snap_interval,
+    scale=1,
+    scale_units="xy",
+    angles="xy",
+    color="#A52A2A",
+    alpha=0.15,
+    headwidth=4,
+    headlength=6,
+    headaxislength=5,
+)
 plt.colorbar(p, label=r"Surface Density")
 
 #####################################################################################################
-with open(base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "") + aa + "/path_lookup.p", "rb") as ff:
-    path_lookup = (pickle.load(ff))
+with open(
+    base.replace("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/", "")
+    + aa
+    + "/path_lookup.p",
+    "rb",
+) as ff:
+    path_lookup = pickle.load(ff)
 # ##Getting com over time for pair -- make sure that the replacement here will not cause errors
 tmp1 = path_lookup[f"{bin_id1}"]
 tmp2 = path_lookup[f"{bin_id2}"]
@@ -261,15 +423,21 @@ ms1.shape = (-1, 1)
 ms2 = tmp2[:, mcol]
 ms2[np.isinf(ms2)] = 1
 ms2.shape = (-1, 1)
-coms = (tmp1[:, pxcol:pzcol + 1] * ms1 + tmp2[:, pxcol:pzcol + 1] * ms2) / (ms1 + ms2)
+coms = (tmp1[:, pxcol : pzcol + 1] * ms1 + tmp2[:, pxcol : pzcol + 1] * ms2) / (
+    ms1 + ms2
+)
 ##Positions in the evolving com frame
-p1 = subtract_path(tmp1[:, pxcol:pzcol + 1], coms)
-p2 = subtract_path(tmp2[:, pxcol:pzcol + 1], coms)
+p1 = subtract_path(tmp1[:, pxcol : pzcol + 1], coms)
+p2 = subtract_path(tmp2[:, pxcol : pzcol + 1], coms)
 
 tmp_orb = get_initial_orbit(tmp1, tmp2)
 ########################################################################################
 if ins > 0:
-    from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset, inset_axes
+    from mpl_toolkits.axes_grid1.inset_locator import (
+        zoomed_inset_axes,
+        mark_inset,
+        inset_axes,
+    )
 
     # Define the region to zoom in on
     x1, x2, y1, y2 = -ins, ins, -ins, ins
@@ -277,37 +445,46 @@ if ins > 0:
     axins = ax.inset_axes([0.7, 0.12, 0.2, 0.2])
     axins.tick_params(axis="x", which="major", labelsize=7, rotation=45)
     axins.tick_params(axis="y", which="major", labelsize=7)
-    width, height = "30%", "30%"  # specify the width and height of the inset in relative terms
-    axins.set_aspect('equal')
+    width, height = (
+        "30%",
+        "30%",
+    )  # specify the width and height of the inset in relative terms
+    axins.set_aspect("equal")
     # Update the view to reflect the new units
     axins.set_xlim(x1, x2)
     axins.set_ylim(y1, y2)
-    axins.set_xticks([-ins/2, ins/2])
-    axins.set_yticks([-ins/2, ins/2])
+    axins.set_xticks([-ins / 2, ins / 2])
+    axins.set_yticks([-ins / 2, ins / 2])
     # axins.set_xlabel("x [$10^4$ au]")
     # axins.set_ylabel("y [$10^4$ au]")
     axins.plot(p1[:, 0] * conv, p1[:, 1] * conv, color=col1, linewidth=1)
     axins.plot(p2[:, 0] * conv, p2[:, 1] * conv, color=col2, linewidth=1)
 
-ax.set_xlim(xmin -  buff * (xmax - xmin), xmax + buff * (xmax - xmin))
-ax.set_ylim(ymin -  buff * (ymax - ymin), ymax + buff * (ymax - ymin))
+ax.set_xlim(xmin - buff * (xmax - xmin), xmax + buff * (xmax - xmin))
+ax.set_ylim(ymin - buff * (ymax - ymin), ymax + buff * (ymax - ymin))
 # ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
 #            (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
-v_rescale = 3.
-vel1 = tmp_pos_center[3] * v_scale , tmp_pos_center[4] * v_scale
+v_rescale = 3.0
+vel1 = tmp_pos_center[3] * v_scale, tmp_pos_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
-ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->', color="k", linewidth=1))
+ax.annotate(
+    "",
+    xy=(end_pt[0], end_pt[1]),
+    xytext=(start_pt[0], start_pt[1]),
+    arrowprops=dict(arrowstyle="->", color="k", linewidth=1),
+)
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
 vel1 = tmp_pos2_center[3] * v_scale, tmp_pos2_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
 ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
-ax.annotate('', xy=(end_pt[0], end_pt[1]), xytext=(start_pt[0], start_pt[1]),
-             arrowprops=dict(arrowstyle='->', color="k", linewidth=1))
+ax.annotate(
+    "",
+    xy=(end_pt[0], end_pt[1]),
+    xytext=(start_pt[0], start_pt[1]),
+    arrowprops=dict(arrowstyle="->", color="k", linewidth=1),
+)
 
 fig.savefig(f"fig1_{sys.argv[1]}b." + savetype)
-
-

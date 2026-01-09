@@ -4,7 +4,17 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 
-def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=None, levels=None, colors=None, linestyles=None, ax=None):
+def annotate_multiple_ecdf(
+    datasets,
+    labels,
+    x_offset=None,
+    y_offset=0.0,
+    ha=None,
+    levels=None,
+    colors=None,
+    linestyles=None,
+    ax=None,
+):
     """
     Annotate multiple ECDF plots with one annotation per line.
 
@@ -43,8 +53,13 @@ def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=Non
         y_coord = np.interp(x_coord, ecdf_data, ecdf_y)
 
         # Add the annotation
-        ax.annotate(f'{labels[i]}',
-                     xy=(x_coord + x_offset[i], y_coord + y_offset), color=l1.lines[-1].get_color(), ha=ha[i])
+        ax.annotate(
+            f"{labels[i]}",
+            xy=(x_coord + x_offset[i], y_coord + y_offset),
+            color=l1.lines[-1].get_color(),
+            ha=ha[i],
+        )
+
 
 def scaled_kde(data, desired_peak=1, npts=1000):
     # Sample data

@@ -30,11 +30,11 @@ b = (9.25, 9.89, 10.24, 11.13, 14.28)
 
 
 def sigmoid(x):
-    return 0.5 * (1.0 + x / (1.0 + x**2.0) ** 0.5)
+    return 0.5 * (1.0 + x / (1.0 + x ** 2.0) ** 0.5)
 
 
 def ad_index(u):
-    u_cgs = u * 100**2.0
+    u_cgs = u * 100 ** 2.0
     gamma = 5.0 / 3.0
     for kk in range(5):
         gamma += delta[kk] * sigmoid(a[kk] * (np.log10(u_cgs) - b[kk]))
@@ -45,7 +45,7 @@ def ad_index(u):
 def u_to_cs(u1):
     gamma_eff = ad_index(u1)
     # print("gamma:",gamma_eff)
-    return u1**0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
+    return u1 ** 0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
 
 
 def get_shape_eigen(dxc):

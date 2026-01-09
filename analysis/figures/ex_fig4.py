@@ -5,14 +5,19 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import pickle
 import seaborn as sns
+
 colorblind_palette = sns.color_palette("colorblind")
 
 import scienceplots
-plt.style.use('nature')
-mpl.rcParams['font.sans-serif'] = "Arial"
-mpl.rcParams['figure.figsize'] = (3.3, 3.3)
+
+plt.style.use("nature")
+mpl.rcParams["font.sans-serif"] = "Arial"
+mpl.rcParams["figure.figsize"] = (3.3, 3.3)
 # from starforge_mult_search.analysis.figures.figure_preamble import *
-from starforge_mult_search.analysis.analyze_stack import max_w_infinite, subtract_path_1d
+from starforge_mult_search.analysis.analyze_stack import (
+    max_w_infinite,
+    subtract_path_1d,
+)
 
 fig = plt.figure(figsize=(6.75, 5), constrained_layout=True)
 print(fig.get_size_inches())
@@ -25,7 +30,7 @@ axes = []
 hspace0 = 0.05
 # --- Top-left panel ---
 inner_tl = gridspec.GridSpecFromSubplotSpec(
-    2, 1, subplot_spec=outer[0], height_ratios=[1,5], hspace=hspace0
+    2, 1, subplot_spec=outer[0], height_ratios=[1, 5], hspace=hspace0
 )
 ax_tl_top = fig.add_subplot(inner_tl[0])
 ax_tl_bottom = fig.add_subplot(inner_tl[1], sharex=ax_tl_top)
@@ -33,7 +38,7 @@ axes.append((ax_tl_top, ax_tl_bottom))
 
 # --- Top-right panel ---
 inner_tr = gridspec.GridSpecFromSubplotSpec(
-    2, 1, subplot_spec=outer[1], height_ratios=[1,5], hspace=hspace0
+    2, 1, subplot_spec=outer[1], height_ratios=[1, 5], hspace=hspace0
 )
 ax_tr_top = fig.add_subplot(inner_tr[0])
 ax_tr_bottom = fig.add_subplot(inner_tr[1], sharex=ax_tr_top)
@@ -41,7 +46,7 @@ axes.append((ax_tr_top, ax_tr_bottom))
 
 # --- Bottom-left panel (aligned under top-left) ---
 inner_bl = gridspec.GridSpecFromSubplotSpec(
-    2, 1, subplot_spec=outer[2], height_ratios=[1,5], hspace=hspace0
+    2, 1, subplot_spec=outer[2], height_ratios=[1, 5], hspace=hspace0
 )
 ax_bl_top = fig.add_subplot(inner_bl[0])
 ax_bl_bottom = fig.add_subplot(inner_bl[1], sharex=ax_bl_top)
@@ -49,11 +54,11 @@ axes.append((ax_bl_top, ax_bl_bottom))
 
 seeds = (1, 2, 42)
 base_new = "M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_"
-smao=False
-my_fts=(1.0, 8.0, 0.082)
-my_tides=(False, False, True)
+smao = False
+my_fts = (1.0, 8.0, 0.082)
+my_tides = (False, False, True)
 ylims = (2, 2, 3)
-yticks = ([2], [2], [2,3])
+yticks = ([2], [2], [2, 3])
 rescales = [1, 1, 0.1]
 print(fig.get_size_inches())
 
@@ -88,19 +93,23 @@ for ii in range(3):
             path_lookup.update(tmp_path_pickle)
     path_lookup_keys = path_lookup.keys()
     mstars_final = [max_w_infinite(path_lookup[uu][:, mcol]) for uu in path_lookup_keys]
-    mhalos_max = [max_w_infinite(subtract_path_1d(path_lookup[uu][:, mtotcol], path_lookup[uu][:, mcol])) for uu in path_lookup_keys]
+    mhalos_max = [
+        max_w_infinite(
+            subtract_path_1d(path_lookup[uu][:, mtotcol], path_lookup[uu][:, mcol])
+        )
+        for uu in path_lookup_keys
+    ]
 
     mhalos_max = np.array(mhalos_max)
     mstars_final = np.array(mstars_final)
     # fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [1,5]})
-    ax1.set_ylim(1.01,ylims[ii] + .01)
+    ax1.set_ylim(1.01, ylims[ii] + 0.01)
     ax1.set_yticks(yticks[ii])
-    ax2.set_ylim(-0.02,1.01)
+    ax2.set_ylim(-0.02, 1.01)
     ax1.set_xlim(-0.02 * rescales[ii], 20 * rescales[ii])
     ax2.set_xlim(-0.02 * rescales[ii], 20 * rescales[ii])
-    ax1.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
-    ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.1f'))
-
+    ax1.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.1f"))
+    ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.1f"))
 
     # ax1.spines.top.set_visible(False)
     ax1.spines.bottom.set_visible(False)
@@ -109,29 +118,51 @@ for ii in range(3):
     ax1.tick_params(labeltop=False)  # don't put tick labels at the top
     ax2.xaxis.tick_bottom()
 
-    d = .5  # proportion of vertical to horizontal extent of the slanted line
-    kwargs = dict(marker=[(-1, -d), (1, d)], markersize=7,
-              linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+    d = 0.5  # proportion of vertical to horizontal extent of the slanted line
+    kwargs = dict(
+        marker=[(-1, -d), (1, d)],
+        markersize=7,
+        linestyle="none",
+        color="k",
+        mec="k",
+        mew=1,
+        clip_on=False,
+    )
     ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
     ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 
-    ax2.set_ylabel('Probability Density and CDF')
+    ax2.set_ylabel("Probability Density and CDF")
     ax2.set_xlabel("Max halo mass/Final star mass")
     ax2.set_title(f"$f_t={my_fts[ii]}$", fontsize=7)
     fig.subplots_adjust(hspace=0.05)  # adjust space between Axes
     # plot the same data on both Axes
     # ax1.ecdf(mhalos_max / mstars_final, color=colorblind_palette[0])
-    print(np.median(mhalos_max / mstars_final)**-1.)
+    print(np.median(mhalos_max / mstars_final) ** -1.0)
     ax2.ecdf(mhalos_max / mstars_final, color=colorblind_palette[0])
-    ax1.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 20.1 * rescales[ii], 0.5 * rescales[ii]), linewidth=1,
-            weights=[1 / len(mstars_final) * 10] * len(mstars_final),
-            color=colorblind_palette[1])
-    ax2.hist(mhalos_max / mstars_final, histtype='step', bins=np.arange(0, 20.1 * rescales[ii], 0.5 * rescales[ii]), linewidth=1,
-            weights=[1 / len(mstars_final) * 10] * len(mstars_final),
-            color=colorblind_palette[1])
+    ax1.hist(
+        mhalos_max / mstars_final,
+        histtype="step",
+        bins=np.arange(0, 20.1 * rescales[ii], 0.5 * rescales[ii]),
+        linewidth=1,
+        weights=[1 / len(mstars_final) * 10] * len(mstars_final),
+        color=colorblind_palette[1],
+    )
+    ax2.hist(
+        mhalos_max / mstars_final,
+        histtype="step",
+        bins=np.arange(0, 20.1 * rescales[ii], 0.5 * rescales[ii]),
+        linewidth=1,
+        weights=[1 / len(mstars_final) * 10] * len(mstars_final),
+        color=colorblind_palette[1],
+    )
 
     ax2.annotate("CDF", (cdf_labs[ii], 0.6), color=colorblind_palette[0])
-    ax2.annotate(r"Probability Density$\times$ Constant", (7, 0.3), color=colorblind_palette[1], ha='left')
+    ax2.annotate(
+        r"Probability Density$\times$ Constant",
+        (7, 0.3),
+        color=colorblind_palette[1],
+        ha="left",
+    )
 
 
 print(fig.get_size_inches())

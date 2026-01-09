@@ -5,15 +5,22 @@ import subprocess
 
 from starforge_mult_search.code import find_multiples_new2
 
+
 def bash_command(cmd, **kwargs):
-    '''Run command from the bash shell'''
-    process = subprocess.Popen(['/bin/bash', '-c', cmd],  **kwargs)
+    """Run command from the bash shell"""
+    process = subprocess.Popen(["/bin/bash", "-c", cmd], **kwargs)
     return process.communicate()[0]
+
+
 def main():
     print("test")
-    parser = argparse.ArgumentParser(description="Parse starforge snapshot, and get multiple data.")
+    parser = argparse.ArgumentParser(
+        description="Parse starforge snapshot, and get multiple data."
+    )
     parser.add_argument("acc_data_lookup", help="Index of snapshot to read")
-    parser.add_argument("--snap_base", default="snapshot", help="First part of snapshot name")
+    parser.add_argument(
+        "--snap_base", default="snapshot", help="First part of snapshot name"
+    )
 
     args = parser.parse_args()
     acc_data_lookup = pd.read_csv(args.acc_data_lookup).set_index(["first_time", "id"])
@@ -22,9 +29,26 @@ def main():
     dat_all = []
     ##Iterate over all snapshots
     for ss in first_times:
-        snapshot_file = args.snap_base + '_{0:03d}.hdf5'.format(int(ss))
-        den, x, m, h, u, b, v, fmol, fneu, partpos, partmasses, partvels, partids, partsink, tage_myr, unit_base, partspin =\
-        find_multiples_new2.load_data(snapshot_file, res_limit=1e-3)
+        snapshot_file = args.snap_base + "_{0:03d}.hdf5".format(int(ss))
+        (
+            den,
+            x,
+            m,
+            h,
+            u,
+            b,
+            v,
+            fmol,
+            fneu,
+            partpos,
+            partmasses,
+            partvels,
+            partids,
+            partsink,
+            tage_myr,
+            unit_base,
+            partspin,
+        ) = find_multiples_new2.load_data(snapshot_file, res_limit=1e-3)
         gas_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
 
         xuniq, indx = np.unique(x, return_index=True, axis=0)
@@ -53,11 +77,12 @@ def main():
             filt = np.isin(gas_ids, gas_star)
             mfilt = muniq[filt]
             dfilt = denuniq[filt]
-            reff = (3. * np.sum(mfilt / dfilt) / (4. * np.pi))**(1. / 3.)
+            reff = (3.0 * np.sum(mfilt / dfilt) / (4.0 * np.pi)) ** (1.0 / 3.0)
             mtot = np.sum(mfilt)
             dat_all.append((star, reff, mtot))
-        
+
         np.savez("dat_all.npz", dat_all)
+
 
 if __name__ == "__main__":
     main()

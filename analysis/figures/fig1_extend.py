@@ -68,7 +68,7 @@ def add_colorbar_to_axes(
 
 
 def sigmoid(x):
-    return 0.5 * (1.0 + x / (1.0 + x**2.0) ** 0.5)
+    return 0.5 * (1.0 + x / (1.0 + x ** 2.0) ** 0.5)
 
 
 def ad_index(u):
@@ -76,7 +76,7 @@ def ad_index(u):
     a = (5.95, 6, 18, 10.26, 7.71, 98.87)
     b = (9.25, 9.89, 10.24, 11.13, 14.28)
 
-    u_cgs = u * 100**2.0
+    u_cgs = u * 100 ** 2.0
     gamma = 5.0 / 3.0
     for kk in range(5):
         gamma += delta[kk] * sigmoid(a[kk] * (np.log10(u_cgs) - b[kk]))
@@ -87,7 +87,7 @@ def ad_index(u):
 def u_to_cs(u1):
     gamma_eff = ad_index(u1)
     # print("gamma:",gamma_eff)
-    return u1**0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
+    return u1 ** 0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
 
 
 units.registry["au"] = AUnit()
@@ -301,7 +301,7 @@ for ii in range(len(partpos_filt)):
         * partmasses_filt[ii]
         / (
             np.linalg.norm(partvel_filt[ii] - gas_neighbors_vel) ** 2.0
-            + gas_neighbors_cs**2.0
+            + gas_neighbors_cs ** 2.0
         )
     )
     print(

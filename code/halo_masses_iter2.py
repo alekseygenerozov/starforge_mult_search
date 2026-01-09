@@ -67,7 +67,7 @@ def KE(xc, mc, vc, uc):
     ## velocity w.r.t. com velocity
     v_bulk = np.average(vc, weights=mc, axis=0)
     v_well = vc - v_bulk
-    vSqr = np.sum(v_well**2, axis=1)
+    vSqr = np.sum(v_well ** 2, axis=1)
     return (mc * (vSqr / 2 + uc)).sum()
 
 
@@ -183,18 +183,15 @@ def get_gas_mass_bound_refactor(
         ):
             continue
 
-        pe1 = (
-            muniq1[idx]
-            * pytreegrav.PotentialTarget(
-                np.atleast_2d(xuniq1[idx]),
-                blob["cumul_pos"],
-                blob["cumul_masses"],
-                softening_target=np.atleast_1d(huniq1[idx]),
-                softening_source=blob["cumul_soft"],
-                G=sfc.GN,
-                method="bruteforce",
-            )[-1]
-        )
+        pe1 = muniq1[idx] * pytreegrav.PotentialTarget(
+            np.atleast_2d(xuniq1[idx]),
+            blob["cumul_pos"],
+            blob["cumul_masses"],
+            softening_target=np.atleast_1d(huniq1[idx]),
+            softening_source=blob["cumul_soft"],
+            G=sfc.GN,
+            method="bruteforce",
+        )[-1]
         ke1 = KE(
             np.vstack([blob["com_pos"], xuniq1[idx]]),
             np.append(blob["com_masses"], muniq1[idx]),

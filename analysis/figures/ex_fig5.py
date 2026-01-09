@@ -15,15 +15,23 @@ colorblind_palette = sns.color_palette("colorblind")
 from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_mult, get_pair_state, add_node_to_orbit_tab_streamlined
-from starforge_mult_search.analysis.high_multiples_analysis import lookup_star_mult_b, filter_maximal_sets
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    make_hier,
+    get_mult,
+    get_pair_state,
+    add_node_to_orbit_tab_streamlined,
+)
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    lookup_star_mult_b,
+    filter_maximal_sets,
+)
 from starforge_mult_search.analysis.labelLine import labelLines
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.power_fit import fit_power
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['figure.figsize'] = (3.3, 2.5)
-mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams["figure.figsize"] = (3.3, 2.5)
+mpl.rcParams["ps.fonttype"] = 42
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
 quasi_filter = my_data[f"quasi_filter{contig_suff}"]
@@ -37,8 +45,8 @@ star_form_time = np.ones(len(star_ids)) * np.inf
 ##Filtering confusion
 ##Much of this could be refactored into its own function
 ##SNe 'snapshot' problem again...Here SNe are excluded.
-for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
-    star_times = path_lookup[star_id][:,0]
+for ii, star_id in tqdm.tqdm(enumerate(star_ids)):
+    star_times = path_lookup[star_id][:, 0]
     star_masses = path_lookup[star_id][:, mcol]
 
     star_times = star_times[~np.isinf(star_times)]
@@ -48,18 +56,25 @@ for ii,star_id in tqdm.tqdm(enumerate(star_ids)):
     star_form_time[ii] = star_times[0]
 
     tmp_sel = coll_full_df_life.xs(star_end_snap, level="t")
-    tmp_sel = tmp_sel.loc[(tmp_sel[f"nbound_snaps{contig_suff}"]>1) & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)]
+    tmp_sel = tmp_sel.loc[
+        (tmp_sel[f"nbound_snaps{contig_suff}"] > 1)
+        & (tmp_sel[f"frac_of_orbit{contig_suff}"] >= 1)
+    ]
     star_in_mult = tmp_sel.index.get_level_values("id").str.contains(rf"\b{star_id}\b")
     mults_with_star = tmp_sel.loc[star_in_mult]
-    if len(mults_with_star)==0:
+    if len(mults_with_star) == 0:
         continue
-    tmp_mults = mults_with_star.groupby("id", sort=False).apply(lambda x: get_mult(x.name)).values
+    tmp_mults = (
+        mults_with_star.groupby("id", sort=False)
+        .apply(lambda x: get_mult(x.name))
+        .values
+    )
     star_mult_label_final[ii] = max(tmp_mults)
 #########################################################################################################
-single_filter = (star_mult_label_final==1)
+single_filter = star_mult_label_final == 1
 np.savez("single_filter.npz", np.transpose((star_ids, single_filter)))
 single_final_masses = star_final_mass[single_filter]
-all_masses = star_final_mass#[star_mult_label_final!=-1]
+all_masses = star_final_mass  # [star_mult_label_final!=-1]
 from_bins_filt = np.isin(star_ids[single_filter].astype(int), bin_ids_quasi_list)
 print(f"Number of final singles: {len(single_final_masses)}")
 # print(f"Number of final singles from bins: {len(single_final_masses[from_bins_filt])}")
@@ -69,11 +84,14 @@ print(f"Number of final singles: {len(single_final_masses)}")
 #########################################################################################################
 f1 = coll_full_df_life[f"frac_of_orbit{contig_suff}"]
 n1 = coll_full_df_life[f"nbound_snaps{contig_suff}"]
+
+
 def parse_mult_id(id_str):
     return list(map(int, id_str.replace("[", "").replace("]", "").split(",")))
 
+
 ##Make f1 >= 1 for consistency, but should not matter.
-tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
+tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
 tmp_sel["tval"] = tmp_sel.index.get_level_values("t")
 ##Filter -- only get maximal multiple(!)
 mult_ids = tmp_sel.index.get_level_values("id")
@@ -143,13 +161,17 @@ single_star_in_mult = np.array(single_star_in_mult).astype(bool)
 single_star_in_soft_mult = np.array(single_star_in_mult).astype(bool)
 # np.savez("single_in_mult.npz", np.transpose((star_ids[single_filter], single_star_in_mult, first_mults, last_mults)))
 
-print(f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}")
-print(f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
+print(
+    f"Frac from mult: {len(single_final_masses[single_star_in_mult]) / len(single_final_masses)}"
+)
+print(
+    f"Frac from mult (ms > 1 Msun): {len(single_final_masses[single_star_in_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}"
+)
 
 # print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
 # print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
-fig,ax = plt.subplots(constrained_layout=True)
+fig, ax = plt.subplots(constrained_layout=True)
 # ax.set_title(r"Singles Final MF")
 ax.set_yscale("log")
 ax.set_ylabel("Probability Density")
@@ -158,32 +180,83 @@ bsize = 0.1
 bins = np.arange(-2, 1.81, bsize)
 # ax.annotate(r"IMF", xy=(0.01, 0.99), xycoords="axes fraction", va="top", ha="left", fontsize=7)
 
-ax.hist(np.log10(all_masses), histtype='step', density=True, bins=bins, label="All stars", linewidth=1, color="0.5")
-ax.hist(np.log10(single_final_masses), histtype='step', density=True, bins=bins, label="All singles", linewidth=1)
-ax.hist(np.log10(single_final_masses[~single_star_in_mult]), histtype='step', density=True, bins=bins, label="Always single", linewidth=2.5/4)
-ax.hist(np.log10(single_final_masses[from_bins_filt]), histtype='step', bins=bins, label="From binaries", density=True,
-       linewidth=2.5/4)
-ax.hist(np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]), bins=bins, label="From higher\nmultiples", density=True,
-       linewidth=2.5/4, linestyle="-.", alpha=0.2)
+ax.hist(
+    np.log10(all_masses),
+    histtype="step",
+    density=True,
+    bins=bins,
+    label="All stars",
+    linewidth=1,
+    color="0.5",
+)
+ax.hist(
+    np.log10(single_final_masses),
+    histtype="step",
+    density=True,
+    bins=bins,
+    label="All singles",
+    linewidth=1,
+)
+ax.hist(
+    np.log10(single_final_masses[~single_star_in_mult]),
+    histtype="step",
+    density=True,
+    bins=bins,
+    label="Always single",
+    linewidth=2.5 / 4,
+)
+ax.hist(
+    np.log10(single_final_masses[from_bins_filt]),
+    histtype="step",
+    bins=bins,
+    label="From binaries",
+    density=True,
+    linewidth=2.5 / 4,
+)
+ax.hist(
+    np.log10(single_final_masses[(single_star_in_mult) & ~(from_bins_filt)]),
+    bins=bins,
+    label="From higher\nmultiples",
+    density=True,
+    linewidth=2.5 / 4,
+    linestyle="-.",
+    alpha=0.2,
+)
 
-ax.legend(fontsize=5 ,loc="upper right", title="IMF") #, bbox_to_anchor=(0.6, 0.35))
-absc = np.geomspace(0.3, 10**1.8, 500)
+ax.legend(fontsize=5, loc="upper right", title="IMF")  # , bbox_to_anchor=(0.6, 0.35))
+absc = np.geomspace(0.3, 10 ** 1.8, 500)
+
 
 def lighten_color(color, factor=0.5):
     """Lightens the given color by blending it with white."""
     return tuple(1 - factor * (1 - c) for c in color)
 
+
 f0 = fit_power(all_masses[all_masses > 0.3], 1.1)[0]
 f1 = fit_power(single_final_masses[single_final_masses > 0.3], 1.1)[0]
-f2 = fit_power(single_final_masses[from_bins_filt & (single_final_masses > 0.3)], 1.1)[0]
+f2 = fit_power(single_final_masses[from_bins_filt & (single_final_masses > 0.3)], 1.1)[
+    0
+]
 print(f"Power law fits {f1} {f2}")
 
 fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
 # l0,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f0 + 1), color="0.5", linestyle="--", label=f"$dN/dm \\propto m^{{-{f0:.2f}}}$")
-l1,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f1 + 1), color=fit_colors[0], linestyle="--", label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$")
-l2,=ax.plot(np.log10(absc), 0.9 * (absc / 0.3)**(-f2 + 1), color=fit_colors[2], linestyle="--", label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$")
+(l1,) = ax.plot(
+    np.log10(absc),
+    0.9 * (absc / 0.3) ** (-f1 + 1),
+    color=fit_colors[0],
+    linestyle="--",
+    label=f"$dN/dm \\propto m^{{-{f1:.2f}}}$",
+)
+(l2,) = ax.plot(
+    np.log10(absc),
+    0.9 * (absc / 0.3) ** (-f2 + 1),
+    color=fit_colors[2],
+    linestyle="--",
+    label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$",
+)
 # labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
-labelLines([l1], fontsize=7, xvals=(0.1,), ha='right', va='top', ang=-55, y_offset=-0.3)
+labelLines([l1], fontsize=7, xvals=(0.1,), ha="right", va="top", ang=-55, y_offset=-0.3)
 labelLines([l2], fontsize=7, xvals=(np.log10(0.6),), ang=0, y_offset=0.15, align=False)
 
 fig.savefig("ex_fig5.pdf")

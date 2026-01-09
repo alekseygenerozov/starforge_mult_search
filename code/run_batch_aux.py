@@ -1,10 +1,12 @@
 import subprocess
 import os
 
+
 def bash_command(cmd, **kwargs):
-    '''Run command from the bash shell'''
-    process = subprocess.Popen(['/bin/bash', '-c', cmd], **kwargs)
+    """Run command from the bash shell"""
+    process = subprocess.Popen(["/bin/bash", "-c", cmd], **kwargs)
     return process.communicate()[0]
+
 
 def get_cadence():
     """Read cadence value from a file named 'cadence', or default to 1."""
@@ -16,6 +18,8 @@ def get_cadence():
                 cadence = int(file.read().strip())
                 return cadence
         except (ValueError, IOError) as e:
-            print(f"Error reading cadence from file: {e}. Using default cadence: {default_cadence}.")
+            print(
+                f"Error reading cadence from file: {e}. Using default cadence: {default_cadence}."
+            )
             return default_cadence
     return default_cadence

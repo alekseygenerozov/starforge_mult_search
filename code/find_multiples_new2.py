@@ -162,7 +162,7 @@ def KE(xc, mc, vc, uc):
     ## velocity w.r.t. com velocity
     v_bulk = np.average(vc, weights=mc, axis=0)
     v_well = vc - v_bulk
-    vSqr = np.sum(v_well**2, axis=1)
+    vSqr = np.sum(v_well ** 2, axis=1)
     return (mc * (vSqr / 2 + uc)).sum()
 
 
@@ -209,7 +209,7 @@ def get_orbit(p1, p2, v1, v2, m1, m2, h1=0, h2=0):
     mu = m1 * m2 / (m1 + m2)
     ##Eccentricity of the binary
     e_bin = np.sqrt(
-        1.0 - np.linalg.norm(j_bin) ** 2.0 / (sfc.GN * (m1 + m2) * a_bin) / (mu**2.0)
+        1.0 - np.linalg.norm(j_bin) ** 2.0 / (sfc.GN * (m1 + m2) * a_bin) / (mu ** 2.0)
     )
 
     return (

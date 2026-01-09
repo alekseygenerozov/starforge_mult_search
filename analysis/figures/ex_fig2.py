@@ -16,13 +16,17 @@ colorblind_palette = sns.color_palette("colorblind")
 from starforge_mult_search.analysis import analyze_multiples_part2
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.high_multiples_analysis import make_hier, get_pair_state, add_node_to_orbit_tab_streamlined
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    make_hier,
+    get_pair_state,
+    add_node_to_orbit_tab_streamlined,
+)
 from starforge_mult_search.analysis import cgs_const as cgs
 
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams['figure.figsize'] = (3.3, 2.6)
-mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams["figure.figsize"] = (3.3, 2.6)
+mpl.rcParams["ps.fonttype"] = 42
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)
@@ -31,12 +35,12 @@ f1 = coll_full_df_life[f"frac_of_orbit{contig_suff}"]
 n1 = coll_full_df_life[f"nbound_snaps{contig_suff}"]
 print("Contig", contig_suff)
 ##Selecting persistent multiples
-tmp_sel = coll_full_df_life.loc[(f1>=1) & (n1>1)]
+tmp_sel = coll_full_df_life.loc[(f1 >= 1) & (n1 > 1)]
 ##Filter for selecting first instance of each index
 filt = ~tmp_sel.index.get_level_values("id").duplicated(keep="first")
 tmp_sel = tmp_sel.loc[filt]
 
-for ii,kk in enumerate(lookup_dict_keys):
+for ii, kk in enumerate(lookup_dict_keys):
     tmp_filt = tmp_sel.index.get_level_values("id").str.contains(rf"\b{int(kk)}\b")
     tmp_delay = tmp_sel.loc[tmp_filt].index.get_level_values("t").min()
 
@@ -50,7 +54,7 @@ mass_end = np.zeros(n1)
 delay_to_mult = np.ones(n1) * np.inf
 
 ##Better to have some sort of persistence filter here even if it is a basic one??
-for idx,kk in enumerate(lookup_dict_keys):
+for idx, kk in enumerate(lookup_dict_keys):
     tmp = lookup_dict[kk]
     delay_to_mult[idx] = first_mult[idx] - tmp[0, LOOKUP_SNAP]
     m_series = path_lookup[f"{int(kk)}"][:, mcol]
@@ -61,10 +65,10 @@ import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 
 ##Wide figure to accomodate the colorbar
-fig,ax = plt.subplots(constrained_layout=True)
+fig, ax = plt.subplots(constrained_layout=True)
 # ax.set_title(f"Explicit tides={my_tides}, ft={my_ft}")
 ax.set_xlim(0.01, 1)
-ax.set_ylim(0., 1)
+ax.set_ylim(0.0, 1)
 ax.set_ylabel("Cumulative fraction")
 ax.set_xlabel("Delay to multiple [Myr]")
 from matplotlib.lines import Line2D
@@ -72,13 +76,21 @@ from matplotlib.lines import Line2D
 bins = np.linspace(-1, 1, 10)
 # seq_palette = sns.color_palette("Blues", len(bins))
 cmap = sns.color_palette("Blues", as_cmap=True)  # Convert seaborn palette to a colormap
-norm = mcolors.Normalize(vmin=bins[0], vmax=bins[-1])  # Normalize bins for color mapping
+norm = mcolors.Normalize(
+    vmin=bins[0], vmax=bins[-1]
+)  # Normalize bins for color mapping
 
 legend_handles = []
 for ii in range(1, len(bins)):
     col = cmap(norm(bins[ii]))
-    ax.ecdf(delay_to_mult[(np.log10(mass_end)<bins[ii]) & (np.log10(mass_end)>bins[ii-1])] * snap_interval / 1e6,
-           color=col)
+    ax.ecdf(
+        delay_to_mult[
+            (np.log10(mass_end) < bins[ii]) & (np.log10(mass_end) > bins[ii - 1])
+        ]
+        * snap_interval
+        / 1e6,
+        color=col,
+    )
 
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
