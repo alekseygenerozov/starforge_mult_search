@@ -12,7 +12,6 @@ import numpy as np
 ##Code uses functionality in find_multiples_new2
 # sys.path.append("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge")
 import pytreegrav
-
 from starforge_mult_search.code import find_multiples_new2
 
 
@@ -100,28 +99,52 @@ def main():
         for ii in range(len(partids)):
             halo_idx = gas_dat_h5["halo_{0}".format(partids[ii])]
             gas_dat_h5.require_dataset(
-                "halo_{0}_b".format(partids[ii]), data=buniq[halo_idx]
+                "halo_{0}_b".format(partids[ii]),
+                data=buniq[halo_idx],
+                shape=buniq[halo_idx].shape,
+                dtype=buniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_pid".format(partids[ii]), data=gas_ids_uniq[halo_idx]
+                "halo_{0}_pid".format(partids[ii]),
+                data=gas_ids_uniq[halo_idx],
+                shape=gas_ids_uniq[halo_idx].shape,
+                dtype=gas_ids_uniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_h".format(partids[ii]), data=huniq[halo_idx]
+                "halo_{0}_h".format(partids[ii]),
+                data=huniq[halo_idx],
+                shape=huniq[halo_idx].shape,
+                dtype=huniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx]
+                "halo_{0}_rho".format(partids[ii]),
+                data=denuniq[halo_idx],
+                shape=denuniq[halo_idx].shape,
+                dtype=denuniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_x".format(partids[ii]), data=xuniq[halo_idx]
+                "halo_{0}_x".format(partids[ii]),
+                data=xuniq[halo_idx],
+                shape=xuniq[halo_idx].shape,
+                dtype=xuniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_v".format(partids[ii]), data=vuniq[halo_idx]
+                "halo_{0}_v".format(partids[ii]),
+                data=vuniq[halo_idx],
+                shape=vuniq[halo_idx].shape,
+                dtype=vuniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_u".format(partids[ii]), data=uuniq[halo_idx]
+                "halo_{0}_u".format(partids[ii]),
+                data=uuniq[halo_idx],
+                shape=uuniq[halo_idx].shape,
+                dtype=uuniq[halo_idx].dtype,
             )
             gas_dat_h5.require_dataset(
-                "halo_{0}_m".format(partids[ii]), data=muniq[halo_idx]
+                "halo_{0}_m".format(partids[ii]),
+                data=muniq[halo_idx],
+                shape=muniq[halo_idx].shape,
+                dtype=muniq[halo_idx].dtype,
             )
 
 
