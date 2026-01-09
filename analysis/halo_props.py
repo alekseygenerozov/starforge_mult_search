@@ -12,6 +12,7 @@ import numpy as np
 ##Code uses functionality in find_multiples_new2
 # sys.path.append("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge")
 import pytreegrav
+
 from starforge_mult_search.code import find_multiples_new2
 
 
@@ -49,39 +50,32 @@ def main():
         help="Outer cutoff to look for bound gas (0.5 pc)",
     )
     parser.add_argument("--name_tag", default="M2e4", help="Extension for saving.")
+    parser.add_argument(
+        "--star_age_key", default="ProtoStellarAge", help="Key for stellar age"
+    )
 
     args = parser.parse_args()
     print(args)
-
     snap_idx = args.snap
     cutoff = args.cutoff
     non_pair = args.non_pair
-    name_tag = args.name_tag
+    star_age_key = args.star_age_key
 
     snapshot_file = args.snap_base + "_{0:03d}.hdf5".format(int(args.snap))
-    snapshot_num = f"{int(args.snap):03d}"
 
-    (
-        den,
-        x,
-        m,
-        h,
-        u,
-        b,
-        v,
-        fmol,
-        fneu,
-        partpos,
-        partmasses,
-        partvels,
-        partids,
-        partsink,
-        tage_myr,
-        unit_base,
-        partspin,
-    ) = find_multiples_new2.load_data(snapshot_file, res_limit=1e-3)
-    halo_ids = find_multiples_new2.load_gas_ids(snapshot_file, res_limit=1e-3)
-
+    out = find_multiples_new2.load_data(
+        snapshot_file, res_limit=1e-3, star_age_key=star_age_key
+    )
+    den = out["den"]
+    x = out["x"]
+    m = out["m"]
+    h = out["h"]
+    u = out["u"]
+    v = out["v"]
+    b = out["b"]
+    gas_ids = out["gas_ids"]
+    partids = out["partids"]
+    ##TO DO: REFACTOR THIS SANITIZATION TO ITS OWN FUNCTION.
     xuniq, indx = np.unique(x, return_index=True, axis=0)
     muniq = m[indx]
     huniq = h[indx]
@@ -89,6 +83,8 @@ def main():
     uuniq = u[indx]
     buniq = b[indx]
     denuniq = den[indx]
+    gas_ids_uniq = gas_ids[indx]
+
     vuniq = vuniq.astype(np.float64)
     xuniq = xuniq.astype(np.float64)
     muniq = muniq.astype(np.float64)
@@ -96,10 +92,6 @@ def main():
     uuniq = uuniq.astype(np.float64)
     buniq = buniq.astype(np.float64)
     denuniq = denuniq.astype(np.float64)
-    partpos = partpos.astype(np.float64)
-    partmasses = partmasses.astype(np.float64)
-    partsink = partsink.astype(np.float64)
-    halo_ids = halo_ids[indx]
 
     halo_mass_name = "halo_masses/halo_masses_sing_np{0}_c{1}_{2}_comp{3}_tf{4}".format(
         non_pair, cutoff, snap_idx, args.compress, args.tides_factor
@@ -107,28 +99,28 @@ def main():
     with h5py.File(halo_mass_name + ".hdf5", "a") as gas_dat_h5:
         for ii in range(len(partids)):
             halo_idx = gas_dat_h5["halo_{0}".format(partids[ii])]
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_b".format(partids[ii]), data=buniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
-                "halo_{0}_pid".format(partids[ii]), data=halo_ids[halo_idx]
+            gas_dat_h5.require_dataset(
+                "halo_{0}_pid".format(partids[ii]), data=gas_ids_uniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_h".format(partids[ii]), data=huniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_x".format(partids[ii]), data=xuniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_v".format(partids[ii]), data=vuniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_u".format(partids[ii]), data=uuniq[halo_idx]
             )
-            gas_dat_h5.create_dataset(
+            gas_dat_h5.require_dataset(
                 "halo_{0}_m".format(partids[ii]), data=muniq[halo_idx]
             )
 

@@ -53,7 +53,7 @@ def KE_vector(xc, mc, vc, uc):
     ## velocity w.r.t. com velocity
     v_bulk = np.average(vc, weights=mc, axis=0)
     v_well = vc - v_bulk
-    vSqr = np.sum(v_well ** 2, axis=1)
+    vSqr = np.sum(v_well**2, axis=1)
     return mc * (vSqr / 2 + uc)
 
 
@@ -80,7 +80,7 @@ def KE(xc, mc, vc, uc):
     ## velocity w.r.t. com velocity
     v_bulk = np.average(vc, weights=mc, axis=0)
     v_well = vc - v_bulk
-    vSqr = np.sum(v_well ** 2, axis=1)
+    vSqr = np.sum(v_well**2, axis=1)
     return (mc * (vSqr / 2 + uc)).sum()
 
 
@@ -193,15 +193,18 @@ def get_gas_mass_bound_refactor(
         ):
             continue
 
-        pe1 = muniq1[idx] * pytreegrav.PotentialTarget(
-            np.atleast_2d(xuniq1[idx]),
-            blob["cumul_pos"],
-            blob["cumul_masses"],
-            softening_target=np.atleast_1d(huniq1[idx]),
-            softening_source=blob["cumul_soft"],
-            G=sfc.GN,
-            method="bruteforce",
-        )[-1]
+        pe1 = (
+            muniq1[idx]
+            * pytreegrav.PotentialTarget(
+                np.atleast_2d(xuniq1[idx]),
+                blob["cumul_pos"],
+                blob["cumul_masses"],
+                softening_target=np.atleast_1d(huniq1[idx]),
+                softening_source=blob["cumul_soft"],
+                G=sfc.GN,
+                method="bruteforce",
+            )[-1]
+        )
         ke1 = KE(
             np.vstack([blob["com_pos"], xuniq1[idx]]),
             np.append(blob["com_masses"], muniq1[idx]),
@@ -321,7 +324,7 @@ def main():
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
 
-    out = find_multiples_new2.load_data_with_ids(
+    out = find_multiples_new2.load_data(
         snap_file, res_limit=1e-3, star_age_key=star_age_key
     )
     den = out["den"]
@@ -330,6 +333,7 @@ def main():
     h = out["h"]
     u = out["u"]
     v = out["v"]
+    b = out["b"]
     gas_ids = out["gas_ids"]
 
     partpos = out["partpos"]
@@ -342,11 +346,13 @@ def main():
         print("No particles!")
         return
 
+    ##TO DO: REFACTOR THIS SANITIZATION TO ITS OWN FUNCTION.
     xuniq, indx = np.unique(x, return_index=True, axis=0)
     muniq = m[indx]
     huniq = h[indx]
     vuniq = v[indx]
     uuniq = u[indx]
+    buniq = b[indx]
     denuniq = den[indx]
     gas_ids_uniq = gas_ids[indx]
 
@@ -355,6 +361,7 @@ def main():
     muniq = muniq.astype(np.float64)
     huniq = huniq.astype(np.float64)
     uuniq = uuniq.astype(np.float64)
+    buniq = buniq.astype(np.float64)
     denuniq = denuniq.astype(np.float64)
     partpos = partpos.astype(np.float64)
     partmasses = partmasses.astype(np.float64)
@@ -481,10 +488,13 @@ def main():
             gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_idx)
             ##ADDING OTHER DATA TO HDF5 FILE--SO THAT WE DO NOT HAVE TO SEPARATELY RUN HALO_PROPS
             gas_dat_h5.create_dataset(
-                "halo_{0}_h".format(partids[ii]), data=huniq[halo_idx]
+                "halo_{0}_b".format(partids[ii]), data=buniq[halo_idx]
             )
             gas_dat_h5.create_dataset(
                 "halo_{0}_pid".format(partids[ii]), data=gas_ids_uniq[halo_idx]
+            )
+            gas_dat_h5.create_dataset(
+                "halo_{0}_h".format(partids[ii]), data=huniq[halo_idx]
             )
             gas_dat_h5.create_dataset(
                 "halo_{0}_rho".format(partids[ii]), data=denuniq[halo_idx]
