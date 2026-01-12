@@ -67,7 +67,7 @@ wait
 
 for CLOUD_TAG in "${CLOUD_TAGSC[@]}"; do
    echo "Running pipeline_part_1_non_fid for cloud $CLOUD_TAG... Seed 42"
-   $CODE_BASE/analysis/pipeline_part_1_non_fid "$CLOUD_TAG" 42 $ANALYSIS_TAGB #> logs/part1_nonfid_${CLOUD_TAG//\//_}_42.log 2>&1 
+   $CODE_BASE/analysis/pipeline_part_1_non_fid "$CLOUD_TAG" 42 $ANALYSIS_TAG #> logs/part1_nonfid_${CLOUD_TAG//\//_}_42.log 2>&1 
 done
 
 #$CODE_BASE/analysis/pipeline_part_1_v1.2 42 $ANALYSIS_TAG > logs/part1_v1.2.log 2>&1 &

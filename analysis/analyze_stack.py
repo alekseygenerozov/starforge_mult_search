@@ -99,7 +99,7 @@ def get_peri(x, y, z, vx, vy, vz, mtot, eps):
         -GN
         * mtot
         / (2.0 * en)
-        * (1.0 - np.sqrt(1.0 + 2.0 * en * ell ** 2.0 / (GN * mtot) ** 2.0))
+        * (1.0 - np.sqrt(1.0 + 2.0 * en * ell**2.0 / (GN * mtot) ** 2.0))
     )
 
 
@@ -136,7 +136,7 @@ def bisect_root(E, L2, mtot, eps, a, b):
 
     for _ in range(maxiter):
         log_mid = 0.5 * (log_a + log_b)
-        mid = 10.0 ** log_mid
+        mid = 10.0**log_mid
         fc = root_function(mid, E, L2, mtot, eps)
 
         if abs(log_b - log_a) < rtol:
@@ -149,7 +149,7 @@ def bisect_root(E, L2, mtot, eps, a, b):
             log_a = log_mid
             fa = fc
 
-    return 10.0 ** log_mid  # return last midpoint if no convergence
+    return 10.0**log_mid  # return last midpoint if no convergence
 
 
 @njit
@@ -332,7 +332,7 @@ def get_sigma(vels):
     sigma_y = np.std(vels[:, 1])
     sigma_z = np.std(vels[:, 2])
 
-    return (sigma_x ** 2.0 + sigma_y ** 2.0 + sigma_z ** 2.0) ** 0.5
+    return (sigma_x**2.0 + sigma_y**2.0 + sigma_z**2.0) ** 0.5
 
 
 def get_com_series(path_lookup, tmp_row):
@@ -468,7 +468,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         )
         ##Hard-coded for a target size of 1e4 au
         b = 0.048
-        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b ** 2.0
+        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.0
         coll_rate_focused[ii] = coll_rate[ii] * (
             1
             + 2.0
@@ -735,6 +735,26 @@ def make_binned_data_cont(absc, ords, bins):
         binned_num[bidx - 1] = np.mean(tmp_ords)
         binned_err[bidx - 1] = np.std(tmp_ords)
         binned_err2[bidx - 1] = np.std(tmp_ords) / (len(tmp_ords)) ** 0.5
+
+    return binned_num, binned_err, binned_err2
+
+
+def make_binned_data_cont_rev_err(absc, ords, bins):
+    """
+    Binning of (boolean) ords according to absc and bins
+    """
+    binned_num = np.zeros(len(bins) - 1)
+    binned_err = np.zeros(len(bins) - 1)
+    binned_err2 = np.zeros(len(bins) - 1)
+
+    for bidx in range(1, len(bins)):
+        tmp_filt = (absc >= bins[bidx - 1]) & (absc < bins[bidx])
+        tmp_ords = ords[tmp_filt]
+        tmp_ords = tmp_ords[~np.isinf(tmp_ords)]
+
+        binned_num[bidx - 1] = np.median(tmp_ords)
+        binned_err[bidx - 1] = np.percentile(tmp_ords, 15.86)
+        binned_err2[bidx - 1] = np.percentile(tmp_ords, 84.13)
 
     return binned_num, binned_err, binned_err2
 
