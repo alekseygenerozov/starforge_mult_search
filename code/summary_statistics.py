@@ -61,8 +61,9 @@ def parse_data(
     time_thres_lookup = get_mass_thres_time(tmp_path_pickle, mass_thres)
 
     tcorr = np.array([time_thres_lookup[str(int(kk))] for kk in dat[:, 0]])
-    with open(base_sink + "/snap_interval") as snap_interval_file:
-        snap_interval = float(snap_interval_file.read())
+    # with open(base_sink + "/snap_interval") as snap_interval_file:
+    #     snap_interval = float(snap_interval_file.read())
+    snap_interval = 2.4703e4
     ##Conditional will handle the case where the mass does not cross through the chosen snapshots within the existing simulation snapshots...
     ##Current age relative to the time star reaches 0.1 Msun (will be negative if the sink is below this mass). If sink never reach 0.1 Msun, then the age will be -inf
     adat = np.array(
@@ -84,4 +85,4 @@ def parse_data(
 
     tree1 = cKDTree(pos)
     my_counts = tree1.count_neighbors(tree1, radial_bins)
-    return my_counts, time_thres_lookup, len(dat)
+    return my_counts, time_thres_lookup, len(dat), adat

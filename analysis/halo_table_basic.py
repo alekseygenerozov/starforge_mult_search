@@ -34,11 +34,13 @@ for hf in tqdm.tqdm(halo_files):
                 tmp_dat = ff[f"halo_{star_id}"][:]
                 tmp_masses = ff[f"halo_{star_id}_m"][:]
                 tmp_pos = ff[f"halo_{star_id}_x"][:]
+                tmp_ids = ff[f"halo_{star_id}_pid"][:]
                 halo_tab_snap.append(
                     np.transpose(
                         (
                             np.ones(len(tmp_dat)) * int(snap),
                             np.ones(len(tmp_dat)) * int(star_id),
+                            tmp_ids,
                             tmp_dat,
                             tmp_masses,
                             tmp_pos[:, 0],
@@ -49,7 +51,7 @@ for hf in tqdm.tqdm(halo_files):
                 )
     halo_tab_snap = pd.DataFrame(
         data=np.vstack(halo_tab_snap),
-        columns=["snap", "pid", "mask", "mass", "x", "y", "z"],
+        columns=["snap", "pid", "gas_id", "mask", "mass", "x", "y", "z"],
     )
     halo_tab_snap.set_index(["snap", "pid"], inplace=True)
     halo_tab_all.append(halo_tab_snap)
