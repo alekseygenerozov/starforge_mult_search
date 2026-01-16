@@ -57,4 +57,5 @@ for hf in tqdm.tqdm(halo_files):
     halo_tab_snap.set_index(["snap", "pid"], inplace=True)
     halo_tab_all.append(halo_tab_snap)
 halo_tab_all = pd.concat(halo_tab_all)
+halo_tab_all.sort_index(level=[0, 1], inplace=True)
 halo_tab_all.to_parquet(f"halo_table_{tag}_{my_ft}.pq")
