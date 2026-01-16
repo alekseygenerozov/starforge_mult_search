@@ -8,6 +8,7 @@ import pandas as pd
 import tqdm
 
 my_ft = sys.argv[1]
+tag = sys.argv[2]
 my_pattern = f"halo_masses_sing_npTrue_c0.5_*_compFalse_tf{my_ft}.hdf5"
 halo_files = glob.glob(my_pattern)
 halo_files = sorted(halo_files)
@@ -56,4 +57,4 @@ for hf in tqdm.tqdm(halo_files):
     halo_tab_snap.set_index(["snap", "pid"], inplace=True)
     halo_tab_all.append(halo_tab_snap)
 halo_tab_all = pd.concat(halo_tab_all)
-halo_tab_all.to_parquet(f"halo_table_all_{my_ft}.pq")
+halo_tab_all.to_parquet(f"halo_table_{tag}_{my_ft}.pq")
