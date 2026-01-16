@@ -9,7 +9,7 @@ import tqdm
 
 my_ft = sys.argv[1]
 tag = sys.argv[2]
-my_pattern = f"halo_masses_sing_npTrue_c0.5_*_compFalse_tf{my_ft}.hdf5"
+my_pattern = f"halo_masses_{tag}_npTrue_c0.5_*_compFalse_tf{my_ft}.hdf5"
 halo_files = glob.glob(my_pattern)
 halo_files = sorted(halo_files)
 
