@@ -3,10 +3,11 @@ import glob
 from collections import defaultdict
 
 import numpy as np
-import starforge_mult_search.code.starforge_constants as sfc
 from numba import njit
 from pytreegrav.kernel import PotentialKernel
 from scipy.interpolate import interp1d
+
+import starforge_mult_search.code.starforge_constants as sfc
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -370,12 +371,16 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     path_diff_all = []
     keys_all = []
     if mult_table is not None:
-        mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
-        mult_table["t"] = mult_table.index
-        mult_table = mult_table.explode("mult_ids_list_og").set_index(
-            ["t", "mult_ids_list_og"]
-        )
-        companions_first_star = mult_table.index.get_level_values("mult_ids_list_og")
+        companions_first_star = []
+        if tmp_row[0] in mult_table.index.get_level_values(level="mult_ids_list"):
+            mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
+            mult_table["t"] = mult_table.index
+            mult_table = mult_table.explode("mult_ids_list_og").set_index(
+                ["t", "mult_ids_list_og"]
+            )
+            companions_first_star = mult_table.index.get_level_values(
+                "mult_ids_list_og"
+            )
     for ii, uu in enumerate(path_lookup_keys):
         # Want only closest approach of stars external to the group.
         if uu in tmp_row:
