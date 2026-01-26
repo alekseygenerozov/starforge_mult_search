@@ -3,11 +3,10 @@ import glob
 from collections import defaultdict
 
 import numpy as np
+import starforge_mult_search.code.starforge_constants as sfc
 from numba import njit
 from pytreegrav.kernel import PotentialKernel
 from scipy.interpolate import interp1d
-
-import starforge_mult_search.code.starforge_constants as sfc
 
 LOOKUP_SNAP = 0
 LOOKUP_PID = 1
@@ -875,13 +874,45 @@ def get_star_mapping_closest(high_df):
         "mult_ids_list"
     )  # or .set_index("id") if you prefer row IDs
 
-    star_mapping = star_to_row.groupby(
-        "mult_ids_list"
-    ).first()  # .to_dict(orient="index")
-    return star_mapping
+    # star_mapping = star_to_row.groupby(
+    #     "mult_ids_list"
+    # ).first()  # .to_dict(orient="index")
+    return star_to_row
 
 
-def get_star_mapping(high_df):
+# def get_star_mapping(high_df):
+#     """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
+
+#     :param high_df: Multiples data from starforge simulation
+#     :type high_df: Pandas dataframe
+#     :return: "Exploded" dataframe indexed by star id. Each id will have one row that corresponds to "maximal" multiples containing that id
+#     :rtype: Pandas dataframe
+#     """
+#     df = high_df.copy()
+#     df["mult_len"] = df["mult_ids_list"].apply(len)
+
+#     # Step 2: Explode to have one row per star
+#     df_exploded = df.explode("mult_ids_list")
+#     df_exploded["mult_ids_list_og"] = high_df["mult_ids_list"].copy()
+
+#     # Step 3: Sort so the longest lists come first
+#     df_exploded = df_exploded.sort_values("mult_len", ascending=False)
+
+#     # Step 6: Create a mapping: star_id → row with longest mult_ids_list containing it
+#     star_to_row = df_exploded.drop_duplicates(
+#         subset="mult_ids_list", keep="first"
+#     ).set_index(
+#         "mult_ids_list"
+#     )  # or .set_index("id") if you prefer row IDs
+
+#     ##Why do we also need this???
+#     # star_mapping = star_to_row.groupby(
+#     #     "mult_ids_list"
+#     # ).first()  # .to_dict(orient="index")
+#     return star_to_row
+
+
+def get_star_mapping(high_df, keep_index=True):
     """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
 
     :param high_df: Multiples data from starforge simulation
@@ -892,20 +923,20 @@ def get_star_mapping(high_df):
     df = high_df.copy()
     df["mult_len"] = df["mult_ids_list"].apply(len)
 
-    # Step 2: Explode to have one row per star
+    # Step 1: Explode to have one row per star
     df_exploded = df.explode("mult_ids_list")
+    df_exploded["mult_ids_list_og"] = high_df["mult_ids_list"].copy()
 
-    # Step 3: Sort so the longest lists come first
+    # Step 2: Sort so the longest lists come first
     df_exploded = df_exploded.sort_values("mult_len", ascending=False)
 
-    # Step 6: Create a mapping: star_id → row with longest mult_ids_list containing it
+    # Step 3: Create a mapping: star_id → row with longest mult_ids_list containing it
     star_to_row = df_exploded.drop_duplicates(
         subset="mult_ids_list", keep="first"
-    ).set_index(
-        "mult_ids_list"
-    )  # or .set_index("id") if you prefer row IDs
+    ).set_index("mult_ids_list")
+    ## Step 4: Reset to the original indexing with one multiple per row if desired.
+    if keep_index:
+        star_to_row.set_index(star_to_row["mult_ids_list_og"].astype(str), inplace=True)
+        star_to_row = star_to_row.loc[~star_to_row.index.duplicated(keep="first")]
 
-    star_mapping = star_to_row.groupby(
-        "mult_ids_list"
-    ).first()  # .to_dict(orient="index")
-    return star_mapping
+    return star_to_row
