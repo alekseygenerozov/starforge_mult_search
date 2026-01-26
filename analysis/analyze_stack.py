@@ -372,7 +372,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     keys_all = []
     if mult_table is not None:
         companions_first_star = []
-        if tmp_row[0] in mult_table.index.get_level_values(level="mult_ids_list"):
+        if int(tmp_row[0]) in mult_table.index.get_level_values(level="mult_ids_list"):
             mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
             mult_table["t"] = mult_table.index
             mult_table = mult_table.explode("mult_ids_list_og").set_index(
