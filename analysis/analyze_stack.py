@@ -372,6 +372,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     keys_all = []
     if mult_table is not None:
         companions_first_star = []
+        # print(mult_table)
         if int(tmp_row[0]) in mult_table.index.get_level_values(level="mult_ids_list"):
             mult_table = mult_table.xs(int(tmp_row[0]), level="mult_ids_list").copy()
             mult_table["t"] = mult_table.index
@@ -397,7 +398,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
             ##Could move the first selection out of the loop for efficiency.a
             # overlap_times = mult_table.loc[
             #     lambda df: df["mult_ids_list_og"].apply(lambda lst: uu in lst)].index.values
-            if uu in companions_first_star:
+            if int(uu) in companions_first_star:
                 overlap_times = mult_table.xs(
                     int(uu), level="mult_ids_list_og"
                 ).index.values
@@ -464,31 +465,31 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
         # mass_tot_closest[ii] = np.mean([path_lookup[kk][ii, mtotcol] for kk in row])
         ##Need to add the velocity dispersion of of the star itself...
 
-        sigma[ii] = np.array(
-            [
-                get_sigma(np.vstack((v_neighbors[: nn + 1], coms_row[ii, 3:])))
-                for nn in range(nneighbors)
-            ]
-        )
-        ##Hard-coded for a target size of 1e4 au
-        b = 0.048
-        coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.0
-        coll_rate_focused[ii] = coll_rate[ii] * (
-            1
-            + 2.0
-            * sfc.GN
-            * (tot_mass_row[ii] + mass_closest[ii])
-            / (b * sigma[ii] ** 2.0)
-        )
+        # sigma[ii] = np.array(
+        #     [
+        #         get_sigma(np.vstack((v_neighbors[: nn + 1], coms_row[ii, 3:])))
+        #         for nn in range(nneighbors)
+        #     ]
+        # )
+        # ##Hard-coded for a target size of 1e4 au
+        # b = 0.048
+        # coll_rate[ii] = ndens[ii] * sigma[ii] * np.pi * b**2.0
+        # coll_rate_focused[ii] = coll_rate[ii] * (
+        #     1
+        #     + 2.0
+        #     * sfc.GN
+        #     * (tot_mass_row[ii] + mass_closest[ii])
+        #     / (b * sigma[ii] ** 2.0)
+        # )
 
     return {
         "mass_closest": mass_closest,
         "mass_tot_closest": mass_tot_closest,
         "keys_closest": keys_closest,
         "ndens": ndens,
-        "sigma": sigma,
-        "coll_rate": coll_rate,
-        "coll_rate_focused": coll_rate_focused,
+        # "sigma": sigma,
+        # "coll_rate": coll_rate,
+        # "coll_rate_focused": coll_rate_focused,
     }
     # return {"sigma": sigmas, "mass_closest": mass_closest, "mass_tot_closest":mass_tot_closest, "keys_closest":keys_closest, "ndens":ndens}
 
@@ -756,9 +757,14 @@ def make_binned_data_cont_rev_err(absc, ords, bins):
         tmp_ords = ords[tmp_filt]
         tmp_ords = tmp_ords[~np.isinf(tmp_ords)]
 
-        binned_num[bidx - 1] = np.median(tmp_ords)
-        binned_err[bidx - 1] = np.percentile(tmp_ords, 15.86)
-        binned_err2[bidx - 1] = np.percentile(tmp_ords, 84.13)
+        if len(tmp_ords > 0):
+            binned_num[bidx - 1] = np.median(tmp_ords)
+            binned_err[bidx - 1] = np.percentile(tmp_ords, 15.86)
+            binned_err2[bidx - 1] = np.percentile(tmp_ords, 84.13)
+        else:
+            binned_num[bidx - 1] = np.inf
+            binned_err[bidx - 1] = np.inf
+            binned_err2[bidx - 1] = np.inf
 
     return binned_num, binned_err, binned_err2
 
