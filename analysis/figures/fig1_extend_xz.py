@@ -20,6 +20,8 @@ from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
+
+
 # Define a custom unit
 class AUnit(units.ConversionInterface):
     @staticmethod
@@ -243,26 +245,22 @@ if snap_loc is None:
     snap_loc = base
 snap_file = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
 
-(
-    den,
-    x,
-    m,
-    h,
-    u,
-    b,
-    v,
-    fmol,
-    fneu,
-    partpos,
-    partmasses,
-    partvels,
-    partids,
-    partsink,
-    tage_myr,
-    unit_base,
-    partspin,
-) = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
-gas_ids = find_multiples_new2.load_gas_ids(snap_file, res_limit=1e-3)
+out = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+den = out["den"]
+x = out["x"]
+m = out["m"]
+h = out["h"]
+u = out["u"]
+v = out["v"]
+b = out["b"]
+gas_ids = out["gas_ids"]
+
+partpos = out["partpos"]
+partmasses = out["partmasses"]
+partvels = out["partvels"]
+partids = out["partids"]
+partsink = out["partsink"]
+tage_myr = out["tage_myr"]
 
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
