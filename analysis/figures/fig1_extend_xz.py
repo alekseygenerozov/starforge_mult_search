@@ -370,8 +370,13 @@ prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = prop_cycle.by_key()["color"]
 
 if tracer_file:
-    tracer_ids = np.genfromtxt(tracer_file)
-    tracer_filt = np.isin(gas_ids, tracer_ids)
+    if tracer_file == "all":
+        tracer_filt = np.random.choice(
+            range(len(xuniq)), len(xuniq) // 10, replace=False
+        )
+    else:
+        tracer_ids = np.genfromtxt(tracer_file)
+        tracer_filt = np.isin(gas_ids, tracer_ids)
     tmp_halo_pos = np.hstack((xuniq[tracer_filt], vuniq[tracer_filt]))
     ##Only include halo particles in the Voxel
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
