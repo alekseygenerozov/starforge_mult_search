@@ -1,13 +1,13 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from starforge_mult_search.analysis.analyze_stack import make_binned_data
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams["figure.figsize"] = (3.3, 3.3)
-mpl.rcParams["ps.fonttype"] = 42
-plt.style.use("nature")
-mpl.rcParams["font.sans-serif"] = "Arial"
+# mpl.rcParams["figure.figsize"] = (3.3, 3.3)
+# mpl.rcParams["ps.fonttype"] = 42
+# plt.style.use("nature")
+# mpl.rcParams["font.sans-serif"] = "Arial"
 
 ##Mass bins to use.
 bins = np.linspace(-1, 2, 6)
@@ -38,7 +38,7 @@ n3, n3u, d3, te3 = make_binned_data(absc, ords, bins)
 
 from labelLine import labelLines
 
-fig, ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(10, 10), constrained_layout=True)
 ax.set_xlim(-0.8, 1.8)
 ax.set_ylim(0, 1.0)
 ax.set_xlabel(r"log($M_{prim, f} / M_{\odot}$)")
@@ -78,12 +78,12 @@ ax.errorbar(
 print(n1, n2)
 print(d1, d2)
 ax.legend(loc="lower left")
-fig.savefig("ex_fig3.eps")
+fig.savefig("ex_fig3.svg")
 
-fig, ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
 ax.set_xlim(-0.8, 1.8)
 ax.set_ylim(0, 1.0)
-ax.set_xlabel(r"log($M_{prim, f} / M_{\odot}$)")
+ax.set_xlabel(r"log($m_{max, f} / M_{\odot}$)")
 ax.set_ylabel("BFB Fraction")
 
 ax.errorbar(bins_center, n3 / d3, yerr=te3, marker="s", linestyle="", alpha=0.7)
@@ -91,4 +91,4 @@ print(n3)
 
 print(d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
-fig.savefig("fig2b.pdf")
+fig.savefig("fig2b.svg")

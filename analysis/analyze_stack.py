@@ -356,7 +356,8 @@ def get_com_series(path_lookup, tmp_row):
     return coms, tot_mass
 
 
-##TO DO: GENERALIZE FOR ARBITRARY COLLECTIONS OF STARS
+##TO DO: GENERALIZE FOR ARBITRARY COLLECTIONS OF STARS[?]
+##TO DO: CLEAN UP INDEXING--MAKE IT EXPLICIT THAT COMPANIONS_FIRST_STAR ARE INTS
 def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_table=None):
     """
     Get time series of separations between binary and other stars

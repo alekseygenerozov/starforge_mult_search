@@ -1,38 +1,37 @@
 import copy
 import pickle
-import tqdm
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import tqdm
 from scipy.interpolate import interp1d
 from scipy.stats import ks_2samp
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 colorblind_palette = sns.color_palette("colorblind")
 
-from starforge_mult_search.analysis.analyze_stack import (
-    npz_stack,
-    subtract_path,
-    max_w_infinite,
-    get_min_dist_binary,
-    get_soft_times,
-    get_bound_snaps_adjust,
-)
-from starforge_mult_search.analysis.analyze_stack import get_dynamics_binary
-
-from starforge_mult_search.analysis import analyze_multiples_part2
-from starforge_mult_search.analysis.high_multiples_analysis import (
-    lookup_star_mult,
-    parse_mult_id,
-)
 from labelLine import labelLines
 
 ##Try to get rid of this import...
 from sci_analysis import plotting
-from starforge_mult_search.analysis.figures.figure_preamble import *
-import starforge_mult_search.code.starforge_constants as sfc
 
+import starforge_mult_search.code.starforge_constants as sfc
+from starforge_mult_search.analysis import analyze_multiples_part2
+from starforge_mult_search.analysis.analyze_stack import (
+    get_bound_snaps_adjust,
+    get_dynamics_binary,
+    get_min_dist_binary,
+    get_soft_times,
+    max_w_infinite,
+    npz_stack,
+    subtract_path,
+)
+from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    lookup_star_mult,
+    parse_mult_id,
+)
 
 #########################################################################################################
 ## Constructing new filter: whether
@@ -75,7 +74,16 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
     ##Use high_df table to get more stringent binary snapshots(!!!)
     curr_bin_list = list(bin_ids[ii])
     curr_bin_list.sort()
-    bin_sel = high_df.loc[str(curr_bin_list)]
+    curr_bin_list = [int(elem) for elem in curr_bin_list]
+    # bin_sel = high_df.loc[str(curr_bin_list)]
+    # breakpoint()
+    mult_select1 = high_df.index.get_level_values("id").str.contains(
+        rf"\b{curr_bin_list[0]}\b"
+    )
+    mult_select2 = high_df.index.get_level_values("id").str.contains(
+        rf"\b{curr_bin_list[1]}\b"
+    )
+    bin_sel = high_df.loc[mult_select1 & mult_select2]
     ##Try/except -- should no longer be necessary -- the binary contiguous filter should be consistent.
     # try:
     #     bin_sel = high_df.loc[str(curr_bin_list)]
@@ -122,16 +130,16 @@ for ii, row in tqdm.tqdm(enumerate(bin_ids)):
         ex_time_max_end[ii] = bs[bs > ex_time_max[ii]][0]
 
     pmult_filt[ii] = ex_time[ii] >= ibs
-
+breakpoint()
 ##Need to get time of the first exchange as well -- this is not quite ex_time
-np.savez(
-    f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz",
-    pmult_filt=pmult_filt,
-    ex_time=ex_time,
-    ex_time_max=ex_time_max,
-    ex_time_end=ex_time_end,
-    ex_time_max_end=ex_time_max_end,
-)
+# np.savez(
+#     f"pmult_before_bin_{my_ft}{flat_suff}{contig_suff}.npz",
+#     pmult_filt=pmult_filt,
+#     ex_time=ex_time,
+#     ex_time_max=ex_time_max,
+#     ex_time_end=ex_time_end,
+#     ex_time_max_end=ex_time_max_end,
+# )
 #########################################################################################################
 # Loading data -- Note different persistence filter was used for this file(!!!) Will have to "unify" the
 # persistence filters.

@@ -1,32 +1,32 @@
 import ast
-from collections import defaultdict
 import copy
-import pickle
 import os
+import pickle
+from collections import defaultdict
 
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
-from scipy.stats import ks_2samp
 import seaborn as sns
+from scipy.stats import ks_2samp
+
+from starforge_mult_search.analysis.plotting import annotate_multiple_ecdf
 
 colorblind_palette = sns.color_palette("colorblind")
 from starforge_mult_search.analysis import analyze_multiples_part2
-from starforge_mult_search.code.find_multiples_new2 import cluster, system
-from starforge_mult_search.analysis.analyze_stack import npz_stack
-from starforge_mult_search.analysis.high_multiples_analysis import (
-    make_hier,
-    get_pair_state,
-    add_node_to_orbit_tab_streamlined,
-)
 from starforge_mult_search.analysis import cgs_const as cgs
-
+from starforge_mult_search.analysis.analyze_stack import npz_stack
 from starforge_mult_search.analysis.figures.figure_preamble import *
+from starforge_mult_search.analysis.high_multiples_analysis import (
+    add_node_to_orbit_tab_streamlined,
+    get_pair_state,
+    make_hier,
+)
+from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
-mpl.rcParams["figure.figsize"] = (3.3, 2.6)
-mpl.rcParams["ps.fonttype"] = 42
+mpl.rcParams["figure.figsize"] = (10, 8)
+# mpl.rcParams["ps.fonttype"] = 42
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
 lookup_dict_keys = list(lookup_dict_keys)
@@ -60,9 +60,10 @@ for idx, kk in enumerate(lookup_dict_keys):
     m_series = path_lookup[f"{int(kk)}"][:, mcol]
     mass_end[idx] = m_series[~np.isinf(m_series)][-1]
 
+import matplotlib.cm as cm
+
 #########################################################################################################
 import matplotlib.colors as mcolors
-import matplotlib.cm as cm
 
 ##Wide figure to accomodate the colorbar
 fig, ax = plt.subplots(constrained_layout=True)
@@ -94,6 +95,6 @@ for ii in range(1, len(bins)):
 
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
-cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f)$")
+cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f / M_{\odot})$")
 plt.show()
-fig.savefig("ex_fig2.eps")
+fig.savefig("ex_fig2.svg")
