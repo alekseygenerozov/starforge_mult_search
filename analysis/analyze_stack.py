@@ -945,7 +945,7 @@ def get_first_snap_table(path_lookup):
         mhalo = star_filt_path[0][mtotcol]
         first_snap_table.append(
             (
-                kk,
+                int(kk),
                 star_filt_path[0][0],
                 star_filt_path[0][pxcol],
                 star_filt_path[0][pycol],
