@@ -57,7 +57,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     u = f["PartType0"]["InternalEnergy"][:] * mask
     v = f["PartType0"]["Velocities"] * mask3d
     b = f["PartType0"]["MagneticField"][:] * mask3d
-    outflow_frac = np.sum(f["PartType0"]["Metallicity"][:, -3:], axis=1) * mask
+    outflow_frac = f["PartType0"]["Metallicity"][:, 11] * mask
     # t = f['PartType0']['Temperature'][:] * mask
     # Fraction of molecular material in each cell
     try:
