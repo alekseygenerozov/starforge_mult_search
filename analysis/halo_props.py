@@ -12,6 +12,7 @@ import numpy as np
 ##Code uses functionality in find_multiples_new2
 # sys.path.append("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge")
 import pytreegrav
+
 from starforge_mult_search.code import find_multiples_new2
 
 
@@ -73,6 +74,7 @@ def main():
     v = out["v"]
     b = out["b"]
     gas_ids = out["gas_ids"]
+    outflow_frac = out["outflow_frac"]
     partids = out["partids"]
     ##TO DO: REFACTOR THIS SANITIZATION TO ITS OWN FUNCTION.
     xuniq, indx = np.unique(x, return_index=True, axis=0)
@@ -83,6 +85,7 @@ def main():
     buniq = b[indx]
     denuniq = den[indx]
     gas_ids_uniq = gas_ids[indx]
+    outflow_frac_uniq = outflow_frac[indx]
 
     vuniq = vuniq.astype(np.float64)
     xuniq = xuniq.astype(np.float64)
@@ -91,6 +94,7 @@ def main():
     uuniq = uuniq.astype(np.float64)
     buniq = buniq.astype(np.float64)
     denuniq = denuniq.astype(np.float64)
+    outflow_frac_uniq = outflow_frac_uniq.astype(np.float64)
 
     halo_mass_name = "halo_masses/halo_masses_sing_np{0}_c{1}_{2}_comp{3}_tf{4}".format(
         non_pair, cutoff, snap_idx, args.compress, args.tides_factor
@@ -143,6 +147,12 @@ def main():
             gas_dat_h5.require_dataset(
                 "halo_{0}_m".format(partids[ii]),
                 data=muniq[halo_idx],
+                shape=muniq[halo_idx].shape,
+                dtype=muniq[halo_idx].dtype,
+            )
+            gas_dat_h5.require_dataset(
+                "halo_{0}_outflow".format(partids[ii]),
+                data=outflow_frac_uniq[halo_idx],
                 shape=muniq[halo_idx].shape,
                 dtype=muniq[halo_idx].dtype,
             )
