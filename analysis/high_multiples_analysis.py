@@ -17,6 +17,7 @@ from starforge_mult_search.analysis.analyze_stack import (
     get_end_time_set,
     get_fpaths,
     get_snap_info,
+    get_star_mapping,
     hcol,
     mcol,
     mtotcol,
@@ -561,6 +562,30 @@ def assign_contiguous_segments(group, cadence=1):
     segment_ids = np.zeros(len(group), dtype=int)
     segment_ids[1:] = np.cumsum(diffs != cadence)
     return pd.Series(segment_ids, index=group.index, name="segment")
+
+
+def apply_persistence_filter(high_df, contig_suff):
+    f1 = high_df[f"frac_of_orbit{contig_suff}"]
+    n1 = high_df[f"nbound_snaps{contig_suff}"]
+    high_df_filt = high_df.loc[(f1 >= 1) & (n1 > 1)]
+
+    return high_df_filt
+
+
+def get_maximal_multiples(high_df_filt, keep_index=False):
+    """_summary_
+
+    :param high_df_filt: Pandas df of multiples
+    :param keep_index: Controls the indexing of returned table (stars or systems), defaults to False
+    """
+    high_df_filt_times = high_df_filt.index.get_level_values("t").unique()
+    tmp_df2 = []
+    for tt in tqdm.tqdm(high_df_filt_times):
+        tmp_df2.append(
+            get_star_mapping(high_df_filt.xs(tt, level="t"), keep_index=keep_index)
+        )
+    high_df_filt_max = pd.concat(tmp_df2, keys=high_df_filt_times)
+    return high_df_filt_max
 
 
 @hydra.main(version_base=None, config_path=os.getcwd(), config_name="config")

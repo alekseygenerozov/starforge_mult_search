@@ -1,8 +1,12 @@
 import copy
 import glob
+import os
 from collections import defaultdict
 
 import numpy as np
+import pandas as pd
+from astropy.io import ascii
+from astropy.table import vstack as astro_vstack
 from numba import njit
 from pytreegrav.kernel import PotentialKernel
 from scipy.interpolate import interp1d
@@ -892,38 +896,6 @@ def get_star_mapping_closest(high_df):
     return star_to_row
 
 
-# def get_star_mapping(high_df):
-#     """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
-
-#     :param high_df: Multiples data from starforge simulation
-#     :type high_df: Pandas dataframe
-#     :return: "Exploded" dataframe indexed by star id. Each id will have one row that corresponds to "maximal" multiples containing that id
-#     :rtype: Pandas dataframe
-#     """
-#     df = high_df.copy()
-#     df["mult_len"] = df["mult_ids_list"].apply(len)
-
-#     # Step 2: Explode to have one row per star
-#     df_exploded = df.explode("mult_ids_list")
-#     df_exploded["mult_ids_list_og"] = high_df["mult_ids_list"].copy()
-
-#     # Step 3: Sort so the longest lists come first
-#     df_exploded = df_exploded.sort_values("mult_len", ascending=False)
-
-#     # Step 6: Create a mapping: star_id → row with longest mult_ids_list containing it
-#     star_to_row = df_exploded.drop_duplicates(
-#         subset="mult_ids_list", keep="first"
-#     ).set_index(
-#         "mult_ids_list"
-#     )  # or .set_index("id") if you prefer row IDs
-
-#     ##Why do we also need this???
-#     # star_mapping = star_to_row.groupby(
-#     #     "mult_ids_list"
-#     # ).first()  # .to_dict(orient="index")
-#     return star_to_row
-
-
 def get_star_mapping(high_df, keep_index=True):
     """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
 
@@ -952,3 +924,87 @@ def get_star_mapping(high_df, keep_index=True):
         star_to_row = star_to_row.loc[~star_to_row.index.duplicated(keep="first")]
 
     return star_to_row
+
+
+def get_first_snap_table(path_lookup):
+    """_summary_
+
+    :param path_lookup: dictionary of numpy arrays containing particles pos, vel, mass, etc. over times.
+    :type path_lookup: dict
+    :return: Pandas dataframe with columns id, snap, initial pos, final mass, initial mass, mass at 1 Myr, initial halo mass
+    :rtype: Pandas dataframe
+    """
+    path_lookup_keys = path_lookup.keys()
+    first_snap_table = []
+    for kk in path_lookup_keys:
+        star_filt_path = path_lookup[kk][~np.isinf(path_lookup[kk][:, 0])]
+        mf = star_filt_path[-1][mcol]
+        mMyr = star_filt_path[min(40, len(star_filt_path) - 1), mcol]
+
+        mstar = star_filt_path[0][mcol]
+        mhalo = star_filt_path[0][mtotcol]
+        first_snap_table.append(
+            (
+                kk,
+                star_filt_path[0][0],
+                star_filt_path[0][pxcol],
+                star_filt_path[0][pycol],
+                star_filt_path[0][pzcol],
+                mf,
+                mstar,
+                mMyr,
+                mhalo,
+            )
+        )
+    first_snap_table = pd.DataFrame(
+        first_snap_table,
+        columns=("pid", "snap", "x", "y", "z", "mf", "mstar", "mMyr", "mhalo"),
+    )
+    return first_snap_table
+
+
+##IS SOMEWHAT REDUNDANT WITH GET_STAR_MAPPING_CLOSEST?
+def get_star_map_bins(high_df_filt):
+    """_summary_
+
+    :param high_df_filt: Dataframe with multiples
+    :type high_df_filt: Pandas dataframe
+    :return: Pandas dataframe of binaries indexed by stars. Contains a column with binary halo labels (this is the main use of this function).
+    """
+    snaps = high_df_filt.index.get_level_values(level="t").unique()
+
+    star_map_closest_all = []
+    for snap in snaps:
+        star_map_closest = get_star_mapping_closest(high_df_filt.xs(snap, level="t"))
+        star_map_closest = star_map_closest.loc[star_map_closest["mult"] == 2]
+        bin_halo_label = star_map_closest["mult_ids_list_og"].apply(lambda x: x[0])
+        star_map_closest["bin_halo_label"] = bin_halo_label
+        star_map_closest_all.append(star_map_closest)
+    star_map_closest_all = pd.concat(star_map_closest_all, keys=snaps)
+    return star_map_closest_all
+
+
+def read_bh_swallow(base_swallow):
+    """_summary_
+
+    :param base_swallow: path to bh_swallow file
+    :type base_swallow: str
+    :return: bh_swallow as pandas dataframe with ids and times sorted
+    :rtype: _type_
+    """
+    if os.path.isfile(base_swallow + "/bhswallow.pq"):
+        bh_swallow_df = pd.read_parquet(base_swallow + "/bhswallow.pq")
+    else:
+        bh_swallow = []
+        tmp_swallow = ascii.read(base_swallow + "/bhswallow.dat")
+        bh_swallow.append(tmp_swallow)
+        bh_swallow = astro_vstack(bh_swallow)
+        bh_swallow_df = bh_swallow.to_pandas()
+        bh_swallow_df.rename(
+            columns={"col1": "time", "col2": "id", "col3": "sink_mass", "col7": "hid"},
+            inplace=True,
+        )
+        bh_swallow_df.sort_values(by=["id", "time"], inplace=True)
+        bh_swallow_df.to_parquet(base_swallow + "/bhswallow.pq")
+
+    return bh_swallow_df
