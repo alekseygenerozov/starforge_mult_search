@@ -381,7 +381,7 @@ def main():
     ##Lookup table for the final masses...
     # final_masses = pd.read_parquet(args.final_masses)
     with open("final_masses.p", "rb") as ff:
-        final_masses = pickle.load(final_masses)
+        final_masses = pickle.load(ff)
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
     out = find_multiples_new2.load_data(
