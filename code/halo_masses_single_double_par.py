@@ -332,7 +332,7 @@ def main():
     inc_tides = not args.ntides
     star_age_key = args.star_age_key
     with open("final_masses.p", "rb") as ff:
-        final_masses = pickle.load(final_masses)
+        final_masses = pickle.load(ff)
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
     out = find_multiples_new2.load_data(
