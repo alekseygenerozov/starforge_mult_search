@@ -246,6 +246,7 @@ def get_gas_mass_bound_refactor(
 
 def get_mass_bound_manager(part_data, comps, ii, **kwargs):
     partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr = part_data
+    ##TO DO: FIX THIS CUT-ONLY BASED ON ONE OF THE STARS(!!)
     if tage_myr[ii] >= 1.0:
         return 0, 0, np.array([[0, 0]])
 
