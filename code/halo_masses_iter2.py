@@ -2,6 +2,7 @@
 import argparse
 import functools
 import multiprocessing
+import os
 import pickle
 import subprocess
 import sys
@@ -12,9 +13,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import pytreegrav
-
-##Refactor this -- don't really need this extra dependency(!)
-from starforge_mult_vis.config.config import load_config
+from omegaconf import OmegaConf
 
 import starforge_mult_search.code.starforge_constants as sfc
 
@@ -24,6 +23,25 @@ from starforge_mult_search.code import find_multiples_new2, myglobals
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
 myglobals.gas_data = []
+
+
+def load_config(user_config_path="config/fig_config.yaml"):
+    default_config = OmegaConf.create(
+        {
+            "contig_suff": "",
+            "flat_suff": "_flat",
+            "smao": "False",
+            "my_tides": False,
+            "my_ft": 1.0,
+            "seeds": [1, 2, 42],
+            "base_path": "data/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
+        }
+    )
+
+    if os.path.exists(user_config_path):
+        user_config = OmegaConf.load(user_config_path)
+        return OmegaConf.merge(default_config, user_config)
+    return default_config
 
 
 @dataclass
@@ -245,10 +263,16 @@ def get_gas_mass_bound_refactor(
 
 
 def get_mass_bound_manager(part_data, comps, ii, **kwargs):
-    partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr = part_data
-    ##TO DO: FIX THIS CUT-ONLY BASED ON ONE OF THE STARS(!!)
-    if tage_myr[ii] >= 1.0:
-        return 0, 0, np.array([[0, 0]])
+    (
+        partpos,
+        partvels,
+        partmasses,
+        partsink,
+        partids,
+        accel_stars,
+        tage_myr,
+        final_masses,
+    ) = part_data
 
     sys_tmp = find_multiples_new2.system(
         partpos[ii],
@@ -263,6 +287,10 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
     companion_part_id = comps.get(partids[ii], 0)
     if companion_part_id:
         companion_idx = np.where(partids == companion_part_id)[0][0]
+        if (partmasses[ii] >= final_masses[str(partids[ii])]) and (
+            partmasses[companion_idx] >= final_masses[str(companion_part_id)]
+        ):
+            return 0, 0, np.array([[0, 0]])
         my_blob = blob_setup(sys_tmp)
         particle_to_add = Particle(
             mass=partmasses[companion_idx],
@@ -348,8 +376,12 @@ def main():
     name_tag = args.name_tag
     inc_tides = not args.ntides
     star_age_key = args.star_age_key
-    ##Need "guardrails" to ensure the component file...
+    ##TO DO: "guardrails" to ensure the component file...
     comps = comps_setup(snap_idx, args.comps_file, args.config_file)
+    ##Lookup table for the final masses...
+    # final_masses = pd.read_parquet(args.final_masses)
+    with open("final_masses.p", "rb") as ff:
+        final_masses = pickle.load(final_masses)
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
     out = find_multiples_new2.load_data(
@@ -453,6 +485,7 @@ def main():
         partids,
         accel_stars,
         tage_myr,
+        final_masses,
     )
     f_to_iter = functools.partial(
         get_mass_bound_manager,

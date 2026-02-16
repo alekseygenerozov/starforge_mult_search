@@ -261,8 +261,18 @@ def get_gas_mass_bound_refactor(
 
 
 def get_mass_bound_manager(part_data, ii, **kwargs):
-    partpos, partvels, partmasses, partsink, partids, accel_stars, tage_myr = part_data
-    if tage_myr[ii] >= 1.0:
+    (
+        partpos,
+        partvels,
+        partmasses,
+        partsink,
+        partids,
+        accel_stars,
+        tage_myr,
+        final_masses,
+    ) = part_data
+    ##Skip if we have finished accreting
+    if partmasses[ii] >= final_masses[str(partids[ii])]:
         return 0, 0, np.array([[0, 0]])
 
     sys_tmp = find_multiples_new2.system(
@@ -321,9 +331,10 @@ def main():
     name_tag = args.name_tag
     inc_tides = not args.ntides
     star_age_key = args.star_age_key
+    with open("final_masses.p", "rb") as ff:
+        final_masses = pickle.load(final_masses)
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
-
     out = find_multiples_new2.load_data(
         snap_file, res_limit=1e-3, star_age_key=star_age_key
     )
@@ -468,6 +479,7 @@ def main():
         partids,
         accel_stars,
         tage_myr,
+        final_masses,
     )
     f_to_iter = functools.partial(
         get_mass_bound_manager,
