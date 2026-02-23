@@ -572,6 +572,7 @@ def apply_persistence_filter(high_df, contig_suff):
     return high_df_filt
 
 
+##Perhaps would be better to move get_star_mapping and get_star_mapping_closest here...
 def get_maximal_multiples(high_df_filt, keep_index=False):
     """_summary_
 
