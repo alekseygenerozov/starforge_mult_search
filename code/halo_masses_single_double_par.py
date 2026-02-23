@@ -322,6 +322,12 @@ def main():
     parser.add_argument(
         "--star_age_key", default="ProtoStellarAge", help="Key for stellar age"
     )
+    parser.add_argument(
+        "--res",
+        type=float,
+        default=1e-3,
+        help="Mass resolution limit for loading gas.",
+    )
 
     args = parser.parse_args()
 
@@ -336,7 +342,7 @@ def main():
 
     snap_file = args.snap_base + "_{0:03d}.hdf5".format(int(snap_idx))
     out = find_multiples_new2.load_data(
-        snap_file, res_limit=1e-3, star_age_key=star_age_key
+        snap_file, res_limit=args.res, star_age_key=star_age_key
     )
     den = out["den"]
     x = out["x"]
