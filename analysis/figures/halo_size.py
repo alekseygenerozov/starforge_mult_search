@@ -25,16 +25,16 @@ mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
 
 delta = (-0.38, 0.22, -0.068, -0.42, 0.65)
-a = (5.95, 6, 18, 10.26, 7.71, 98.87)
+a = (5.95, 6.18, 10.26, 7.71, 98.87)
 b = (9.25, 9.89, 10.24, 11.13, 14.28)
 
 
 def sigmoid(x):
-    return 0.5 * (1.0 + x / (1.0 + x ** 2.0) ** 0.5)
+    return 0.5 * (1.0 + x / (1.0 + x**2.0) ** 0.5)
 
 
 def ad_index(u):
-    u_cgs = u * 100 ** 2.0
+    u_cgs = u * 100**2.0
     gamma = 5.0 / 3.0
     for kk in range(5):
         gamma += delta[kk] * sigmoid(a[kk] * (np.log10(u_cgs) - b[kk]))
@@ -45,7 +45,7 @@ def ad_index(u):
 def u_to_cs(u1):
     gamma_eff = ad_index(u1)
     # print("gamma:",gamma_eff)
-    return u1 ** 0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
+    return u1**0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
 
 
 def get_shape_eigen(dxc):
@@ -72,6 +72,8 @@ def main():
     ##Missing seed 1
     clean_keys = []
     npts = []
+    cs_mean1 = []
+    cs_mean2 = []
 
     for seed in (1, 2, 42):
         my_ft = 8.0
@@ -131,13 +133,15 @@ def main():
                     if len(tmp_bound) > 0:
                         breakpoint()
                     print("bad2", tmp_bound)
-                elif len(tmp_pos) < 2:
+                elif len(tmp_pos) < 10:
                     print("bad3", tmp_bound)
                 else:
                     # dx = tmp_pos
                     # dx = tmp_pos - np.median(tmp_pos, axis=0)
                     rho_mean = np.mean(tmp_rho)
                     cs_mean = u_to_cs(np.mean(tmp_u))
+                    cs_mean1.append(cs_mean)
+                    cs_mean2.append(np.mean(u_to_cs(tmp_u)))
                     dx = tmp_pos - sink_pos
                     rs = np.sum(dx * dx, axis=1) ** 0.5
                     # print("cs:", cs_mean * 100 / 1e5)
@@ -191,6 +195,8 @@ def main():
             a3s=a3s,
             clean_keys=clean_keys,
             npts=npts,
+            cs_mean1=cs_mean1,
+            cs_mean2=cs_mean2,
         )
 
 

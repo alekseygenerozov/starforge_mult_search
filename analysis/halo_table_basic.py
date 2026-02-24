@@ -36,7 +36,9 @@ for hf in tqdm.tqdm(halo_files):
                 tmp_masses = ff[f"halo_{star_id}_m"][:]
                 tmp_pos = ff[f"halo_{star_id}_x"][:]
                 tmp_ids = ff[f"halo_{star_id}_pid"][:]
-                tmp_outflow = ff[f"halo_{star_id}_outflow"][:]
+                tmp_outflow = np.ones(tmp_dat.shape) * np.inf
+                if f"halo_{star_id}_outflow" in ff.keys():
+                    tmp_outflow = ff[f"halo_{star_id}_outflow"][:]
                 halo_tab_snap.append(
                     np.transpose(
                         (

@@ -192,7 +192,7 @@ def get_gas_mass_bound_refactor(
             (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
         ):
             continue
-
+        ##TO DO: TRY REMOVING THE BRUTE FORCE OPTION HERE (THOUGH NOT SIMULTANEOUSLY WITH OTHER EXPERIMENTS...)
         pe1 = (
             muniq1[idx]
             * pytreegrav.PotentialTarget(
@@ -272,7 +272,12 @@ def get_mass_bound_manager(part_data, ii, **kwargs):
         final_masses,
     ) = part_data
     ##Skip if we have finished accreting
-    if partmasses[ii] >= final_masses[str(partids[ii])]:
+    age_triage = tage_myr[ii] >= 1.0
+    print("Acc cut", kwargs.get("acc_cut", False))
+    if kwargs.get("acc_cut", False):
+        age_triage = partmasses[ii] >= final_masses[str(partids[ii])]
+
+    if age_triage:
         return 0, 0, np.array([[0, 0]])
 
     sys_tmp = find_multiples_new2.system(
@@ -304,6 +309,11 @@ def main():
     )
     parser.add_argument(
         "--compress", action="store_true", help="Filter out compressive tidal forces"
+    )
+    parser.add_argument(
+        "--acc_cut",
+        action="store_true",
+        help="Cut on halo search based on when particles stop accreting.",
     )
     parser.add_argument(
         "--tides_factor",
