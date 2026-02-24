@@ -192,7 +192,7 @@ def get_gas_mass_bound_refactor(
             (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
         ):
             continue
-        ##TO DO: TRY REMOVING THE BRUTE FORCE OPTION HERE (THOUGH NOT SIMULTANEOUSLY WITH OTHER EXPERIMENTS...)
+        ##TO DO: TRY REMOVING THE BRUTE FORCE OPTION HERE (THOUGH NOT SIMULTANEOUSLY WITH OTHER EXPERIMENTS??)
         pe1 = (
             muniq1[idx]
             * pytreegrav.PotentialTarget(
@@ -202,7 +202,6 @@ def get_gas_mass_bound_refactor(
                 softening_target=np.atleast_1d(huniq1[idx]),
                 softening_source=blob["cumul_soft"],
                 G=sfc.GN,
-                method="bruteforce",
             )[-1]
         )
         ke1 = KE(
