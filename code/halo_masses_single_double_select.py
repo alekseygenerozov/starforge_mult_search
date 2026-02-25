@@ -10,7 +10,6 @@ import time
 import h5py
 import numpy as np
 import pytreegrav
-
 import starforge_mult_search.code.starforge_constants as sfc
 
 ##Code uses functionality in find_multiples_new2
@@ -514,7 +513,7 @@ def main():
     ##Compute only subset of halo using a predefined mask(!)
     if args.halo_select:
         select = np.genfromtxt(args.halo_select).astype(int)
-        select = select[select[:, 0] == snap_idx]
+        select = select[select[:, 0] == int(snap_idx)]
         select = select[:, 1]
     else:
         select = partids
