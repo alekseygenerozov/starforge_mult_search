@@ -22,7 +22,7 @@ def load_config(user_config_path="halo.yaml"):
             "tides_factor": 8.0,
             "iter2": False,
             "iter2_config": "fig_config4.yaml",
-            "extra_flage": "",
+            "extra_flags": "",
         }
     )
 
