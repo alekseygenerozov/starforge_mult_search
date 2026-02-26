@@ -504,6 +504,7 @@ def main():
         compress=args.compress,
         tides_factor=args.tides_factor,
         tides=inc_tides,
+        acc_cut=args.acc_cut,
     )
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()

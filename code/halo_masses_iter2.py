@@ -287,9 +287,15 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
     companion_part_id = comps.get(partids[ii], 0)
     if companion_part_id:
         companion_idx = np.where(partids == companion_part_id)[0][0]
-        if (partmasses[ii] >= final_masses[str(partids[ii])]) and (
-            partmasses[companion_idx] >= final_masses[str(companion_part_id)]
-        ):
+        ##Triaging by age/accretion depending on the user flags.
+        age_triage = tage_myr[ii] >= 1.0
+        print("Acc cut", kwargs.get("acc_cut", False))
+        if kwargs.get("acc_cut", False):
+            age_triage = (partmasses[ii] >= final_masses[str(partids[ii])]) and (
+                partmasses[companion_idx] >= final_masses[str(companion_part_id)]
+            )
+
+        if age_triage:
             return 0, 0, np.array([[0, 0]])
         my_blob = blob_setup(sys_tmp)
         particle_to_add = Particle(
@@ -339,6 +345,11 @@ def main():
     )
     parser.add_argument(
         "--compress", action="store_true", help="Filter out compressive tidal forces"
+    )
+    parser.add_argument(
+        "--acc_cut",
+        action="store_true",
+        help="Cut on halo search based on when particles stop accreting.",
     )
     parser.add_argument(
         "--tides_factor",
@@ -496,6 +507,7 @@ def main():
         compress=args.compress,
         tides_factor=args.tides_factor,
         tides=inc_tides,
+        acc_cut=args.acc_cut,
     )
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()
