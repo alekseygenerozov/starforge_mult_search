@@ -23,6 +23,7 @@ def load_config(user_config_path="halo.yaml"):
             "iter2": False,
             "iter2_config": "fig_config4.yaml",
             "extra_flags": "",
+            "halo_select": "",
         }
     )
 
