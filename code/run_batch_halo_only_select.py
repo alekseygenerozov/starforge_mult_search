@@ -63,4 +63,4 @@ if cfg.iter2:
 for ii in halo_snaps:
     my_cmd = f"python3 {script} {flags}  --snap_base {snap_base}  {ii}"
     print(my_cmd)
-    # bash_command(my_cmd)
+    bash_command(my_cmd)
