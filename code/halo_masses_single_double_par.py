@@ -337,6 +337,12 @@ def main():
         default=1e-3,
         help="Mass resolution limit for loading gas.",
     )
+    parser.add_argument(
+        "--halo_select",
+        type=str,
+        default="",
+        help="Specify file with halo ids and times to compute...",
+    )
 
     args = parser.parse_args()
 
@@ -506,11 +512,23 @@ def main():
         tides=inc_tides,
         acc_cut=args.acc_cut,
     )
-    print("Pool {0}".format(time.time()))
-    sys.stdout.flush()
-    with multiprocessing.Pool(10) as pool:
-        for ii, halo_dat_full in enumerate(
-            pool.map(f_to_iter, range(len(halo_masses_sing)))
+    ##Compute only subset of halo using a predefined mask(!)
+    if args.halo_select:
+        print("Reading halo selection file:")
+        select = np.genfromtxt(args.halo_select).astype(int)
+        select = select[select[:, 0] == int(snap_idx)]
+        select = select[:, 1]
+    else:
+        print("No selection file specfied--will do all particles.")
+        select = partids
+
+    particle_indices = np.where(np.isin(partids, select))[0]
+
+    # print("Pool {0}".format(time.time()))
+    # sys.stdout.flush()
+    with multiprocessing.Pool(min(10, len(particle_indices))) as pool:
+        for ii, halo_dat_full in zip(
+            particle_indices, pool.map(f_to_iter, particle_indices)
         ):
             halo_masses_sing[ii], max_dist_sing[ii], halo_idx = halo_dat_full
             gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_idx)

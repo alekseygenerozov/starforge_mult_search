@@ -210,7 +210,6 @@ def get_gas_mass_bound_refactor(
                 softening_target=np.atleast_1d(huniq1[idx]),
                 softening_source=blob["cumul_soft"],
                 G=sfc.GN,
-                method="bruteforce",
             )[-1]
         )
         ke1 = KE(
@@ -378,6 +377,12 @@ def main():
         default="config.yaml",
         help="File containing information on multiples",
     )
+    parser.add_argument(
+        "--halo_select",
+        type=str,
+        default="",
+        help="Specify file with halo ids and times to compute...",
+    )
 
     args = parser.parse_args()
 
@@ -509,11 +514,20 @@ def main():
         tides=inc_tides,
         acc_cut=args.acc_cut,
     )
+    if args.halo_select:
+        select = np.genfromtxt(args.halo_select).astype(int)
+        select = select[select[:, 0] == int(snap_idx)]
+        select = select[:, 1]
+    else:
+        select = partids
+
+    particle_indices = np.where(np.isin(partids, select))[0]
+
     print("Pool {0}".format(time.time()))
     sys.stdout.flush()
-    with multiprocessing.Pool(10) as pool:
-        for ii, halo_dat_full in enumerate(
-            pool.map(f_to_iter, range(len(halo_masses_sing)))
+    with multiprocessing.Pool(min(10, len(particle_indices))) as pool:
+        for ii, halo_dat_full in zip(
+            particle_indices, pool.map(f_to_iter, particle_indices)
         ):
             halo_masses_sing[ii], max_dist_sing[ii], halo_idx = halo_dat_full
             gas_dat_h5.create_dataset("halo_{0}".format(partids[ii]), data=halo_idx)
