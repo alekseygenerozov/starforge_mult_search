@@ -21,7 +21,8 @@ def load_config(user_config_path="halo.yaml"):
             "end": -1,
             "tides_factor": 8.0,
             "iter2": False,
-            "iter2_config": "fig4_config.yaml",
+            "iter2_config": "fig_config4.yaml",
+            "extra_flage": "",
         }
     )
 
@@ -44,7 +45,7 @@ end = cfg.end
 if end < 0:
     end = (len(snaps) - 1) * cadence
 
-flags = f"--non_pair --tides_factor {cfg.tides_factor}"
+flags = f"--non_pair --tides_factor {cfg.tides_factor} {cfg.extra_flags}"
 halo_snaps = range(start, end + 1, cadence)
 if cfg.halo_select:
     flags += "--halo_select {cfg.halo_select}"
