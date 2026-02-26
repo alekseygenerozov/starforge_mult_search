@@ -1,16 +1,37 @@
 import glob
+import os
 import subprocess
 import sys
 
 import numpy as np
+from omegaconf import OmegaConf
 
 from starforge_mult_search.code.run_batch_aux import bash_command, get_cadence
+
 
 # def bash_command(cmd, **kwargs):
 # 	'''Run command from the bash shell'''
 # 	process = subprocess.Popen(['/bin/bash', '-c', cmd],  **kwargs)
 # 	return process.communicate()[0]
 #
+def load_config(user_config_path="halo.yaml"):
+    default_config = OmegaConf.create(
+        {
+            "start": 0,
+            "end": -1,
+            "tides_factor": 8.0,
+            "iter2": False,
+            "iter2_config": "fig4_config.yaml",
+        }
+    )
+
+    if os.path.exists(user_config_path):
+        user_config = OmegaConf.load(user_config_path)
+        return OmegaConf.merge(default_config, user_config)
+    return default_config
+
+
+cfg = load_config()
 
 with open("data_loc", "r") as ff:
     snap_base = ff.read()
@@ -18,16 +39,25 @@ with open("data_loc", "r") as ff:
 snaps = glob.glob(snap_base + "*hdf5")
 
 cadence = get_cadence()
-start = int(sys.argv[1])
-end = int(sys.argv[2])
+start = cfg.start
+end = cfg.end
 if end < 0:
     end = (len(snaps) - 1) * cadence
 
-halo_dat = np.genfromtxt(sys.argv[-1]).astype(int)
-halo_dat = halo_dat[(halo_dat[:, 0] >= start) & (halo_dat[:, 0] <= end)]
-halo_snaps = np.unique(halo_dat[:, 0])
+flags = f"--non_pair --tides_factor {cfg.tides_factor}"
+halo_snaps = range(start, end + 1, cadence)
+if cfg.halo_select:
+    flags += "--halo_select {cfg.halo_select}"
+    halo_dat = np.genfromtxt(cfg.halo_select).astype(int)
+    halo_dat = halo_dat[(halo_dat[:, 0] >= start) & (halo_dat[:, 0] <= end)]
+    halo_snaps = np.unique(halo_dat[:, 0])
+
+script = "starforge_mult_search/code/halo_masses_single_double_par.py"
+if cfg.iter2:
+    script = script.replace("single_double_par", "iter2")
+    flags += f"--config_file {cfg.iter2_config}"
 
 for ii in halo_snaps:
-    my_cmd = f"python3 starforge_mult_search/code/halo_masses_single_double_select.py --non_pair --tides_factor {sys.argv[3]}  --halo_select {sys.argv[-1]}  --snap_base {snap_base}  {ii}"
+    my_cmd = f"python3 {script} {flags}  --snap_base {snap_base}  {ii}"
     print(my_cmd)
-    bash_command(my_cmd)
+    # bash_command(my_cmd)
