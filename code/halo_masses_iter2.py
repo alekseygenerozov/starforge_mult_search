@@ -271,6 +271,7 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
         accel_stars,
         tage_myr,
         final_masses,
+        acc_cut,
     ) = part_data
 
     sys_tmp = find_multiples_new2.system(
@@ -288,8 +289,8 @@ def get_mass_bound_manager(part_data, comps, ii, **kwargs):
         companion_idx = np.where(partids == companion_part_id)[0][0]
         ##Triaging by age/accretion depending on the user flags.
         age_triage = tage_myr[ii] >= 1.0
-        print("Acc cut", kwargs.get("acc_cut", False))
-        if kwargs.get("acc_cut", False):
+        print("Acc cut", acc_cut)
+        if acc_cut:
             age_triage = (partmasses[ii] >= final_masses[str(partids[ii])]) and (
                 partmasses[companion_idx] >= final_masses[str(companion_part_id)]
             )
@@ -502,6 +503,7 @@ def main():
         accel_stars,
         tage_myr,
         final_masses,
+        args.acc_cut,
     )
     f_to_iter = functools.partial(
         get_mass_bound_manager,
@@ -512,7 +514,6 @@ def main():
         compress=args.compress,
         tides_factor=args.tides_factor,
         tides=inc_tides,
-        acc_cut=args.acc_cut,
     )
     if args.halo_select:
         select = np.genfromtxt(args.halo_select).astype(int)

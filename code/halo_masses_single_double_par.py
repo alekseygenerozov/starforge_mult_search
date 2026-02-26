@@ -269,11 +269,12 @@ def get_mass_bound_manager(part_data, ii, **kwargs):
         accel_stars,
         tage_myr,
         final_masses,
+        acc_cut,
     ) = part_data
     ##Skip if we have finished accreting
     age_triage = tage_myr[ii] >= 1.0
-    print("Acc cut", kwargs.get("acc_cut", False))
-    if kwargs.get("acc_cut", False):
+    print("Acc cut", acc_cut)
+    if acc_cut:
         age_triage = partmasses[ii] >= final_masses[str(partids[ii])]
 
     if age_triage:
@@ -501,6 +502,7 @@ def main():
         accel_stars,
         tage_myr,
         final_masses,
+        args.acc_cut,
     )
     f_to_iter = functools.partial(
         get_mass_bound_manager,
@@ -510,7 +512,6 @@ def main():
         compress=args.compress,
         tides_factor=args.tides_factor,
         tides=inc_tides,
-        acc_cut=args.acc_cut,
     )
     ##Compute only subset of halo using a predefined mask(!)
     if args.halo_select:
