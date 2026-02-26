@@ -50,7 +50,7 @@ flags = f"--non_pair --tides_factor {cfg.tides_factor} {cfg.extra_flags}"
 halo_snaps = range(start, end + 1, cadence)
 if cfg.halo_select:
     print(cfg.halo_select)
-    flags += f"--halo_select {cfg.halo_select}"
+    flags += f"--halo_select {cfg.halo_select} "
     halo_dat = np.genfromtxt(cfg.halo_select).astype(int)
     halo_dat = halo_dat[(halo_dat[:, 0] >= start) & (halo_dat[:, 0] <= end)]
     halo_snaps = np.unique(halo_dat[:, 0])
