@@ -74,6 +74,8 @@ def main():
     npts = []
     cs_mean1 = []
     cs_mean2 = []
+    Mbe = []
+    halo_masses = []
 
     for seed in (1, 2, 42):
         my_ft = 8.0
@@ -162,8 +164,9 @@ def main():
                     #     breakpoint()
                     rjeans.append(jeans(rho_mean, cs_mean))
                     final_masses.append(fmass)
+                    halo_masses.append(np.sum(tmp_mass))
                     clean_keys.append(pid)
-
+                    Mbe.append(1.86 * cs_mean**3.0 / sfc.GN**1.5 / rho_mean**0.5)
                     # fig, axs = plt.subplots(figsize=(16, 8), ncols = 2, constrained_layout=True)
                     # ax = axs[0]
                     # ax.set_xlabel("x [pc]")
@@ -190,6 +193,7 @@ def main():
             rhalos=rhalos,
             rjeans=rjeans,
             final_masses=final_masses,
+            halo_masses=halo_masses,
             a1s=a1s,
             a2s=a2s,
             a3s=a3s,
@@ -197,6 +201,8 @@ def main():
             npts=npts,
             cs_mean1=cs_mean1,
             cs_mean2=cs_mean2,
+            rho_mean=rho_mean,
+            Mbe=Mbe,
         )
 
 

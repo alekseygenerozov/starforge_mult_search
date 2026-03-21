@@ -344,11 +344,12 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
     com_accel = (np.sum(sys1_mass) * sys1.accel + np.sum(sys2_mass) * sys2.accel) / (
         np.sum(sys1_mass) + np.sum(sys2_mass)
     )
-    ##Difference acceleration of system and com acceleration of com ##How do we want to order the subtraction?
+    ##Difference acceleration of system and com acceleration ##How do we want to order the subtraction?
     a_tides = (sys1.accel - com_accel) - a_internal_com
     ##Tidal criterion
     tidal_crit = np.linalg.norm(a_tides) < tides_factor * np.linalg.norm(a_internal_com)
     ##Check if tides are actually destructive
+    print(a_internal_com, a_tides)
     if compress:
         compress_check = np.dot(a_tides, com_2 - com_1) > 0
         tidal_crit = tidal_crit or compress_check
@@ -643,6 +644,7 @@ class cluster(object):
             ens = orb_all[:, 0]
         en_order = np.argsort(ens)
         orb_all = orb_all[en_order]
+        print(orb_all)
         ##Filter out negative smas to save time here
         orb_all = orb_all[orb_all[:, 0] > 0]
 
@@ -672,6 +674,7 @@ class cluster(object):
                 tidal_crit = tidal_crit_1 and tidal_crit_2
             else:
                 tidal_crit = True
+            print(tidal_crit)
             # tidal_crit = (tidal_crit) or (not self.tides)
             ##Check that binary is bound, multiplicity is less than four, and that the binary is tidally stable. Tides can be turned off by setting self.tides to False.
             if row[0] > 0 and (mult_total <= self.mult_max) and tidal_crit:

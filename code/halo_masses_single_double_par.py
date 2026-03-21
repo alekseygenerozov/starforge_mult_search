@@ -192,7 +192,6 @@ def get_gas_mass_bound_refactor(
             (2.0 * sfc.GN * (blob["com_masses"] + muniq1[idx])) / d[idx]
         ):
             continue
-        ##TO DO: TRY REMOVING THE BRUTE FORCE OPTION HERE (THOUGH NOT SIMULTANEOUSLY WITH OTHER EXPERIMENTS??)
         pe1 = (
             muniq1[idx]
             * pytreegrav.PotentialTarget(
