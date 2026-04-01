@@ -47,9 +47,8 @@ def process_example(ii):
 def main():
     process_example(sys.argv[1])
     ##Parallel image productions(!)
-    # with multiprocessing.Pool(10) as pool:
-    #     pool.map(process_example, range(sys.argv[1]))
-    #     pool.map(process_example, range(sys.argv[1]))
+    with multiprocessing.Pool(10) as pool:
+        pool.map(process_example, range(sys.argv[1]))
 
 
 if __name__ == "__main__":

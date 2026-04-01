@@ -357,46 +357,47 @@ if tracer_file:
     tmp_halo_pos = np.hstack(
         (xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis])
     )
-    is_accreted = (
-        pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
-        .set_index("id")
-        .loc[gas_ids[tracer_filt]]
-    )
-    is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
+    if len(tmp_halo_pos) > 0:
+        is_accreted = (
+            pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
+            .set_index("id")
+            .loc[gas_ids[tracer_filt]]
+        )
+        is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
 
-    ##Only include halo particles in the Voxel
-    sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
-    dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-    tmp_halo_pos = tmp_halo_pos[dist_filter]
-    is_accreted = is_accreted[dist_filter]
-    random_selection = np.random.choice(
-        range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False
-    )
-    tmp_halo_pos = tmp_halo_pos[random_selection]
-    is_accreted = is_accreted[random_selection]
+        ##Only include halo particles in the Voxel
+        sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
+        dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
+        tmp_halo_pos = tmp_halo_pos[dist_filter]
+        is_accreted = is_accreted[dist_filter]
+        random_selection = np.random.choice(
+            range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False
+        )
+        tmp_halo_pos = tmp_halo_pos[random_selection]
+        is_accreted = is_accreted[random_selection]
 
-    halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
-    arrow_cols = [colors[row] for row in is_accreted.astype(int)]
-    v_offset_x = halo_com[3]
-    v_offset_y = halo_com[4]
-    if len(bin_center) > 0:
-        v_offset_x = bin_center[3]
-        v_offset_y = bin_center[4]
-    try:
-        ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
-        ax.quiver(
-            tmp_halo_pos[:, 0] - center[0],
-            tmp_halo_pos[:, 1] - center[1],
-            (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
-            (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
-            scale=1,
-            scale_units="xy",
-            angles="xy",
-            alpha=arrow_opacity,
-            color=arrow_cols,
-        )  # color=colors[int(partids_filt[ii]) % len(colors)])
-    except IndexError:
-        breakpoint()
+        halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
+        arrow_cols = [colors[row] for row in is_accreted.astype(int)]
+        v_offset_x = halo_com[3]
+        v_offset_y = halo_com[4]
+        if len(bin_center) > 0:
+            v_offset_x = bin_center[3]
+            v_offset_y = bin_center[4]
+        try:
+            ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
+            ax.quiver(
+                tmp_halo_pos[:, 0] - center[0],
+                tmp_halo_pos[:, 1] - center[1],
+                (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
+                (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
+                scale=1,
+                scale_units="xy",
+                angles="xy",
+                alpha=arrow_opacity,
+                color=arrow_cols,
+            )  # color=colors[int(partids_filt[ii]) % len(colors)])
+        except IndexError:
+            breakpoint()
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
 
 # for ii in range(len(partids_filt)):
