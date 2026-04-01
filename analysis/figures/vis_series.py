@@ -5,6 +5,8 @@ import sys
 
 import numpy as np
 
+sys.path.append("../")
+
 
 def bash_command(cmd, **kwargs):
     """Run command from the bash shell"""
@@ -48,4 +50,5 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     main()
