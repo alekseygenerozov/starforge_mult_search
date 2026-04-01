@@ -14,7 +14,7 @@ def bash_command(cmd, **kwargs):
 
 def process_example(ii):
     os.chdir(f"example_{ii}")
-    times = np.genfromtxt("times")
+    times = np.genfromtxt("times").astype(int)
 
     with open("config_template", "r") as ff:
         config_template = ff.read()
