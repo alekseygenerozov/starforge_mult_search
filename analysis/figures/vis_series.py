@@ -16,6 +16,9 @@ def bash_command(cmd, **kwargs):
 
 def process_example(ii):
     os.chdir(f"example_{ii}")
+    tracers = np.genfromtxt("tracers")
+    if len(tracers) < 30:
+        return
     times = np.genfromtxt("times").astype(int)
 
     with open("config_template", "r") as ff:
@@ -50,5 +53,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()

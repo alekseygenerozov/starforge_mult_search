@@ -176,7 +176,12 @@ partids = out["partids"]
 partsink = out["partsink"]
 tage_myr = out["tage_myr"]
 
-xuniq, indx = np.unique(x, return_index=True, axis=0)
+##NOTE THE CHANGE IN INDEXING HERE(!)
+# xuniq, indx = np.unique(x, return_index=True, axis=0)
+# 1. Create a boolean mask for rows that are entirely zeros
+zero_rows_mask = (x == 0).all(axis=1)
+indx = np.where(~zero_rows_mask)[0]
+xuniq = x[indx]
 muniq = m[indx]
 huniq = h[indx]
 vuniq = v[indx]
