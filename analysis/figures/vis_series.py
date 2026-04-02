@@ -20,10 +20,10 @@ def process_example(ii):
         "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
     )
 
-    tracers = np.genfromtxt("tracers")
+    tracers = np.genfromtxt(os.path.join(target_dir, "tracers"))
     if len(tracers) < 30:
         return
-    times = np.genfromtxt("times").astype(int)
+    times = np.genfromtxt(os.path.join(target_dir, "times")).astype(int)
 
     with open(os.path.join(target_dir, "config_template"), "r") as ff:
         config_template = ff.read()
