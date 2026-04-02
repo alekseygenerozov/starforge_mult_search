@@ -15,33 +15,35 @@ def bash_command(cmd, **kwargs):
 
 
 def process_example(ii):
-    target_dir = f"example_{ii}"
-    bash_script_cmd = (
-        "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
-    )
-
-    tracers = np.genfromtxt(os.path.join(target_dir, "tracers"))
+    os.chdir(f"example_{ii}")
+    tracers = np.genfromtxt("tracers")
     if len(tracers) < 30:
+        os.chdir("../")
         return
-    times = np.genfromtxt(os.path.join(target_dir, "times")).astype(int)
+    times = np.genfromtxt("times").astype(int)
 
-    with open(os.path.join(target_dir, "config_template"), "r") as ff:
+    with open("config_template", "r") as ff:
         config_template = ff.read()
 
-    with open(os.path.join(target_dir, "config_template_b"), "r") as ff:
+    with open("config_template_b", "r") as ff:
         config_template_b = ff.read()
 
     for ss in range(times[0], times[1]):
         config = config_template.replace("SS", str(ss))
-        with open(os.path.join(target_dir, "config_0"), "w") as fout:
+        with open("config_0", "w") as fout:
             fout.write(config)
-        bash_command(f"cd {target_dir} && {bash_script_cmd}")
+        bash_command(
+            "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
+        )
 
     for ss in range(times[1], times[2] + 1):
         config = config_template_b.replace("SS", str(ss))
-        with open(os.path.join(target_dir, "config_0"), "w") as fout:
+        with open("config_0", "w") as fout:
             fout.write(config)
-        bash_command(f"cd {target_dir} && {bash_script_cmd}")
+        bash_command(
+            "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
+        )
+    os.chdir("../")
 
 
 def main():
