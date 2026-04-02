@@ -357,19 +357,19 @@ if tracer_file:
     tmp_halo_pos = np.hstack(
         (xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis])
     )
-    if len(tmp_halo_pos) > 0:
-        is_accreted = (
-            pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
-            .set_index("id")
-            .loc[gas_ids[tracer_filt]]
-        )
-        is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
+    is_accreted = (
+        pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
+        .set_index("id")
+        .loc[gas_ids[tracer_filt]]
+    )
+    is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
 
-        ##Only include halo particles in the Voxel
-        sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
-        dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-        tmp_halo_pos = tmp_halo_pos[dist_filter]
-        is_accreted = is_accreted[dist_filter]
+    ##Only include halo particles in the Voxel
+    sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
+    dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
+    tmp_halo_pos = tmp_halo_pos[dist_filter]
+    is_accreted = is_accreted[dist_filter]
+    if len(tmp_halo_pos) > 0:
         random_selection = np.random.choice(
             range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False
         )
