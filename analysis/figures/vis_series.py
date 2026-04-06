@@ -28,13 +28,13 @@ def process_example(ii):
     with open("config_template_b", "r") as ff:
         config_template_b = ff.read()
 
-    for ss in range(times[0], times[1]):
-        config = config_template.replace("SS", str(ss))
-        with open("config_0", "w") as fout:
-            fout.write(config)
-        bash_command(
-            "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
-        )
+    # for ss in range(times[0], times[1]):
+    #     config = config_template.replace("SS", str(ss))
+    #     with open("config_0", "w") as fout:
+    #         fout.write(config)
+    #     bash_command(
+    #         "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
+    #     )
 
     for ss in range(times[1], times[2] + 1):
         config = config_template_b.replace("SS", str(ss))
@@ -49,8 +49,11 @@ def process_example(ii):
 def main():
     # process_example(sys.argv[1])
     ##Parallel image productions(!)
+    examples_file = sys.argv[1]
+    examples = np.genfromtxt(examples_file).astype(int)
+
     with multiprocessing.Pool(5) as pool:
-        pool.map(process_example, range(int(sys.argv[1])))
+        pool.map(process_example, examples)
 
 
 if __name__ == "__main__":

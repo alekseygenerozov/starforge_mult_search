@@ -431,7 +431,7 @@ def get_dynamics_binary(path_lookup, tmp_row, two_body, nneighbors=16, mult_tabl
     coms_row, tot_mass_row = get_com_series(path_lookup, tmp_row)
     keys_all = np.array(keys_all)
     path_diff_all = np.array(path_diff_all).T
-    ##Note argmpartition will *not* give the sorted order.
+    ##Note argpartition will *not* give the sorted order.
     partition = np.argpartition(path_diff_all, nneighbors)
     keys_closest = keys_all[partition][:, :nneighbors]
 
