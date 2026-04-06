@@ -414,6 +414,7 @@ if tracer_file:
         # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
         for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
             col = None
+            ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
             if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
                 col = "r"
 
