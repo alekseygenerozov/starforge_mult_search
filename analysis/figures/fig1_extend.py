@@ -141,6 +141,7 @@ base = config.get(
 )
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
+halo_lookup = config.get("params", "halo_lookup", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 ms = config.getfloat("params", "ms", fallback=1)
@@ -367,6 +368,7 @@ if tracer_file:
     ##Only include halo particles in the Voxel
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
     dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
+    tracer_ids = tracer_ids[dist_filter]
     tmp_halo_pos = tmp_halo_pos[dist_filter]
     is_accreted = is_accreted[dist_filter]
     if len(tmp_halo_pos) > 0:
@@ -398,6 +400,54 @@ if tracer_file:
             )  # color=colors[int(partids_filt[ii]) % len(colors)])
         except IndexError:
             breakpoint()
+
+    ##Coloring by halo halo...
+    if halo_lookup:
+        with open(halo_lookup, "rb") as ff:
+            halo_lookup = pickle.load(ff)
+        tmp_tracers_halo = halo_lookup.loc[tracer_ids]
+        tmp_tracers_halo = tmp_tracers_halo.loc[
+            tmp_tracers_halo["snap"] == int(snap_idx)
+        ]
+        tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
+
+        # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
+        for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
+            col = None
+            if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
+                col = "r"
+
+            # 1. Plot the dataframe coordinates and save the line object
+            # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
+            lines = ax.plot(
+                group_df["x"], group_df["y"], marker="o", linestyle="", color=col
+            )
+
+            # Extract the color matplotlib automatically assigned to this group
+            group_color = lines[0].get_color()
+            tmp_star_pos1 = partpos[partids == pid1]
+            tmp_star_pos2 = partpos[partids == pid2]
+
+            # 2. Plot the path for pid1 using the exact same color
+            # Note: I changed your second 'pxcol' to 'pycol' assuming it was a typo in the original sketch!
+            ax.scatter(
+                tmp_star_pos1[0, 0],
+                tmp_star_pos1[0, 1],
+                color=group_color,
+                alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
+                marker="X",
+            )
+
+            # 3. Plot the path for pid2 using the exact same color
+            ax.scatter(
+                tmp_star_pos2[0, 0],
+                tmp_star_pos2[0, 1],
+                color=group_color,
+                alpha=0.7,
+                marker="X",
+            )
+
+
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
 
 # for ii in range(len(partids_filt)):
