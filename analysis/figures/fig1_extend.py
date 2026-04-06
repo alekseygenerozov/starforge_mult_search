@@ -368,7 +368,10 @@ if tracer_file:
     ##Only include halo particles in the Voxel
     sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
     dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-    tracer_ids = tracer_ids[dist_filter]
+    try:
+        tracer_ids = tracer_ids[dist_filter]
+    except IndexError:
+        breakpoint()
     tmp_halo_pos = tmp_halo_pos[dist_filter]
     is_accreted = is_accreted[dist_filter]
     if len(tmp_halo_pos) > 0:
