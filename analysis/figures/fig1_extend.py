@@ -1,6 +1,7 @@
 import ast
 import configparser
 import gc
+import hashlib
 import pickle
 import sys
 
@@ -20,6 +21,9 @@ from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code import starforge_constants as sfc
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
+# Get a colormap with highly distinct colors (tab20 has 20 distinct colors)
+cmap = plt.get_cmap("tab20")
+num_colors = cmap.N
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
 
@@ -87,6 +91,26 @@ def u_to_cs(u1):
     gamma_eff = ad_index(u1)
     # print("gamma:",gamma_eff)
     return u1**0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
+
+
+def get_persistent_color(pid1, pid2):
+    """
+    Maps a pair of pids to a consistent color using a stable hash.
+    Using hashlib ensures the color remains exactly the same even if you
+    restart your Python session/script entirely.
+    """
+    # Create a unique string identifier for this pair
+    pair_id = f"{pid1}_{pid2}".encode("utf-8")
+
+    # Create a stable integer hash from the string
+    # We use MD5, grab the first 8 hex characters, and convert to an integer
+    hash_int = int(hashlib.md5(pair_id).hexdigest()[:8], 16)
+
+    # Modulo the hash by the number of available colors to get an index
+    color_index = hash_int % num_colors
+
+    # Return the RGBA color from the colormap
+    return cmap(color_index)
 
 
 units.registry["au"] = AUnit()
@@ -407,54 +431,66 @@ if tracer_file:
         except IndexError:
             breakpoint()
 
-    ##Coloring by halo halo...
-    if halo_lookup:
-        halo_lookup = pd.read_parquet(halo_lookup)
-        tmp_tracers_halo = halo_lookup.loc[tracer_ids]
-        tmp_tracers_halo = tmp_tracers_halo.loc[
-            tmp_tracers_halo["snap"] == int(snap_idx)
-        ]
-        tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
+        ##Coloring by halo halo...
+        if halo_lookup:
+            halo_lookup = pd.read_parquet(halo_lookup)
+            tmp_tracers_halo = halo_lookup.loc[tracer_ids]
+            tmp_tracers_halo = tmp_tracers_halo.loc[
+                tmp_tracers_halo["snap"] == int(snap_idx)
+            ]
+            tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
 
-        # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
-        for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
-            col = None
-            ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
-            if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
-                col = "r"
+            # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
+            for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
+                col = None
+                ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
+                if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
+                    col = "r"
 
-            # 1. Plot the dataframe coordinates and save the line object
-            # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
-            lines = ax.plot(
-                group_df["x"] - center[0],
-                group_df["y"] - center[1],
-                marker="o",
-                linestyle="",
-                color=col,
-            )
+                # 1. Plot the dataframe coordinates and save the line object
+                # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
+                # lines = ax.plot(
+                #     group_df["x"] - center[0],
+                #     group_df["y"] - center[1],
+                #     marker="o",
+                #     linestyle="",
+                #     color=col,
+                # )
+                group_color = get_persistent_color(pid1, pid2)
+                ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
+                ax.quiver(
+                    group_df["x"] - center[0],
+                    group_df["y"] - center[1],
+                    (group_df["vx"] - v_offset_x) * v_scale * snap_interval,
+                    (group_df["vy"] - v_offset_y) * v_scale * snap_interval,
+                    scale=1,
+                    scale_units="xy",
+                    angles="xy",
+                    alpha=arrow_opacity,
+                    color=group_color,
+                )  # color=colors[int(partids_filt[ii]) % len(colors)])
 
-            # Extract the color matplotlib automatically assigned to this group
-            group_color = lines[0].get_color()
-            tmp_star_pos1 = partpos[partids == pid1]
-            tmp_star_pos2 = partpos[partids == pid2]
+                # Extract the color matplotlib automatically assigned to this group
+                tmp_star_pos1 = partpos[partids == pid1]
+                tmp_star_pos2 = partpos[partids == pid2]
 
-            # 2. Plot the path for pid1 using the exact same color
-            ax.scatter(
-                tmp_star_pos1[0, 0] - center[0],
-                tmp_star_pos1[0, 1] - center[1],
-                color=group_color,
-                alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
-                marker="X",
-            )
+                # 2. Plot the path for pid1 using the exact same color
+                ax.scatter(
+                    tmp_star_pos1[0, 0] - center[0],
+                    tmp_star_pos1[0, 1] - center[1],
+                    color=group_color,
+                    alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
+                    marker="X",
+                )
 
-            # 3. Plot the path for pid2 using the exact same color
-            ax.scatter(
-                tmp_star_pos2[0, 0] - center[0],
-                tmp_star_pos2[0, 1] - center[1],
-                color=group_color,
-                alpha=0.7,
-                marker="X",
-            )
+                # 3. Plot the path for pid2 using the exact same color
+                ax.scatter(
+                    tmp_star_pos2[0, 0] - center[0],
+                    tmp_star_pos2[0, 1] - center[1],
+                    color=group_color,
+                    alpha=0.7,
+                    marker="X",
+                )
 
 
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
