@@ -41,7 +41,7 @@ def process_example(ii):
         with open("config_0", "w") as fout:
             fout.write(config)
         bash_command(
-            "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0"
+            "python3 ../starforge_mult_search/analysis/figures/fig1_extend.py 0 --halo_lookup halo_all_gas_only_index.p"
         )
     os.chdir("../")
 
