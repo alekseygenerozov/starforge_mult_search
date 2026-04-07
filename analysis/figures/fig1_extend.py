@@ -410,8 +410,7 @@ if tracer_file:
 
     ##Coloring by halo halo...
     if halo_lookup:
-        with open(halo_lookup, "rb") as ff:
-            halo_lookup = pickle.load(ff)
+        halo_lookup = pd.read_parquet(halo_lookup)
         tmp_tracers_halo = halo_lookup.loc[tracer_ids]
         tmp_tracers_halo = tmp_tracers_halo.loc[
             tmp_tracers_halo["snap"] == int(snap_idx)
