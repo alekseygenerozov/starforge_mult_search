@@ -355,9 +355,12 @@ if tracer_file:
     tracer_ids = tracer_data[:, 0]
     # is_accreted = tracer_data[:, 1].astype(bool)
     tracer_filt = np.isin(gas_ids, tracer_ids)
+    ##Getting positions of tracer gas particles
     tmp_halo_pos = np.hstack(
         (xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis])
     )
+    ##Making sure ids are in the same order...
+    tracer_ids = gas_ids[tracer_filt]
     is_accreted = (
         pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
         .set_index("id")
@@ -372,6 +375,7 @@ if tracer_file:
         tracer_ids = tracer_ids[dist_filter]
     except IndexError:
         breakpoint()
+
     tmp_halo_pos = tmp_halo_pos[dist_filter]
     is_accreted = is_accreted[dist_filter]
     if len(tmp_halo_pos) > 0:
