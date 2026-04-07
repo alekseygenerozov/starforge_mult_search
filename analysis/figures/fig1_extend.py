@@ -15,7 +15,6 @@ from matplotlib import colors
 from matplotlib.colors import LogNorm
 from meshoid import Meshoid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code import starforge_constants as sfc
@@ -427,7 +426,11 @@ if tracer_file:
             # 1. Plot the dataframe coordinates and save the line object
             # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
             lines = ax.plot(
-                group_df["x"], group_df["y"], marker="o", linestyle="", color=col
+                group_df["x"] - center[0],
+                group_df["y"] - center[1],
+                marker="o",
+                linestyle="",
+                color=col,
             )
 
             # Extract the color matplotlib automatically assigned to this group
@@ -436,10 +439,9 @@ if tracer_file:
             tmp_star_pos2 = partpos[partids == pid2]
 
             # 2. Plot the path for pid1 using the exact same color
-            # Note: I changed your second 'pxcol' to 'pycol' assuming it was a typo in the original sketch!
             ax.scatter(
-                tmp_star_pos1[0, 0],
-                tmp_star_pos1[0, 1],
+                tmp_star_pos1[0, 0] - center[0],
+                tmp_star_pos1[0, 1] - center[1],
                 color=group_color,
                 alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
                 marker="X",
@@ -447,8 +449,8 @@ if tracer_file:
 
             # 3. Plot the path for pid2 using the exact same color
             ax.scatter(
-                tmp_star_pos2[0, 0],
-                tmp_star_pos2[0, 1],
+                tmp_star_pos2[0, 0] - center[0],
+                tmp_star_pos2[0, 1] - center[1],
                 color=group_color,
                 alpha=0.7,
                 marker="X",
