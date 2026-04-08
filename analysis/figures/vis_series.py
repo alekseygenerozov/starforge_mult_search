@@ -21,6 +21,7 @@ def process_example(ii):
         os.chdir("../")
         return
     times = np.genfromtxt("times").astype(int)
+    comps = np.genfromtxt("companion_lists").astype(int)
 
     with open("config_template", "r") as ff:
         config_template = ff.read()
@@ -38,6 +39,7 @@ def process_example(ii):
 
     for ss in range(times[1], times[2] + 1):
         config = config_template_b.replace("SS", str(ss))
+        config = config.replace("COMP", str(comps[ss]))
         with open("config_0", "w") as fout:
             fout.write(config)
         bash_command(

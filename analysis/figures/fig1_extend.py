@@ -16,13 +16,14 @@ from matplotlib import colors
 from matplotlib.colors import LogNorm
 from meshoid import Meshoid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code import starforge_constants as sfc
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
 # Get a colormap with highly distinct colors (tab20 has 20 distinct colors)
-cmap = plt.get_cmap("tab20")
+cmap = plt.get_cmap("Dark2")
 num_colors = cmap.N
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
@@ -444,8 +445,6 @@ if tracer_file:
             for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
                 col = None
                 ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
-                if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
-                    col = "r"
 
                 # 1. Plot the dataframe coordinates and save the line object
                 # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
@@ -457,6 +456,8 @@ if tracer_file:
                 #     color=col,
                 # )
                 group_color = get_persistent_color(pid1, pid2)
+                if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
+                    group_color = "red"
                 ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
                 ax.quiver(
                     group_df["x"] - center[0],
@@ -466,7 +467,6 @@ if tracer_file:
                     scale=1,
                     scale_units="xy",
                     angles="xy",
-                    alpha=arrow_opacity,
                     color=group_color,
                 )  # color=colors[int(partids_filt[ii]) % len(colors)])
 
@@ -508,4 +508,5 @@ fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
 #                       scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[int(partids_filt[ii]) % len(colors)])
 #         except IndexError:
 #             breakpoint()
+# fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
 # fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
