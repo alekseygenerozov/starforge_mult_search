@@ -455,8 +455,8 @@ if tracer_file:
                 #     linestyle="",
                 #     color=col,
                 # )
-                group_color1 = get_persistent_color(pid1, pid1)
-                group_color2 = get_persistent_color(pid2, pid2)
+                group_color1 = np.array(get_persistent_color(pid1, pid1))
+                group_color2 = np.array(get_persistent_color(pid2, pid2))
                 group_color = 0.5 * (group_color1 + group_color2)
                 if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
                     group_color = "red"
