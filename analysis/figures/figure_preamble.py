@@ -132,17 +132,23 @@ for seed in seeds:
     tmp_dat_path = base_new + str(seed) + suff_new
     with open(tmp_dat_path + "/path_lookup.p", "rb") as ff:
         tmp_path_pickle = pickle.load(ff)
-        assert not np.any(np.isin(tmp_path_pickle.keys(), path_lookup.keys()))
+        assert not np.any(
+            np.isin(list(tmp_path_pickle.keys()), list(path_lookup.keys()))
+        )
         path_lookup.update(tmp_path_pickle)
 
     with open(tmp_dat_path + "/spin_lookup.p", "rb") as ff:
         tmp_path_pickle = pickle.load(ff)
-        assert not np.any(np.isin(tmp_path_pickle.keys(), spin_lookup.keys()))
+        assert not np.any(
+            np.isin(list(tmp_path_pickle.keys()), list(path_lookup.keys()))
+        )
         spin_lookup.update(tmp_path_pickle)
 
     with open(tmp_dat_path + "/lookup_dict.p", "rb") as ff:
         tmp_path_pickle = pickle.load(ff)
-        assert not np.any(np.isin(tmp_path_pickle.keys(), spin_lookup.keys()))
+        assert not np.any(
+            np.isin(list(tmp_path_pickle.keys()), list(path_lookup.keys()))
+        )
         lookup_dict.update(tmp_path_pickle)
 
 snap_interval = my_data["snap_interval"][0]
