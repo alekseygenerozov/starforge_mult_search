@@ -169,7 +169,9 @@ config.read(f"config_{sys.argv[1]}")
 
 snap_idx = config.getint("params", "snap_idx")
 bin_id1 = config.getint("params", "bin1")
-bin_id2 = config.getint("params", "bin2")
+bin_id2 = config.get("params", "bin2")
+if bin_id2 != "COMP":
+    bin_id2 = int(bin_id2)
 my_ft = config.get("params", "ft", fallback="1.0")
 seed = config.getint("params", "seed", fallback=42)
 rmax = config.getfloat("params", "rmax", fallback=0.5)
