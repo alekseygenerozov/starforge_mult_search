@@ -23,8 +23,8 @@ def process_example(ii):
     times = np.genfromtxt("times").astype(int)
     # comps = np.genfromtxt("companion_lists").astype(int)
 
-    with open("config_template", "r") as ff:
-        config_template = ff.read()
+    # with open("config_template", "r") as ff:
+    #     config_template = ff.read()
 
     with open("config_template_b", "r") as ff:
         config_template_b = ff.read()
