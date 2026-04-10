@@ -123,7 +123,7 @@ def lookup_mult(mult_df, snap_idx, id):
 
 def get_com_wrapper(snap_idx, bin_id1, bin_id2, mult_lookup, particle_data):
     particle_ids = (bin_id1, bin_id2)
-    if bin_id2 == "COMP" and mult_lookup:
+    if bin_id2 == -999 and mult_lookup:
         particle_ids = lookup_mult(mult_lookup, snap_idx, bin_id1)
     return get_com(particle_ids, particle_data)
 
@@ -169,9 +169,7 @@ config.read(f"config_{sys.argv[1]}")
 
 snap_idx = config.getint("params", "snap_idx")
 bin_id1 = config.getint("params", "bin1")
-bin_id2 = config.get("params", "bin2")
-if bin_id2 != "COMP":
-    bin_id2 = int(bin_id2)
+bin_id2 = config.getint("params", "bin2")
 my_ft = config.get("params", "ft", fallback="1.0")
 seed = config.getint("params", "seed", fallback=42)
 rmax = config.getfloat("params", "rmax", fallback=0.5)
@@ -195,7 +193,7 @@ base = config.get(
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 halo_lookup = config.get("params", "halo_lookup", fallback="")
-mult_lookup = config.get("params", "mult_loookup", fallback="")
+mult_lookup = config.get("params", "mult_lookup", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 ms = config.getfloat("params", "ms", fallback=1)
