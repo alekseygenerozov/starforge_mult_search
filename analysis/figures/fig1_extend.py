@@ -114,6 +114,34 @@ def get_persistent_color(pid1, pid2):
     return cmap(color_index)
 
 
+def lookup_mult(mult_df, snap_idx, id):
+    if (snap_idx, id) in mult_df.index:
+        return mult_df.loc[(snap_idx, id)]["mult_ids_list_og"]
+    else:
+        return [id]
+
+
+def get_com_wrapper(snap_idx, bin_id1, bin_id2, mult_lookup, particle_data):
+    particle_ids = (bin_id1, bin_id2)
+    if bin_id2 == "COMP" and mult_lookup:
+        particle_ids = lookup_mult(mult_lookup, snap_idx, bin_id1)
+    return get_com(particle_ids, particle_data)
+
+
+def get_com(ids, part_data):
+    (partpos, partvels, partmasses, partids) = part_data
+    tmp_sel = np.where(np.isin(partids, ids))[0]
+    tmp_pos = partpos[tmp_sel]
+    tmp_vel = partvels[tmp_sel]
+    tmp_mass = partmasses[tmp_sel]
+    tmp_pos_vel = np.hstack((tmp_pos, tmp_vel))
+
+    if len(tmp_mass) == 0:
+        return tmp_pos_vel
+
+    return np.average(tmp_pos_vel, axis=0, weights=tmp_mass)
+
+
 units.registry["au"] = AUnit()
 colorblind_palette = sns.color_palette("colorblind")
 # Set the matplotlib color cycle to the seaborn colorblind palette
@@ -135,7 +163,6 @@ vzcol = np.where(sink_cols == "vz")[0][0]
 hcol = np.where(sink_cols == "h")[0][0]
 mtotcol = np.where(sink_cols == "mtot")[0][0]
 scol = np.where(sink_cols == "sys_id")[0][0]
-
 
 config = configparser.ConfigParser()
 config.read(f"config_{sys.argv[1]}")
@@ -166,6 +193,7 @@ base = config.get(
 snap_loc = config.get("params", "snap_loc", fallback=None)
 tracer_file = config.get("params", "tracers", fallback="")
 halo_lookup = config.get("params", "halo_lookup", fallback="")
+mult_lookup = config.get("params", "mult_loookup", fallback="")
 down_sample = config.getint("params", "down_sample", fallback=1)
 arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
 ms = config.getfloat("params", "ms", fallback=1)
@@ -234,21 +262,15 @@ elif center is not None:
     center = np.array(center)
     center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
 
-tmp_pos = np.concatenate(
-    (partpos[partids == bin_id1], partvels[partids == bin_id1])
-).ravel()
-tmp_mass = partmasses[partids == bin_id1]
-tmp_pos2 = np.concatenate(
-    (partpos[partids == bin_id2], partvels[partids == bin_id2])
-).ravel()
-tmp_mass2 = partmasses[partids == bin_id2]
-bin_center = (tmp_mass * tmp_pos + tmp_mass2 * tmp_pos2) / (tmp_mass + tmp_mass2)
+
+if mult_lookup:
+    mult_lookup = pd.read_parquet(mult_lookup)
+bin_center = get_com_wrapper(
+    snap_idx, bin_id1, bin_id2, mult_lookup, (partpos, partvels, partmasses, partids)
+)
 if center is None:
-    # center, tmp_pos_center, tmp_halo_pos_center, tmp_pos2_center, tmp_halo_pos2_center, com_w_halo, com2_w_halo = get_phalo(base, aa, snap_idx,
-    #                                                                                        bin_id1, bin_id2, my_ft)
     center = bin_center
 center = np.array(center)
-
 
 ##ONLY SELECT GAS IN VOXEL AROUND STARS
 sel2 = np.abs(xuniq - center[:3])
