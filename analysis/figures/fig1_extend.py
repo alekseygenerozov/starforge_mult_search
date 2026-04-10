@@ -123,7 +123,7 @@ def lookup_mult(mult_df, snap_idx, id):
 
 def get_com_wrapper(snap_idx, bin_id1, bin_id2, mult_lookup, particle_data):
     particle_ids = (bin_id1, bin_id2)
-    if bin_id2 == -999 and mult_lookup:
+    if (bin_id2 == -999) and (len(mult_lookup) > 0):
         particle_ids = lookup_mult(mult_lookup, snap_idx, bin_id1)
     return get_com(particle_ids, particle_data)
 
