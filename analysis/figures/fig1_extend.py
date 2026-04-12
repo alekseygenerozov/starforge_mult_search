@@ -454,7 +454,8 @@ if tracer_file:
         except IndexError:
             breakpoint()
 
-        ##Coloring by halo halo...
+        ##Coloring by halo
+        ##MAKE SURE THAT HALO_LOOKUP HERE ONLY INCLUDES UNRELATED STARS(!)
         if halo_lookup:
             halo_lookup = pd.read_parquet(halo_lookup)
             tmp_tracers_halo = halo_lookup.loc[tracer_ids]
