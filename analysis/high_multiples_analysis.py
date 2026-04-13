@@ -10,7 +10,6 @@ import hydra
 import numpy as np
 import pandas as pd
 import tqdm
-from bash_command import bash_command as bc
 
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.analyze_stack import (
@@ -33,6 +32,7 @@ from starforge_mult_search.code.find_multiples_new2 import (
     get_orbit,
     system,
 )
+from starforge_mult_search.code.run_batch_aux import bash_command
 
 
 class SystemNode:
@@ -766,7 +766,7 @@ def main(params):
         quasi_filter_contig[ii] = str(tmp_id) in bin_set
     my_data = dict(my_data)
     my_data["quasi_filter_seg"] = quasi_filter_contig
-    bc.bash_command(
+    bash_command(
         "cp "
         + save_path
         + f"/dat_coll{analysis_suff}.npz "
