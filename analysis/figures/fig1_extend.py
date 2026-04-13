@@ -19,6 +19,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.analyze_stack import get_blookup
+from starforge_mult_search.analysis.high_multiples_analysis import get_maximal_multiples
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code import starforge_constants as sfc
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
@@ -268,6 +269,7 @@ blookup = {}
 if mult_lookup:
     mult_lookup = pd.read_parquet(mult_lookup)
     blookup = get_blookup(mult_lookup)
+    mult_lookup = get_maximal_multiples(mult_lookup)
 
 bin_center = get_com_wrapper(
     snap_idx, bin_id1, bin_id2, mult_lookup, (partpos, partvels, partmasses, partids)
