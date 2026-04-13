@@ -486,7 +486,7 @@ if tracer_file:
 
         ##Coloring by halo
         ##MAKE SURE THAT HALO_LOOKUP HERE ONLY INCLUDES UNRELATED STARS(!)
-        if halo_lookup:
+        if len(halo_lookup) > 0:
             tmp_tracers_halo = halo_lookup.loc[tracer_ids]
             tmp_tracers_halo = tmp_tracers_halo.loc[
                 tmp_tracers_halo["snap"] == int(snap_idx)
