@@ -338,8 +338,6 @@ for ii in range(len(partpos_filt)):
     pid2_for_star_plot = blookup.get(
         ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
     )
-    if pid1_for_star_plot != pid2_for_star_plot:
-        breakpoint()
 
     group_color1_for_star = np.array(
         get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
