@@ -328,24 +328,34 @@ partpos_filt = partpos[dist_filter]
 partvel_filt = partvels[dist_filter]
 partids_filt = partids[dist_filter]
 partmasses_filt = partmasses[dist_filter]
+
+if halo_lookup:
+    halo_lookup = pd.read_parquet(halo_lookup)
+
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
+
     center_x, center_y = (
         partpos_filt[ii, 0] - center[0],
         partpos_filt[ii, 1] - center[1],
     )
-    pid1_for_star_plot = partids_filt[ii]
-    pid2_for_star_plot = blookup.get(
-        ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
-    )
 
-    group_color1_for_star = np.array(
-        get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
-    )
-    group_color2_for_star = np.array(
-        get_persistent_color(pid2_for_star_plot, pid2_for_star_plot)
-    )
-    group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+    pid1_for_star_plot = partids_filt[ii]
+    group_color_for_star = "k"
+    if len(halo_lookup) > 0 and (
+        (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
+        or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
+    ):
+        pid2_for_star_plot = blookup.get(
+            ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
+        )
+        group_color1_for_star = np.array(
+            get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
+        )
+        group_color2_for_star = np.array(
+            get_persistent_color(pid2_for_star_plot, pid2_for_star_plot)
+        )
+        group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
 
     ax.plot(
         center_x,
@@ -477,7 +487,6 @@ if tracer_file:
         ##Coloring by halo
         ##MAKE SURE THAT HALO_LOOKUP HERE ONLY INCLUDES UNRELATED STARS(!)
         if halo_lookup:
-            halo_lookup = pd.read_parquet(halo_lookup)
             tmp_tracers_halo = halo_lookup.loc[tracer_ids]
             tmp_tracers_halo = tmp_tracers_halo.loc[
                 tmp_tracers_halo["snap"] == int(snap_idx)
