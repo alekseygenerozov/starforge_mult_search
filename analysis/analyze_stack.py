@@ -867,7 +867,7 @@ def get_bound_snaps_adjust(bin_list, high_df):
 
 
 def get_star_mapping_closest(high_df):
-    """Transform multiples table to be indexed by stars, picking out minimal multiple for each one.
+    """Transform multiples table to be indexed by stars, picking out minimal multiple for each one. (SINGLE SNAP)
 
     :param high_df: Multiples data from starforge simulation
     :type high_df: Pandas dataframe
@@ -897,7 +897,7 @@ def get_star_mapping_closest(high_df):
 
 
 def get_star_mapping(high_df, keep_index=True):
-    """Transform multiples table to be indexed by stars, picking out maximal multiple for each one.
+    """Transform multiples table to be indexed by stars, picking out maximal multiple for each one. (SINGLE SNAP)
 
     :param high_df: Multiples data from starforge simulation
     :type high_df: Pandas dataframe
@@ -924,6 +924,32 @@ def get_star_mapping(high_df, keep_index=True):
         star_to_row = star_to_row.loc[~star_to_row.index.duplicated(keep="first")]
 
     return star_to_row
+
+
+def get_blookup(high_df):
+    """Transform multiples table to lookup table for the closest companions.
+
+    :param high_df: Multiples data from starforge simulation
+    :type high_df: Pandas dataframe
+    :return: Mapping of stars, snapshots to companions
+    :rtype: dict
+    """
+
+    star_map_closest_all = get_star_map_bins(high_df)
+    mlist = star_map_closest_all.index
+    blabel = np.array(star_map_closest_all["bin_halo_label"]).astype(int)
+    mlist = np.array([np.array(row) for row in mlist]).astype(int)
+
+    blabel_cut = blabel[blabel != mlist[:, 1]]
+    mlist_cut = mlist[blabel != mlist[:, 1]]
+    blookup1 = {tuple(mlist_cut[ii]): blabel_cut[ii] for ii in range(len(mlist_cut))}
+    blookup2 = {
+        (mlist_cut[ii, 0], blabel_cut[ii]): mlist_cut[ii, 1]
+        for ii in range(len(mlist_cut))
+    }
+    blookup = {**blookup1, **blookup2}
+
+    return blookup
 
 
 def get_first_snap_table(path_lookup):
@@ -963,7 +989,6 @@ def get_first_snap_table(path_lookup):
     return first_snap_table
 
 
-##IS SOMEWHAT REDUNDANT WITH GET_STAR_MAPPING_CLOSEST?
 def get_star_map_bins(high_df_filt):
     """_summary_
 

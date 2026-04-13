@@ -18,6 +18,7 @@ from meshoid import Meshoid
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from starforge_mult_search.analysis import cgs_const as cgs
+from starforge_mult_search.analysis.analyze_stack import get_blookup
 from starforge_mult_search.code import find_multiples_new2
 from starforge_mult_search.code import starforge_constants as sfc
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
@@ -263,8 +264,11 @@ elif center is not None:
     center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
 
 
+blookup = {}
 if mult_lookup:
     mult_lookup = pd.read_parquet(mult_lookup)
+    blookup = get_blookup(mult_lookup)
+
 bin_center = get_com_wrapper(
     snap_idx, bin_id1, bin_id2, mult_lookup, (partpos, partvels, partmasses, partids)
 )
@@ -328,10 +332,26 @@ for ii in range(len(partpos_filt)):
         partpos_filt[ii, 0] - center[0],
         partpos_filt[ii, 1] - center[1],
     )
+    pid1_for_star_plot = partids_filt[ii]
+    pid2_for_star_plot = blookup.get(
+        ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
+    )
+    if pid1_for_star_plot != pid2_for_star_plot:
+        breakpoint()
+
+    group_color1_for_star = np.array(
+        get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
+    )
+    group_color2_for_star = np.array(
+        get_persistent_color(pid2_for_star_plot, pid2_for_star_plot)
+    )
+    group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+
     ax.plot(
         center_x,
         center_y,
-        "kX",
+        "X",
+        color=group_color_for_star,
         markersize=ms * np.log(partmasses_filt[ii] / 0.001),
         alpha=ma,
     )

@@ -49,13 +49,15 @@ def process_example(ii):
 
 
 def main():
-    # process_example(sys.argv[1])
+    if int(sys.argv[1]):
+        process_example(sys.argv[2])
     ##Parallel image productions(!)
-    examples_file = sys.argv[1]
-    examples = np.genfromtxt(examples_file).astype(int)
+    else:
+        examples_file = sys.argv[2]
+        examples = np.genfromtxt(examples_file).astype(int)
 
-    with multiprocessing.Pool(5) as pool:
-        pool.map(process_example, examples)
+        with multiprocessing.Pool(5) as pool:
+            pool.map(process_example, examples)
 
 
 if __name__ == "__main__":

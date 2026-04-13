@@ -7,6 +7,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import tqdm
+
 from starforge_mult_search.analysis.analyze_stack import (
     get_first_snap_table,
     get_star_map_bins,
@@ -35,7 +36,7 @@ tag = sys.argv[2]
 my_pattern = f"halo_masses_{tag}_npTrue_c0.5_*_compFalse_tf{my_ft}.hdf5"
 halo_files = glob.glob(my_pattern)
 halo_files = sorted(halo_files)
-##Multiplicity data--TO DO: REMOVE THE HARD-CODING HERE...
+##Multiplicity data--TO DO: REMOVE THE HARD-CODING HERE (_FLAT and _SEG)
 high_df = pd.read_parquet(f"{sys.argv[3]}/mults_flat.pq")
 high_df_filt = apply_persistence_filter(high_df, "_seg")
 high_df_filt_max = get_maximal_multiples(high_df_filt)
@@ -149,4 +150,5 @@ for hf in tqdm.tqdm(halo_files):
         halo_tab_all.append(halo_tab_snap)
 halo_tab_all = pd.concat(halo_tab_all)
 halo_tab_all.sort_index(level=[0, 1], inplace=True)
+halo_tab_all.to_parquet(f"halo_table_{tag}_{my_ft}_new.pq")
 halo_tab_all.to_parquet(f"halo_table_{tag}_{my_ft}_new.pq")
