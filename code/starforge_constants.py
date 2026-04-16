@@ -2,6 +2,10 @@ import os
 
 # Default GN value (e.g., in physical units)
 GN = 4.301e3
+##Length and time scales
+sfc_pc = 3.085678e+18
+sfc_time_to_snap = sfc_pc / 100 / (3600.0 * 24.0 * 365.0) / 2.4703e4
+
 # Check for override file
 override_file = "GN_override.txt"  # or any other name you like
 if os.path.exists(override_file):

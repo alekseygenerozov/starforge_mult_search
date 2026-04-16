@@ -493,6 +493,7 @@ if tracer_file:
             ]
             tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
 
+            ##HALOS OF ACCRETING STAR MAY NOT BE HIGHLIGHTED WITH THIS APPROACH--ADJUST SAVE FOR HALOS OF INTEREST(!)
             # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
             for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
                 col = None
