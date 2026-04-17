@@ -144,6 +144,24 @@ def get_com(ids, part_data):
     return np.average(tmp_pos_vel, axis=0, weights=tmp_mass)
 
 
+def point_size_function(sep_pc, rmax):
+    rmax = 0.2
+    x = np.log(sep_pc)
+
+    r0 = 1e3 * cgs.au / cgs.pc
+    r1 = rmax * 3.0**0.5
+    x0 = np.log(r0)
+    x1 = np.log(r1)
+    min_size = 6.0
+    max_size = 20.0
+    interp_size = np.exp(
+        (x - x0) / (x1 - x0) * np.log(min_size)
+        + (x - x1) / (x0 - x1) * np.log(max_size)
+    )
+
+    return np.clip(interp_size, min_size, max_size)
+
+
 units.registry["au"] = AUnit()
 colorblind_palette = sns.color_palette("colorblind")
 # Set the matplotlib color cycle to the seaborn colorblind palette
@@ -362,7 +380,8 @@ for ii in range(len(partpos_filt)):
         center_y,
         "X",
         color=group_color_for_star,
-        markersize=ms * np.log(partmasses_filt[ii] / 0.001),
+        # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
+        markersize=point_size_function(np.linalg.norm(sel2), rmax),
         alpha=ma,
     )
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
@@ -493,7 +512,7 @@ if tracer_file:
             ]
             tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
 
-            ##HALOS OF ACCRETING STAR MAY NOT BE HIGHLIGHTED WITH THIS APPROACH--ADJUST SAVE FOR HALOS OF INTEREST(!)
+            ##MAKE SURE ACCRETING STAR IS (!)
             # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
             for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
                 col = None
