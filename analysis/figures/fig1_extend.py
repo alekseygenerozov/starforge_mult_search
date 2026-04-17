@@ -381,7 +381,9 @@ for ii in range(len(partpos_filt)):
         "X",
         color=group_color_for_star,
         # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
-        markersize=point_size_function(np.linalg.norm(sel2), rmax),
+        markersize=point_size_function(
+            np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
+        ),
         alpha=ma,
     )
     # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
