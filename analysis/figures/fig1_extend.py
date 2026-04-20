@@ -1,4 +1,5 @@
 import ast
+import colorsys
 import configparser
 import gc
 import hashlib
@@ -96,26 +97,48 @@ def u_to_cs(u1):
     return u1**0.5 * (gamma_eff * (gamma_eff - 1)) ** 0.5
 
 
-def get_persistent_color(pid1, pid2):
-    """
-    Maps a pair of pids to a consistent color using a stable hash.
-    Using hashlib ensures the color remains exactly the same even if you
-    restart your Python session/script entirely.
-    """
-    pid1 = int(pid1)
-    pid2 = int(pid2)
-    # Create a unique string identifier for this pair
-    pair_id = f"{pid1}_{pid2}".encode("utf-8")
+# def get_persistent_color(pid1, pid2):
+#     """
+#     Maps a pair of pids to a consistent color using a stable hash.
+#     Using hashlib ensures the color remains exactly the same even if you
+#     restart your Python session/script entirely.
+#     """
+#     pid1 = int(pid1)
+#     pid2 = int(pid2)
+#     # Create a unique string identifier for this pair
+#     pair_id = f"{pid1}_{pid2}".encode("utf-8")
 
-    # Create a stable integer hash from the string
-    # We use MD5, grab the first 8 hex characters, and convert to an integer
-    hash_int = int(hashlib.md5(pair_id).hexdigest()[:8], 16)
+#     # Create a stable integer hash from the string
+#     # We use MD5, grab the first 8 hex characters, and convert to an integer
+#     hash_int = int(hashlib.md5(pair_id).hexdigest()[:8], 16)
 
-    # Modulo the hash by the number of available colors to get an index
-    color_index = hash_int % num_colors
+#     # Modulo the hash by the number of available colors to get an index
+#     color_index = hash_int % num_colors
 
-    # Return the RGBA color from the colormap
-    return cmap(color_index)
+#     # Return the RGBA color from the colormap
+#     return cmap(color_index)
+
+
+def get_persistent_color(pid):
+    """Generates an infinite variety of colors with a 'Dark2' vibe."""
+    pid_str = str(pid).encode("utf-8")
+
+    # Generate an integer hash
+    hash_int = int(hashlib.md5(pid_str).hexdigest()[:8], 16)
+
+    # 1. Map the hash to a float between 0.0 and 1.0 to pick a Hue
+    # 0xFFFFFFFF is the maximum possible value for an 8-character hex string
+    hue = hash_int / 0xFFFFFFFF
+
+    # 2. Hardcode Saturation and Lightness to get that 'Dark2' aesthetic
+    # Lightness: 0.45 keeps it slightly dark. Saturation: 0.7 keeps it rich but not neon.
+    lightness = 0.45
+    saturation = 0.70
+
+    # 3. Convert back to RGB for matplotlib
+    r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
+
+    return (r, g, b, 1.0)  # Return RGBA
 
 
 def lookup_mult(mult_df, snap_idx, id):
@@ -369,12 +392,8 @@ for ii in range(len(partpos_filt)):
         (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
         or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
     ):
-        group_color1_for_star = np.array(
-            get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
-        )
-        group_color2_for_star = np.array(
-            get_persistent_color(pid2_for_star_plot, pid2_for_star_plot)
-        )
+        group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
+        group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
         group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
 
     if (bin_id1 in (pid1_for_star_plot, pid2_for_star_plot)) or (
@@ -394,7 +413,9 @@ for ii in range(len(partpos_filt)):
         center_x,
         center_y,
         "X",
-        color=group_color_for_star,
+        markeredgecolor="black",  # The outline color
+        markeredgewidth=1.0,
+        markerfacecolor=group_color_for_star,
         # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
         markersize=point_size_function(
             np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
@@ -544,8 +565,8 @@ if tracer_file:
                 #     linestyle="",
                 #     color=col,
                 # )
-                group_color1 = np.array(get_persistent_color(pid1, pid1))
-                group_color2 = np.array(get_persistent_color(pid2, pid2))
+                group_color1 = np.array(get_persistent_color(pid1))
+                group_color2 = np.array(get_persistent_color(pid2))
                 group_color = 0.5 * (group_color1 + group_color2)
                 if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
                     group_color = "red"
