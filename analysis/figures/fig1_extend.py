@@ -26,8 +26,8 @@ from starforge_mult_search.code import starforge_constants as sfc
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
 # Get a colormap with highly distinct colors (tab20 has 20 distinct colors)
-cmap = plt.get_cmap("Dark2")
-num_colors = cmap.N
+cmap = plt.get_cmap("turbo")
+# num_colors = cmap.N
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
 
@@ -119,26 +119,55 @@ def u_to_cs(u1):
 #     return cmap(color_index)
 
 
-def get_persistent_color(pid):
-    """Generates an infinite variety of colors with a 'Dark2' vibe."""
-    pid_str = str(int(pid)).encode("utf-8")
+# def get_persistent_color(pid):
+#     """Generates an infinite variety of colors with a 'Dark2' vibe."""
+#     pid_str = str(int(pid)).encode("utf-8")
 
-    # Generate an integer hash
+#     # Generate an integer hash
+#     hash_int = int(hashlib.md5(pid_str).hexdigest()[:8], 16)
+
+#     # 1. Map the hash to a float between 0.0 and 1.0 to pick a Hue
+#     # 0xFFFFFFFF is the maximum possible value for an 8-character hex string
+#     hue = hash_int / 0xFFFFFFFF
+
+#     # 2. Hardcode Saturation and Lightness to get that 'Dark2' aesthetic
+#     # Lightness: 0.45 keeps it slightly dark. Saturation: 0.7 keeps it rich but not neon.
+#     lightness = 0.45
+#     saturation = 0.70
+
+#     # 3. Convert back to RGB for matplotlib
+#     r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
+
+#     return (r, g, b, 1.0)  # Return RGBA
+
+# def get_persistent_color(pid1, pid2):
+#     """
+#     Maps a pair of pids to a consistent color using a stable hash.
+#     Using hashlib ensures the color remains exactly the same even if you
+#     restart your Python session/script entirely.
+#     """
+#     # Create a unique string identifier for this pair
+#     pair_id = f"{pid1}_{pid2}".encode('utf-8')
+
+#     # Create a stable integer hash from the string
+#     # We use MD5, grab the first 8 hex characters, and convert to an integer
+#     hash_int = int(hashlib.md5(pair_id).hexdigest()[:8], 16)
+
+#     # Modulo the hash by the number of available colors to get an index
+#     color_index = hash_int % num_colors
+
+#     # Return the RGBA color from the colormap
+#     return cmap(color_index)
+
+
+def get_persistent_color(pid):
+    pid_str = str(int(pid)).encode("utf-8")
     hash_int = int(hashlib.md5(pid_str).hexdigest()[:8], 16)
 
-    # 1. Map the hash to a float between 0.0 and 1.0 to pick a Hue
-    # 0xFFFFFFFF is the maximum possible value for an 8-character hex string
-    hue = hash_int / 0xFFFFFFFF
+    # Modulo 256 since continuous colormaps typically have 256 bins
+    color_index = hash_int % cmap.N
 
-    # 2. Hardcode Saturation and Lightness to get that 'Dark2' aesthetic
-    # Lightness: 0.45 keeps it slightly dark. Saturation: 0.7 keeps it rich but not neon.
-    lightness = 0.45
-    saturation = 0.70
-
-    # 3. Convert back to RGB for matplotlib
-    r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
-
-    return (r, g, b, 1.0)  # Return RGBA
+    return cmap(color_index)
 
 
 def lookup_mult(mult_df, snap_idx, id):
