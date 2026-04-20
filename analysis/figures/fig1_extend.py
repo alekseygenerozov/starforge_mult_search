@@ -359,14 +359,14 @@ for ii in range(len(partpos_filt)):
     )
 
     pid1_for_star_plot = partids_filt[ii]
+    pid2_for_star_plot = blookup.get(
+        ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
+    )
     group_color_for_star = "k"
     if len(halo_lookup) > 0 and (
         (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
         or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
     ):
-        pid2_for_star_plot = blookup.get(
-            ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
-        )
         group_color1_for_star = np.array(
             get_persistent_color(pid1_for_star_plot, pid1_for_star_plot)
         )
@@ -375,17 +375,22 @@ for ii in range(len(partpos_filt)):
         )
         group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
 
-    # ax.plot(
-    #     center_x,
-    #     center_y,
-    #     "X",
-    #     color=group_color_for_star,
-    #     # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
-    #     markersize=point_size_function(
-    #         np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
-    #     ),
-    #     alpha=ma,
-    # )
+    if (bin_id1 in (pid1_for_star_plot, pid2_for_star_plot)) or (
+        bin_id2 in (pid1_for_star_plot, pid2_for_star_plot)
+    ):
+        group_color = "red"
+
+    ax.plot(
+        center_x,
+        center_y,
+        "X",
+        color=group_color_for_star,
+        # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
+        markersize=point_size_function(
+            np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
+        ),
+        alpha=ma,
+    )
     # # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
     ##Arbitrary cutoff for gas neighbors...
@@ -551,22 +556,22 @@ if tracer_file:
                 tmp_star_pos2 = partpos[partids == pid2]
 
                 # 2. Plot the path for pid1 using the exact same color
-                ax.scatter(
-                    tmp_star_pos1[0, 0] - center[0],
-                    tmp_star_pos1[0, 1] - center[1],
-                    color=group_color,
-                    alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
-                    marker="X",
-                )
+                # ax.scatter(
+                #     tmp_star_pos1[0, 0] - center[0],
+                #     tmp_star_pos1[0, 1] - center[1],
+                #     color=group_color,
+                #     alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
+                #     marker="X",
+                # )
 
-                # 3. Plot the path for pid2 using the exact same color
-                ax.scatter(
-                    tmp_star_pos2[0, 0] - center[0],
-                    tmp_star_pos2[0, 1] - center[1],
-                    color=group_color,
-                    alpha=0.7,
-                    marker="X",
-                )
+                # # 3. Plot the path for pid2 using the exact same color
+                # ax.scatter(
+                #     tmp_star_pos2[0, 0] - center[0],
+                #     tmp_star_pos2[0, 1] - center[1],
+                #     color=group_color,
+                #     alpha=0.7,
+                #     marker="X",
+                # )
 
 
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
