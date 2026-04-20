@@ -545,9 +545,9 @@ if tracer_file:
                 group_color1 = np.array(get_persistent_color(pid1, pid1))
                 group_color2 = np.array(get_persistent_color(pid2, pid2))
                 group_color = 0.5 * (group_color1 + group_color2)
-                print(snap_idx, "gas color", pid1, pid2, group_color)
                 if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
                     group_color = "red"
+                print(snap_idx, "gas color", pid1, pid2, group_color)
                 ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
                 ax.quiver(
                     group_df["x"] - center[0],
