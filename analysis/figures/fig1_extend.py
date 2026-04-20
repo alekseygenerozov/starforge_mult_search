@@ -121,7 +121,7 @@ def u_to_cs(u1):
 
 def get_persistent_color(pid):
     """Generates an infinite variety of colors with a 'Dark2' vibe."""
-    pid_str = str(pid).encode("utf-8")
+    pid_str = str(int(pid)).encode("utf-8")
 
     # Generate an integer hash
     hash_int = int(hashlib.md5(pid_str).hexdigest()[:8], 16)
@@ -351,8 +351,7 @@ p = ax.pcolormesh(
     linewidth=0,
     rasterized=True,
 )
-# ax.scatter(tmp_pos_center[0], tmp_pos_center[1],  marker="X", color="k", s=40)
-# ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1],  marker="X", color="k", s=40)
+
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
@@ -409,19 +408,30 @@ for ii in range(len(partpos_filt)):
             group_color_for_star,
         )
 
-    ax.plot(
+    size = point_size_function(np.linalg.norm(partpos_filt[ii] - center[:3]), rmax)
+    ax.scatter(
         center_x,
         center_y,
-        "X",
-        markeredgecolor="black",  # The outline color
-        markeredgewidth=1.0,
-        markerfacecolor=group_color_for_star,
-        # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
-        markersize=point_size_function(
-            np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
-        ),
-        # alpha=ma,
+        marker="X",
+        c=[group_color_for_star],
+        edgecolors="black",
+        linewidths=1.5,
+        s=size**2,  # Squares your calibrated output (6-20 becomes 36-400)
+        zorder=10,
     )
+    # ax.plot(
+    #     center_x,
+    #     center_y,
+    #     "X",
+    #     markeredgecolor="black",  # The outline color
+    #     markeredgewidth=1.0,
+    #     markerfacecolor=group_color_for_star,
+    #     # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
+    #     markersize=point_size_function(
+    #         np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
+    #     ),
+    #     # alpha=ma,
+    # )
     # # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
     ##Arbitrary cutoff for gas neighbors...
@@ -587,39 +597,5 @@ if tracer_file:
                 tmp_star_pos1 = partpos[partids == pid1]
                 tmp_star_pos2 = partpos[partids == pid2]
 
-                # 2. Plot the path for pid1 using the exact same color
-                # ax.scatter(
-                #     tmp_star_pos1[0, 0] - center[0],
-                #     tmp_star_pos1[0, 1] - center[1],
-                #     color=group_color,
-                #     alpha=0.7,  # Optional: Make the paths slightly transparent to distinguish them from the points
-                #     marker="X",
-                # )
-
-                # # 3. Plot the path for pid2 using the exact same color
-                # ax.scatter(
-                #     tmp_star_pos2[0, 0] - center[0],
-                #     tmp_star_pos2[0, 1] - center[1],
-                #     color=group_color,
-                #     alpha=0.7,
-                #     marker="X",
-                # )
-
 
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
-
-# for ii in range(len(partids_filt)):
-#     with h5py.File(base + f"/halo_masses/halo_masses_sing_npTrue_c0.5_{snap_idx}_compFalse_tf{my_ft}.hdf5") as hf:
-#         tmp_halo_arr_id = hf[f"halo_{partids_filt[ii]}"][...]
-#         tmp_halo_pos = np.hstack((hf[f"halo_{partids_filt[ii]}_x"][...], hf[f"halo_{partids_filt[ii]}_v"][...]))
-#         if np.sum(tmp_halo_arr_id)==0:
-#             continue
-#         try:
-#             ax.quiver(tmp_halo_pos[:, 0] - center[0], tmp_halo_pos[:, 1] - center[1],
-#                       (tmp_halo_pos[:, 3]  - partvel_filt[ii, 0]) * v_scale * snap_interval,
-#                       (tmp_halo_pos[:, 4]  - partvel_filt[ii, 1]) * v_scale * snap_interval,
-#                       scale=1, scale_units="xy", angles="xy",alpha=0.2, color=colors[int(partids_filt[ii]) % len(colors)])
-#         except IndexError:
-#             breakpoint()
-# fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
-# fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
