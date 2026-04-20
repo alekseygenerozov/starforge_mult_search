@@ -36,7 +36,7 @@ tag = sys.argv[2]
 my_pattern = f"halo_masses_{tag}_npTrue_c0.5_*_compFalse_tf{my_ft}.hdf5"
 halo_files = glob.glob(my_pattern)
 halo_files = sorted(halo_files)
-##Multiplicity data--TO DO: REMOVE THE HARD-CODING HERE (_FLAT and _SEG)
+##Multiplicity data--TO DO: REMOVE THE HARD-CODING HERE (_FLAT and _SEG). FLAT DOES NOT MATTER [?]-- DOUBLE CHECK THROUGH ASSERTION(!)
 high_df = pd.read_parquet(f"{sys.argv[3]}/mults_flat.pq")
 high_df_filt = apply_persistence_filter(high_df, "_seg")
 high_df_filt_max = get_maximal_multiples(high_df_filt)

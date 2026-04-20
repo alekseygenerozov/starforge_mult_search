@@ -375,18 +375,18 @@ for ii in range(len(partpos_filt)):
         )
         group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
 
-    ax.plot(
-        center_x,
-        center_y,
-        "X",
-        color=group_color_for_star,
-        # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
-        markersize=point_size_function(
-            np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
-        ),
-        alpha=ma,
-    )
-    # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
+    # ax.plot(
+    #     center_x,
+    #     center_y,
+    #     "X",
+    #     color=group_color_for_star,
+    #     # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
+    #     markersize=point_size_function(
+    #         np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
+    #     ),
+    #     alpha=ma,
+    # )
+    # # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
     ##Arbitrary cutoff for gas neighbors...
     # gas_neighbors = np.linalg.norm(xuniq[sel2_gas] - partpos_filt[ii], axis=1) < 0.01
