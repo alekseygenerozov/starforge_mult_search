@@ -378,7 +378,15 @@ for ii in range(len(partpos_filt)):
     if (bin_id1 in (pid1_for_star_plot, pid2_for_star_plot)) or (
         bin_id2 in (pid1_for_star_plot, pid2_for_star_plot)
     ):
-        group_color = "red"
+        group_color_for_star = "red"
+    if group_color_for_star != "k":
+        print(
+            snap_idx,
+            "star color",
+            pid1_for_star_plot,
+            pid2_for_star_plot,
+            group_color_for_star,
+        )
 
     ax.plot(
         center_x,
@@ -389,7 +397,7 @@ for ii in range(len(partpos_filt)):
         markersize=point_size_function(
             np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
         ),
-        alpha=ma,
+        # alpha=ma,
     )
     # # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
     # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
@@ -537,6 +545,7 @@ if tracer_file:
                 group_color1 = np.array(get_persistent_color(pid1, pid1))
                 group_color2 = np.array(get_persistent_color(pid2, pid2))
                 group_color = 0.5 * (group_color1 + group_color2)
+                print(snap_idx, "gas color", pid1, pid2, group_color)
                 if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
                     group_color = "red"
                 ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
