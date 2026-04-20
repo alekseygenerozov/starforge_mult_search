@@ -102,6 +102,8 @@ def get_persistent_color(pid1, pid2):
     Using hashlib ensures the color remains exactly the same even if you
     restart your Python session/script entirely.
     """
+    pid1 = int(pid1)
+    pid2 = int(pid2)
     # Create a unique string identifier for this pair
     pair_id = f"{pid1}_{pid2}".encode("utf-8")
 
