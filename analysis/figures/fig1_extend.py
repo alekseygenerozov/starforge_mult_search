@@ -381,7 +381,7 @@ for ii in range(len(partpos_filt)):
         bin_id2 in (pid1_for_star_plot, pid2_for_star_plot)
     ):
         group_color_for_star = "red"
-    if group_color_for_star != "k":
+    if str(group_color_for_star) != "k":
         print(
             snap_idx,
             "star color",
