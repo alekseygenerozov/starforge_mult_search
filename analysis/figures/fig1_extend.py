@@ -199,15 +199,18 @@ def get_com(ids, part_data):
 
 
 def point_size_function(sep_pc, rmax):
+    min_size = 6.0
+    max_size = 20.0
     rmax = 0.2
+    if sep_pc == 0:
+        return max_size
     x = np.log(sep_pc)
 
     r0 = 1e3 * cgs.au / cgs.pc
     r1 = rmax * 3.0**0.5
     x0 = np.log(r0)
     x1 = np.log(r1)
-    min_size = 6.0
-    max_size = 20.0
+
     interp_size = np.exp(
         (x - x0) / (x1 - x0) * np.log(min_size)
         + (x - x1) / (x0 - x1) * np.log(max_size)
