@@ -751,7 +751,7 @@ def make_binned_data_cont(absc, ords, bins):
 
 def make_binned_data_cont_rev_err(absc, ords, bins):
     """
-    Binning of (boolean) ords according to absc and bins
+    Binning of ords according to absc and bins
     """
     binned_num = np.zeros(len(bins) - 1)
     binned_err = np.zeros(len(bins) - 1)
@@ -1032,4 +1032,28 @@ def read_bh_swallow(base_swallow):
         bh_swallow_df.sort_values(by=["id", "time"], inplace=True)
         bh_swallow_df.to_parquet(base_swallow + "/bhswallow.pq")
 
+    return bh_swallow_df
+
+
+def bh_swallow_remove_repeaters(bh_swallow_df, first_snap_table=None, repeaters=None):
+    """_summary_
+
+    :param bh_swallow_df: bh_swallow as pandas dataframe with ids and times sorted
+    :type bh_swallow_df: Pandas dataframe
+    :param first_snap_table: Dataframe with columns id, snap, initial pos, final mass, initial mass, mass at 1 Myr, initial halo mass
+    :type first_snap_table: Pandas dataframe
+    :param repeaters: List of ids that occur in snapshots multiple times
+    """
+
+    if first_snap_table is not None:
+        bh_swallow_df_filt = np.isin(
+            bh_swallow_df["pid"], first_snap_table.index.to_list()
+        )
+        bh_swallow_df = bh_swallow_df.loc[bh_swallow_df_filt]
+    bh_swallow_df = bh_swallow_df.drop_duplicates("gas_id", keep=False)
+    if repeaters is not None:
+        bh_swallow_df_filt = ~np.isin(bh_swallow_df["gas_id"], repeaters)
+        bh_swallow_df = bh_swallow_df.loc[bh_swallow_df_filt]
+
+    return bh_swallow_df
     return bh_swallow_df
