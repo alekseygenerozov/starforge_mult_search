@@ -536,7 +536,7 @@ del uuniq
 del huniq
 # del muniq
 gc.collect()
-tracer_data = []
+tracer_pv = []
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
     tracer_ids = tracer_data[:, 0]
@@ -581,7 +581,7 @@ if tracer_file:
         v_offset_y = center[4]
         try:
             ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
-            tracer_data.append((tmp_halo_pos[:, :6] - center))
+            tracer_pv.append((tmp_halo_pos[:, :6] - center))
             ax.quiver(
                 tmp_halo_pos[:, 0] - center[0],
                 tmp_halo_pos[:, 1] - center[1],
@@ -642,5 +642,9 @@ if tracer_file:
                 tmp_star_pos1 = partpos[partids == pid1]
                 tmp_star_pos2 = partpos[partids == pid2]
 
-np.savez("fig1_data_" + sys.argv[1] + f"_{snap_idx}.npz", star_data=star_data, tracer_data=tracer_data)
+np.savez(
+    "fig1_data_" + sys.argv[1] + f"_{snap_idx}.npz",
+    star_data=star_data,
+    tracer_pv=tracer_pv,
+)
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
