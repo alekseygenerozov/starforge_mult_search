@@ -406,6 +406,7 @@ partmasses_filt = partmasses[dist_filter]
 if halo_lookup:
     halo_lookup = pd.read_parquet(halo_lookup)
 
+star_data = []
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
@@ -450,6 +451,16 @@ for ii in range(len(partpos_filt)):
         linewidths=1.5,
         s=size**2,  # Squares your calibrated output (6-20 becomes 36-400)
         zorder=10,
+    )
+    star_data.append(
+        (
+            partids_filt[ii],
+            center_x,
+            center_y,
+            group_color_for_star,
+            size,
+            partpos_filt[ii, 2] - center[2],
+        )
     )
     # ax.plot(
     #     center_x,
@@ -525,6 +536,7 @@ del uuniq
 del huniq
 # del muniq
 gc.collect()
+tracer_data = []
 if tracer_file:
     tracer_data = np.genfromtxt(tracer_file)
     tracer_ids = tracer_data[:, 0]
@@ -569,6 +581,7 @@ if tracer_file:
         v_offset_y = center[4]
         try:
             ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
+            tracer_data.append((tmp_halo_pos[:, :6] - center))
             ax.quiver(
                 tmp_halo_pos[:, 0] - center[0],
                 tmp_halo_pos[:, 1] - center[1],
@@ -629,5 +642,5 @@ if tracer_file:
                 tmp_star_pos1 = partpos[partids == pid1]
                 tmp_star_pos2 = partpos[partids == pid2]
 
-
+np.savez("fig1_data_" + sys.argv[1] + f"_{snap_idx}.npz", star_data=star_data, tracer_data=tracer_data)
 fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
