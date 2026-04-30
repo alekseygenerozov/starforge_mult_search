@@ -185,7 +185,7 @@ def get_com_wrapper(snap_idx, bin_id1, bin_id2, mult_lookup, particle_data):
 
 
 def get_com(ids, part_data):
-    (partpos, partvels, partmasses, partids) = part_data
+    partpos, partvels, partmasses, partids = part_data
     tmp_sel = np.where(np.isin(partids, ids))[0]
     tmp_pos = partpos[tmp_sel]
     tmp_vel = partvels[tmp_sel]
@@ -560,13 +560,13 @@ if tracer_file:
         tmp_halo_pos = tmp_halo_pos[random_selection]
         is_accreted = is_accreted[random_selection]
 
-        halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
+        # halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
         arrow_cols = [colors[row] for row in is_accreted.astype(int)]
-        v_offset_x = halo_com[3]
-        v_offset_y = halo_com[4]
-        if len(bin_center) > 0:
-            v_offset_x = bin_center[3]
-            v_offset_y = bin_center[4]
+        # v_offset_x = halo_com[3]
+        # v_offset_y = halo_com[4]
+        # if len(bin_center) > 0:
+        v_offset_x = center[3]
+        v_offset_y = center[4]
         try:
             ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
             ax.quiver(
