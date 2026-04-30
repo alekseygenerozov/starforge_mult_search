@@ -1056,4 +1056,3 @@ def bh_swallow_remove_repeaters(bh_swallow_df, first_snap_table=None, repeaters=
         bh_swallow_df = bh_swallow_df.loc[bh_swallow_df_filt]
 
     return bh_swallow_df
-    return bh_swallow_df
