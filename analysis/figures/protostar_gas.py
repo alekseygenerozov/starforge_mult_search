@@ -169,8 +169,8 @@ def main():
             delta = np.linalg.norm(delta, axis=1)
             star_first_distance[star] = delta
 
-    with open("star_first_distance.p", "wb") as ff:
-        pickle.dump(star_first_distance, ff)
+        with open("star_first_distance.p", "wb") as ff:
+            pickle.dump(star_first_distance, ff)
 
 
 if __name__ == "__main__":
