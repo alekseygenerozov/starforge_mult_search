@@ -135,7 +135,9 @@ def main():
     )
 
     args = parser.parse_args()
-    acc_data_lookup = pd.read_csv(args.acc_data_lookup).set_index(["first_time", "pid"])
+    acc_data_lookup = pd.read_parquet(args.acc_data_lookup).set_index(
+        ["first_time", "pid"]
+    )
     first_times = acc_data_lookup.index.get_level_values(level="first_time").unique()
 
     star_first_distance = {}
