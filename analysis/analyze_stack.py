@@ -952,7 +952,7 @@ def get_blookup(high_df):
     return blookup
 
 
-def get_first_snap_table(path_lookup):
+def get_first_snap_table(path_lookup, pid_index=False):
     """_summary_
 
     :param path_lookup: dictionary of numpy arrays containing particles pos, vel, mass, etc. over times.
@@ -986,6 +986,8 @@ def get_first_snap_table(path_lookup):
         first_snap_table,
         columns=("pid", "snap", "x", "y", "z", "mf", "mstar", "mMyr", "mhalo"),
     )
+    if pid_index:
+        first_snap_table.set_index("pid", inplace=True)
     return first_snap_table
 
 
