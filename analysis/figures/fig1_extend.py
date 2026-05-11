@@ -407,6 +407,7 @@ if halo_lookup:
     halo_lookup = pd.read_parquet(halo_lookup)
 
 star_data = []
+bin_id1_pos = np.zeros(3)
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
@@ -415,33 +416,35 @@ for ii in range(len(partpos_filt)):
         partpos_filt[ii, 1] - center[1],
     )
 
-    pid1_for_star_plot = partids_filt[ii]
-    pid2_for_star_plot = blookup.get(
-        ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
-    )
+    pid1_for_star_plot = int(partids_filt[ii])
+    # pid2_for_star_plot = blookup.get(
+    #     ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
+    # )
     group_color_for_star = "k"
-    if len(halo_lookup) > 0 and (
-        (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
-        or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
-    ):
-        group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
-        group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
-        group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+    if mult_lookup and ((int(snap_idx), pid1_for_star_plot) in mult_lookup.index):
+        mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
+        mult_row = np.array(mult_row["mult_ids_og"]).astype(int).astype(str)
+        mult_center = get_com(mult_row, (partpos, partvels, partmasses, partids))
+        center_x, center_y = mult_center[0], mult_center[1]
+        center_x -= center[0]
+        center_y -= center[1]
+        if (str(bin_id1) in mult_row) or (str(bin_id2) in mult_row):
+            group_color_for_star = "r"
 
-    if (bin_id1 in (pid1_for_star_plot, pid2_for_star_plot)) or (
-        bin_id2 in (pid1_for_star_plot, pid2_for_star_plot)
-    ):
+        # if len(halo_lookup) > 0 and (
+        #     (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
+        #     or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
+        # ):
+        #     group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
+        #     group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
+        #     group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+
+    if (bin_id1 in (pid1_for_star_plot,)) or (bin_id2 in (pid1_for_star_plot,)):
         group_color_for_star = "red"
-    if str(group_color_for_star) != "k":
-        print(
-            snap_idx,
-            "star color",
-            pid1_for_star_plot,
-            pid2_for_star_plot,
-            group_color_for_star,
-        )
+    if int(partids_filt[ii]) == bin_id1:
+        bin_id1_pos = partpos_filt[ii]
 
-    size = point_size_function(np.linalg.norm(partpos_filt[ii] - center[:3]), rmax)
+    size = point_size_function(np.linalg.norm(partpos_filt[ii] - bin_id1_pos), rmax)
     ax.scatter(
         center_x,
         center_y,
