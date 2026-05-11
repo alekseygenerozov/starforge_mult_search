@@ -425,7 +425,7 @@ for ii in range(len(partpos_filt)):
         (int(snap_idx), pid1_for_star_plot) in mult_lookup.index
     ):
         mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
-        mult_row = np.array(mult_row["mult_ids_og"]).astype(int).astype(str)
+        mult_row = np.array(mult_row["mult_ids_list_og"]).astype(int).astype(str)
         mult_center = get_com(mult_row, (partpos, partvels, partmasses, partids))
         center_x, center_y = mult_center[0], mult_center[1]
         center_x -= center[0]
