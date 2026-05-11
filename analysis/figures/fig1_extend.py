@@ -279,7 +279,7 @@ ma = config.getfloat("params", "ma", fallback=1)
 
 v_scale = 100.0 / cgs.pc * cgs.year * v_rescale
 ##snapshot interval in code units.
-snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.0)
+# snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.0)
 d_cut = rmax
 base = base + f"{seed}/"
 
@@ -337,7 +337,7 @@ if center_file is not None:
 elif center is not None:
     center = ast.literal_eval(center)
     center = np.array(center)
-    center[:3] += center[3:] * (snap_idx - center_time) * snap_time_code
+    center[:3] += center[3:] * (snap_idx - center_time)  # * snap_time_code
 
 
 blookup = {}
