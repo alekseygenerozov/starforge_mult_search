@@ -421,7 +421,9 @@ for ii in range(len(partpos_filt)):
     #     ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
     # )
     group_color_for_star = "k"
-    if mult_lookup and ((int(snap_idx), pid1_for_star_plot) in mult_lookup.index):
+    if (len(mult_lookup) > 0) and (
+        (int(snap_idx), pid1_for_star_plot) in mult_lookup.index
+    ):
         mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
         mult_row = np.array(mult_row["mult_ids_og"]).astype(int).astype(str)
         mult_center = get_com(mult_row, (partpos, partvels, partmasses, partids))
