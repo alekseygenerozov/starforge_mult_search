@@ -470,8 +470,13 @@ if ins > 0:
 
 ax.set_xlim(xmin - buff * (xmax - xmin), xmax + buff * (xmax - xmin))
 ax.set_ylim(ymin - buff * (ymax - ymin), ymax + buff * (ymax - ymin))
-# ax.annotate(r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
-#            (0.01, 0.99), ha='left', va='top', xycoords='axes fraction')
+ax.annotate(
+    r"$a_i = {0:.0f}$ au, $e_i$ = {1:.2g}".format(tmp_orb[0] * conv * 1e4, tmp_orb[1]),
+    (0.01, 0.99),
+    ha="left",
+    va="top",
+    xycoords="axes fraction",
+)
 start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.0
 vel1 = tmp_pos_center[3] * v_scale, tmp_pos_center[4] * v_scale
