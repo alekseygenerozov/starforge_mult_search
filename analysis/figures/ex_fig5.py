@@ -30,7 +30,7 @@ from starforge_mult_search.analysis import cgs_const as cgs
 from starforge_mult_search.analysis.power_fit import fit_power
 from starforge_mult_search.analysis.figures.figure_preamble import *
 
-mpl.rcParams["figure.figsize"] = (3.3, 2.5)
+# mpl.rcParams["figure.figsize"] = (3.3, 2.5)
 mpl.rcParams["ps.fonttype"] = 42
 #########################################################################################################
 bin_ids = my_data["bin_ids"]
@@ -171,7 +171,7 @@ print(
 # print(f"Frac from soft mult: {len(single_final_masses[single_star_in_soft_mult]) / len(single_final_masses)}")
 # print(f"Frac from soft mult (ms > 1 Msun): {len(single_final_masses[single_star_in_soft_mult & (single_final_masses > 1)]) / len(single_final_masses[single_final_masses > 1])}")
 #########################################################################################################
-fig, ax = plt.subplots(constrained_layout=True)
+fig, ax = plt.subplots(figsize=(16, 12.12), constrained_layout=True)
 # ax.set_title(r"Singles Final MF")
 ax.set_yscale("log")
 ax.set_ylabel("Probability Density")
@@ -223,8 +223,8 @@ ax.hist(
     alpha=0.2,
 )
 
-ax.legend(fontsize=5, loc="upper right", title="IMF")  # , bbox_to_anchor=(0.6, 0.35))
-absc = np.geomspace(0.3, 10 ** 1.8, 500)
+ax.legend(loc="upper right", title="IMF", fontsize=16)  # , bbox_to_anchor=(0.6, 0.35))
+absc = np.geomspace(0.3, 10**1.8, 500)
 
 
 def lighten_color(color, factor=0.5):
@@ -256,7 +256,9 @@ fit_colors = [lighten_color(c, factor=0.7) for c in colorblind_palette]
     label=f"$dN/dm \\propto m^{{-{f2:.2f}}}$",
 )
 # labelLines([l0], fontsize=16, xvals=(0.25,), ha='left', va='top', ang=0, y_offset=0.22, align=False)
-labelLines([l1], fontsize=7, xvals=(0.1,), ha="right", va="top", ang=-55, y_offset=-0.3)
-labelLines([l2], fontsize=7, xvals=(np.log10(0.6),), ang=0, y_offset=0.15, align=False)
+labelLines(
+    [l1], xvals=(0.1,), ha="right", va="top", ang=-55, y_offset=-0.3, fontsize=18
+)
+labelLines([l2], xvals=(np.log10(0.6),), ang=0, y_offset=0.15, align=False, fontsize=18)
 
 fig.savefig("ex_fig5.pdf")

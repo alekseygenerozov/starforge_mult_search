@@ -25,7 +25,7 @@ from starforge_mult_search.analysis.high_multiples_analysis import (
 )
 from starforge_mult_search.code.find_multiples_new2 import cluster, system
 
-mpl.rcParams["figure.figsize"] = (10, 8)
+mpl.rcParams["figure.figsize"] = (16, 16)
 # mpl.rcParams["ps.fonttype"] = 42
 #########################################################################################################
 lookup_dict_keys = lookup_dict.keys()
@@ -97,4 +97,4 @@ sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label=r"$log(m_f / M_{\odot})$")
 plt.show()
-fig.savefig("ex_fig2.svg")
+fig.savefig("ex_fig2.pdf")

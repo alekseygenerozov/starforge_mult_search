@@ -429,9 +429,10 @@ for ii in range(len(partpos_filt)):
         mult_center = get_com(
             mult_row.astype(int), (partpos, partvels, partmasses, partids.astype(int))
         )
-        center_x, center_y = mult_center[0], mult_center[1]
+        center_x, center_y, center_z = mult_center[0], mult_center[1], mult_center[2]
         center_x -= center[0]
         center_y -= center[1]
+        center_z -= center[2]
         if (str(bin_id1) in mult_row) or (str(bin_id2) in mult_row):
             group_color_for_star = "r"
 
@@ -464,9 +465,9 @@ for ii in range(len(partpos_filt)):
             partids_filt[ii],
             center_x,
             center_y,
+            center_z,
             group_color_for_star,
             size,
-            partpos_filt[ii, 2] - center[2],
         )
     )
     # ax.plot(
@@ -588,7 +589,7 @@ if tracer_file:
         v_offset_y = center[4]
         try:
             ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
-            tracer_pv.append((tmp_halo_pos[:, :6] - center))
+            tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
             ax.quiver(
                 tmp_halo_pos[:, 0] - center[0],
                 tmp_halo_pos[:, 1] - center[1],

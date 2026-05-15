@@ -38,7 +38,7 @@ n3, n3u, d3, te3 = make_binned_data(absc, ords, bins)
 
 from labelLine import labelLines
 
-fig, ax = plt.subplots(figsize=(10, 10), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(16, 16), constrained_layout=True)
 ax.set_xlim(-0.8, 1.8)
 ax.set_ylim(0, 1.0)
 ax.set_xlabel(r"log($M_{prim, f} / M_{\odot}$)")
@@ -54,8 +54,7 @@ ax.errorbar(
     label="Survivors",
     markerfacecolor="none",
     markeredgecolor="C0",
-    markeredgewidth=1,
-    markersize=4,
+    markeredgewidth=2,
 )
 # for bin_idx in range(len(n1)):
 #     ax.text(max(bins_center[bin_idx], -0.6), n1[bin_idx] / d1[bin_idx] + 0.05, f"{int(n1[bin_idx])}/{int(d1[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[0])
@@ -69,7 +68,7 @@ ax.errorbar(
     linestyle="",
     alpha=0.7,
     label="Non-survivors",
-    markersize=5,
+    markersize=15,
 )
 # for bin_idx in range(len(n1)):
 #     ax.text(max(bins_center[bin_idx], -0.6), n2[bin_idx] / d2[bin_idx] - 0.07, f"{int(n2[bin_idx])}/{int(d2[bin_idx])}", fontsize=5, ha="center", color=colorblind_palette[1])
@@ -78,7 +77,7 @@ ax.errorbar(
 print(n1, n2)
 print(d1, d2)
 ax.legend(loc="lower left")
-fig.savefig("ex_fig3.svg")
+fig.savefig("ex_fig3.pdf")
 
 fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
 ax.set_xlim(-0.8, 1.8)
@@ -91,4 +90,4 @@ print(n3)
 
 print(d3)
 # ax.legend(title=r"$f_t=$"+f"{my_ft}")
-fig.savefig("fig2b.svg")
+fig.savefig("fig2b.pdf")

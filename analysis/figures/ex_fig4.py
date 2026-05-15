@@ -10,16 +10,16 @@ colorblind_palette = sns.color_palette("colorblind")
 
 import scienceplots
 
-plt.style.use("nature")
-mpl.rcParams["font.sans-serif"] = "Arial"
-mpl.rcParams["figure.figsize"] = (3.3, 3.3)
+# plt.style.use("nature")
+# mpl.rcParams["font.sans-serif"] = "Arial"
+# mpl.rcParams["figure.figsize"] = (3.3, 3.3)
 # from starforge_mult_search.analysis.figures.figure_preamble import *
 from starforge_mult_search.analysis.analyze_stack import (
     max_w_infinite,
     subtract_path_1d,
 )
 
-fig = plt.figure(figsize=(6.75, 5), constrained_layout=True)
+fig = plt.figure(figsize=(16, 16), constrained_layout=True)
 print(fig.get_size_inches())
 
 # Outer grid: 2 rows, 2 columns
@@ -133,7 +133,7 @@ for ii in range(3):
 
     ax2.set_ylabel("Probability Density and CDF")
     ax2.set_xlabel("Max halo mass/Final star mass")
-    ax2.set_title(f"$f_t={my_fts[ii]}$", fontsize=7)
+    ax2.set_title(f"$f_t={my_fts[ii]}$")
     fig.subplots_adjust(hspace=0.05)  # adjust space between Axes
     # plot the same data on both Axes
     # ax1.ecdf(mhalos_max / mstars_final, color=colorblind_palette[0])
@@ -156,14 +156,15 @@ for ii in range(3):
         color=colorblind_palette[1],
     )
 
-    ax2.annotate("CDF", (cdf_labs[ii], 0.6), color=colorblind_palette[0])
+    ax2.annotate("CDF", (cdf_labs[ii], 0.6), color=colorblind_palette[0], fontsize=16)
     ax2.annotate(
         r"Probability Density$\times$ Constant",
         (7, 0.3),
         color=colorblind_palette[1],
         ha="left",
+        fontsize=16,
     )
 
 
 print(fig.get_size_inches())
-fig.savefig(f"ex_fig4_all.eps", bbox_inches=None)
+fig.savefig(f"ex_fig4_all.pdf", bbox_inches=None)

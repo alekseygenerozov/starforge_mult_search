@@ -21,12 +21,14 @@ import matplotlib as mpl
 # import scienceplots
 # plt.style.use('nature')
 # mpl.rcParams['font.sans-serif'] = "Arial"
-fsize = (3.3, 3.3)
+fsize = (8, 8)
 # mpl.rcParams['figure.figsize'] = fsize
 # mpl.rcParams['pdf.fonttype'] = 42
 
 snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
+
+
 # Define a custom unit
 class AUnit(units.ConversionInterface):
     @staticmethod
@@ -231,40 +233,46 @@ aa = "analyze_multiples_output_" + r2 + "/"
 
 snap_file = base + f"snapshot_{snap_idx:03d}.hdf5"
 
-(
-    den,
-    x,
-    m,
-    h,
-    u,
-    b,
-    v,
-    fmol,
-    fneu,
-    partpos,
-    partmasses,
-    partvels,
-    partids,
-    partsink,
-    tage_myr,
-    unit_base,
-    partspin,
-) = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+out = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+den = out["den"]
+x = out["x"]
+m = out["m"]
+h = out["h"]
+u = out["u"]
+v = out["v"]
+b = out["b"]
+gas_ids = out["gas_ids"]
+
+partpos = out["partpos"]
+partmasses = out["partmasses"]
+partvels = out["partvels"]
+partids = out["partids"]
+partsink = out["partsink"]
+tage_myr = out["tage_myr"]
+if len(partpos) == 0:
+    print("No particles!")
+
+##TO DO: REFACTOR THIS SANITIZATION TO ITS OWN FUNCTION.
 xuniq, indx = np.unique(x, return_index=True, axis=0)
 muniq = m[indx]
 huniq = h[indx]
 vuniq = v[indx]
 uuniq = u[indx]
+buniq = b[indx]
 denuniq = den[indx]
+gas_ids_uniq = gas_ids[indx]
+
 vuniq = vuniq.astype(np.float64)
 xuniq = xuniq.astype(np.float64)
 muniq = muniq.astype(np.float64)
 huniq = huniq.astype(np.float64)
 uuniq = uuniq.astype(np.float64)
+buniq = buniq.astype(np.float64)
 denuniq = denuniq.astype(np.float64)
 partpos = partpos.astype(np.float64)
 partmasses = partmasses.astype(np.float64)
 partsink = partsink.astype(np.float64)
+
 
 ##GET HALO AND PARTICLE POSITIONS CENTERED ON THE STARS' COM
 (
@@ -289,12 +297,12 @@ X, Y = np.meshgrid(X, Y, indexing="ij")
 sigma_gas_msun_pc2 = M.SurfaceDensity(
     M.m, size=2 * rmax, res=res, center=np.array((0, 0, 0))
 )  # *1e4
-
+point_size = 10
 ############################################################################################################
 
 fig, ax = plt.subplots(figsize=fsize, constrained_layout=True)
-ax.set_xlabel("x")
-ax.set_ylabel("y")
+ax.set_xlabel("x [pc]")
+ax.set_ylabel("y [pc]")
 ax.annotate(
     f"Example {annot}", (0.01, 0.99), xycoords="axes fraction", va="top", ha="left"
 )
@@ -308,8 +316,8 @@ p = ax.pcolormesh(
     linewidth=0,
     rasterized=True,
 )
-ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k", s=0.2)
-ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1], marker="X", color="k", s=0.2)
+ax.scatter(tmp_pos_center[0], tmp_pos_center[1], marker="X", color="k", s=point_size)
+ax.scatter(tmp_pos2_center[0], tmp_pos2_center[1], marker="X", color="k", s=point_size)
 if plimit > 0:
     ax.set_xlim(-plimit, plimit)
     ax.set_ylim(-plimit, plimit)
@@ -319,8 +327,8 @@ fig.savefig(f"fig1_{sys.argv[1]}a." + savetype)
 fig, ax = plt.subplots(
     figsize=(fsize[0] * (9.5 / 8), fsize[1]), constrained_layout=True
 )
-ax.set_xlabel("x")
-ax.set_ylabel("y")
+ax.set_xlabel("x [$10^4$ au]")
+ax.set_ylabel("y [$10^4$ au]")
 
 xmin, xmax, ymin, ymax = get_phalo_limits(base, aa, snap_idx, bin_id1, bin_id2)
 buff = 0.05
@@ -443,8 +451,8 @@ if ins > 0:
     x1, x2, y1, y2 = -ins, ins, -ins, ins
     # Create an inset of the zoomed region
     axins = ax.inset_axes([0.7, 0.12, 0.2, 0.2])
-    axins.tick_params(axis="x", which="major", labelsize=7, rotation=45)
-    axins.tick_params(axis="y", which="major", labelsize=7)
+    axins.tick_params(axis="x", which="major", rotation=45)
+    axins.tick_params(axis="y", which="major")
     width, height = (
         "30%",
         "30%",
@@ -468,23 +476,23 @@ start_pt = tmp_pos_center[0] * conv, tmp_pos_center[1] * conv
 v_rescale = 3.0
 vel1 = tmp_pos_center[3] * v_scale, tmp_pos_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=point_size)
 ax.annotate(
     "",
     xy=(end_pt[0], end_pt[1]),
     xytext=(start_pt[0], start_pt[1]),
-    arrowprops=dict(arrowstyle="->", color="k", linewidth=1),
+    arrowprops=dict(arrowstyle="->", color="k", linewidth=2),
 )
 
 start_pt = tmp_pos2_center[0] * conv, tmp_pos2_center[1] * conv
 vel1 = tmp_pos2_center[3] * v_scale, tmp_pos2_center[4] * v_scale
 end_pt = start_pt[0] + vel1[0] * snap_interval, start_pt[1] + vel1[1] * snap_interval
-ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=0.2)
+ax.scatter(start_pt[0], start_pt[1], c="k", marker="X", s=point_size)
 ax.annotate(
     "",
     xy=(end_pt[0], end_pt[1]),
     xytext=(start_pt[0], start_pt[1]),
-    arrowprops=dict(arrowstyle="->", color="k", linewidth=1),
+    arrowprops=dict(arrowstyle="->", color="k", linewidth=2),
 )
 
 fig.savefig(f"fig1_{sys.argv[1]}b." + savetype)

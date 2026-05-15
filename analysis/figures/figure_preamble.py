@@ -140,14 +140,14 @@ for seed in seeds:
     with open(tmp_dat_path + "/spin_lookup.p", "rb") as ff:
         tmp_path_pickle = pickle.load(ff)
         assert not np.any(
-            np.isin(list(tmp_path_pickle.keys()), list(path_lookup.keys()))
+            np.isin(list(tmp_path_pickle.keys()), list(spin_lookup.keys()))
         )
         spin_lookup.update(tmp_path_pickle)
 
     with open(tmp_dat_path + "/lookup_dict.p", "rb") as ff:
         tmp_path_pickle = pickle.load(ff)
         assert not np.any(
-            np.isin(list(tmp_path_pickle.keys()), list(path_lookup.keys()))
+            np.isin(list(tmp_path_pickle.keys()), list(lookup_dict.keys()))
         )
         lookup_dict.update(tmp_path_pickle)
 

@@ -16,14 +16,15 @@ from starforge_mult_search.analysis.figures.figure_preamble import (
 import scienceplots
 import matplotlib as mpl
 
-plt.style.use("nature")
-mpl.rcParams["font.sans-serif"] = "Arial"
-mpl.rcParams["figure.figsize"] = (6.75, 6.75)
+# plt.style.use("nature")
+# mpl.rcParams["font.sans-serif"] = "Arial"
+# mpl.rcParams["figure.figsize"] = (6.75, 6.75)
 mpl.rcParams["pdf.fonttype"] = 42
 
 ##Stacking data
 suff = "_mult"
 seeds = (1, 2, 42)
+
 
 # Compute ECDF
 def ecdf(data):
@@ -53,7 +54,7 @@ comp_quasi_filter = comp[f"quasi_filter{contig_suff}"]
 comp_ens = comp["ens"]
 comp_ens_gas = comp["ens_gas"]
 
-fig, ax = plt.subplots(figsize=(3.3, 3.3), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
 ax.set_xlim(-2.1, 2)
 ax.set_ylabel("Fraction (Cumulative)")
 ax.set_xlabel(r"log(-PE / KE)")
@@ -144,5 +145,6 @@ ax.fill_between(
     x_common, y_gas1_interp, y_gas2_interp, color=colorblind_palette[2], alpha=0.3
 )
 ax.annotate("Gas corrected", (0.55, 0.5), ha="left", color=colorblind_palette[2])
-plt.show()
+# plt.show()
+fig.set_size_inches(16, 16)
 fig.savefig("ex_fig7.pdf")

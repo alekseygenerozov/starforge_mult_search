@@ -14,7 +14,9 @@ fst = my_data["fst"]
 #                    {5312318, 3832908}]
 bin_ids_example = [{3920731, 13654613}, {13245844, 19648925}]
 xlims = [(5.31, 5.8), (1.8, 5), None, None, None]
-fig1, axs = plt.subplots(figsize=(6.75, 7.5), nrows=3, ncols=2, constrained_layout=True)
+fig1, axs = plt.subplots(
+    figsize=(20.25, 22.5), nrows=3, ncols=2, constrained_layout=True
+)
 print(mpl.rcParams["legend.fontsize"])
 
 
@@ -170,6 +172,6 @@ for bb, uid in enumerate(bin_ids_example):
     axs[2, bb].yaxis.set_major_formatter(FuncFormatter(log_formatter))
 
 
-fig1.savefig(f"ex_fig1_all.eps")
+fig1.savefig(f"ex_fig1_all.pdf")
 # fig2.savefig(f"ex_fig1_e_{bb}.eps")
 # fig3.savefig(f"ex_fig1_m_{bb}.eps")
