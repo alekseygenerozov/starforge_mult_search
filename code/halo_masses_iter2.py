@@ -401,8 +401,8 @@ def main():
     ##generate from the bh_swallow file--NOTE: We actually get the maximum sink mass from
     ##the swallow file. Historically got this data from the snapshot files and there can be
     ##some differences between these approaches particularly at small stellar masses.
-    if not os.path.exists("final_masses.p"):
-        analyze_stack.get_final_masses(args.snap_base)
+    # if not os.path.exists("final_masses.p"):
+    #     analyze_stack.get_final_masses(args.snap_base)
     with open("final_masses.p", "rb") as ff:
         final_masses = pickle.load(ff)
 
