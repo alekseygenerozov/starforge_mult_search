@@ -57,7 +57,10 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
     u = f["PartType0"]["InternalEnergy"][:] * mask
     v = f["PartType0"]["Velocities"] * mask3d
     b = f["PartType0"]["MagneticField"][:] * mask3d
-    outflow_frac = f["PartType0"]["Metallicity"][:, 11] * mask
+    try:
+        outflow_frac = f["PartType0"]["Metallicity"][:, 11] * mask
+    except KeyError:
+        outflow_frac = np.ones_like(u) * np.inf
     # t = f['PartType0']['Temperature'][:] * mask
     # Fraction of molecular material in each cell
     try:
