@@ -352,7 +352,7 @@ def check_tides_sys(sys1, sys2, tides_factor=8.0, compress=False, debug=False):
     ##Tidal criterion
     tidal_crit = np.linalg.norm(a_tides) < tides_factor * np.linalg.norm(a_internal_com)
     ##Check if tides are actually destructive
-    print(a_internal_com, a_tides)
+    # print(a_internal_com, a_tides)
     if compress:
         compress_check = np.dot(a_tides, com_2 - com_1) > 0
         tidal_crit = tidal_crit or compress_check
