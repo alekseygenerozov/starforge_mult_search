@@ -1,6 +1,7 @@
 import copy
 import glob
 import os
+import pickle
 from collections import defaultdict
 
 import numpy as np
@@ -1012,12 +1013,12 @@ def get_star_map_bins(high_df_filt):
 
 
 def read_bh_swallow(base_swallow):
-    """_summary_
+    """Parse bh swallow data file
 
     :param base_swallow: path to bh_swallow file
     :type base_swallow: str
     :return: bh_swallow as pandas dataframe with ids and times sorted
-    :rtype: _type_
+    :rtype: pd dataframe
     """
     if os.path.isfile(base_swallow + "/bhswallow.pq"):
         bh_swallow_df = pd.read_parquet(base_swallow + "/bhswallow.pq")
@@ -1035,6 +1036,24 @@ def read_bh_swallow(base_swallow):
         bh_swallow_df.to_parquet(base_swallow + "/bhswallow.pq")
 
     return bh_swallow_df
+
+
+def get_final_masses(base_swallow):
+    """Get maximum sink mass from swallow file as approximation for the final sink masses in the simulation
+
+    :param base_swallow: location of swallow file
+    :type base_swallow: str
+    :return: dictionary of maximum sink masses for the simulation.
+    :rtype: dict
+    """
+    bh_swallow_df = read_bh_swallow(base_swallow)
+    bh_swallow_df.rename(columns={"id": "pid", "hid": "gas_id"}, inplace=True)
+    bh_swallow_df["pid"] = bh_swallow_df["pid"].astype(str)
+    final_masses = bh_swallow_df.groupby("pid")["sink_mass"].max()
+    with open("final_masses.p", "wb") as ff:
+        pickle.dump(final_masses, ff)
+
+    return final_masses.to_dict()
 
 
 def bh_swallow_remove_repeaters(bh_swallow_df, first_snap_table=None, repeaters=None):

@@ -16,6 +16,7 @@ import pytreegrav
 from omegaconf import OmegaConf
 
 import starforge_mult_search.code.starforge_constants as sfc
+from starforge_mult_search.analysis import analyze_stack
 
 ##Code uses functionality in find_multiples_new2
 # sys.path.append("/home/aleksey/Dropbox/projects/Hagai_projects/star_forge")
@@ -396,7 +397,12 @@ def main():
     ##TO DO: "guardrails" to ensure the component file...
     comps = comps_setup(snap_idx, args.comps_file, args.config_file)
     ##Lookup table for the final masses...
-    # final_masses = pd.read_parquet(args.final_masses)
+    ##Getting final masses the final stellar masses from lookup file. If file does not exist,
+    ##generate from the bh_swallow file--NOTE: We actually get the maximum sink mass from
+    ##the swallow file. Historically got this data from the snapshot files and there can be
+    ##some differences between these approaches particularly at small stellar masses.
+    if not os.path.exists("final_masses.p"):
+        analyze_stack.get_final_masses(args.snap_base)
     with open("final_masses.p", "rb") as ff:
         final_masses = pickle.load(ff)
 
@@ -490,8 +496,9 @@ def main():
     )
     halo_masses_sing = np.zeros(len(partpos))
     max_dist_sing = np.zeros(len(partpos))
-    bash_command("rm " + halo_mass_name + ".hdf5")
-    gas_dat_h5 = h5py.File(halo_mass_name + ".hdf5", "a")
+    halo_dir = "halo_masses/"
+    bash_command("rm " + halo_dir + halo_mass_name + ".hdf5")
+    gas_dat_h5 = h5py.File(halo_dir + halo_mass_name + ".hdf5", "a")
 
     myglobals.gas_data = (xuniq, vuniq, muniq, huniq, uuniq, accel_gas)
     part_data = (
@@ -560,7 +567,7 @@ def main():
 
     gas_dat_h5.close()
     np.savetxt(
-        name_tag + halo_mass_name,
+        halo_dir + name_tag + halo_mass_name,
         np.transpose((halo_masses_sing, partids, max_dist_sing)),
     )
     print("Finish {0}".format(time.time()))
