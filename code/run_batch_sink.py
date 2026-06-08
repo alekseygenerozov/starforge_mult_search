@@ -42,10 +42,10 @@ def main():
     print(f"{cadence = }")
 
     out1 = find_multiples_new2.load_data(
-        snap_base + "000.hdf5", res_limit=1e-3, star_age_key=star_age_key
+        snap_base + "_000.hdf5", res_limit=1e-3, star_age_key=star_age_key
     )
     out2 = find_multiples_new2.load_data(
-        snap_base + f"{cadence:03d}.hdf5", res_limit=1e-3, star_age_key=star_age_key
+        snap_base + f"_{cadence:03d}.hdf5", res_limit=1e-3, star_age_key=star_age_key
     )
     if not os.path.exists("sinkprop"):
         bash_command(f"mkdir sinkprop")
