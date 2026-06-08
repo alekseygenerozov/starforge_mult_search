@@ -825,6 +825,7 @@ def get_fpaths(base_path, cloud_tag, seed, analysis_tag, v_str="."):
     return base, base_sink, r1, r2, cloud_tag0, sim_tag
 
 
+# def generate_snap_info(base):
 def get_snap_info(base, base_sink):
     """
     Getting info about snapshot files -- cadence (difference between snapshot numbers), snapshot time intervel (yr),

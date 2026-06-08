@@ -1,5 +1,6 @@
-import numpy as np
 import argparse
+
+import numpy as np
 
 from starforge_mult_search.code.find_multiples_new2 import load_data
 
@@ -23,25 +24,15 @@ def main():
     name_tag = args.name_tag
     snapshot_num = f"{int(args.snap):03d}"
 
-    (
-        den,
-        x,
-        m,
-        h,
-        u,
-        b,
-        v,
-        fmol,
-        fneu,
-        partpos,
-        partmasses,
-        partvels,
-        partids,
-        partsink,
-        tage_myr,
-        unit_base,
-        partspin,
-    ) = load_data(snapshot_file, star_age_key=star_age_key)
+    out = load_data(snapshot_file, res_limit=1e-3, star_age_key=star_age_key)
+    partpos = out["partpos"]
+    partmasses = out["partmasses"]
+    partvels = out["partvels"]
+    partids = out["partids"]
+    partsink = out["partsink"]
+    partspin = out["partspin"]
+    tage_myr = out["tage_myr"]
+
     if len(partpos) == 0:
         print("No particles!")
         return
@@ -52,11 +43,11 @@ def main():
     partmasses.shape = (nsinks, -1)
 
     np.savetxt(
-        name_tag + "_snapshot_" + snapshot_num + ".sink",
+        "sinkprop/" + name_tag + "_snapshot_" + snapshot_num + ".sink",
         np.hstack((partids, partpos, partvels, partsink, partmasses)),
     )
-    np.savetxt(name_tag + "_snapshot_" + snapshot_num + ".spin", partspin)
-    np.savetxt(name_tag + "_snapshot_" + snapshot_num + ".age", tage_myr)
+    np.savetxt("sinkprop/" + name_tag + "_snapshot_" + snapshot_num + ".spin", partspin)
+    np.savetxt("sinkprop/" + name_tag + "_snapshot_" + snapshot_num + ".age", tage_myr)
 
 
 if __name__ == "__main__":
