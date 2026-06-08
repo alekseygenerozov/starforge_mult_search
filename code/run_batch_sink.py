@@ -52,7 +52,7 @@ def main():
     snap_interval = (out2["tsnap_myr"] - out1["tsnap_myr"]) * 1e6
     print(f"{snap_interval = }")
     with open("sinkprop/snap_interval", "w") as ff:
-        ff.write(snap_interval)
+        ff.write(f"{snap_interval:.4e}")
 
     if end < 0:
         end = (len(snaps) - 1) * cadence
