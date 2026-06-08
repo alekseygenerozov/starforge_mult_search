@@ -51,7 +51,7 @@ def main():
         bash_command(f"mkdir sinkprop")
     snap_interval = (out2["tsnap_myr"] - out1["tsnap_myr"]) * 1e6
     print(f"{snap_interval = }")
-    with open("sinkprop/snap_interval") as ff:
+    with open("sinkprop/snap_interval", "w") as ff:
         ff.write(snap_interval)
 
     if end < 0:
