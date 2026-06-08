@@ -1,6 +1,6 @@
-import sys
-import subprocess
 import glob
+import subprocess
+import sys
 
 from starforge_mult_search.code.run_batch_aux import bash_command, get_cadence
 
@@ -15,7 +15,7 @@ with open("data_loc", "r") as ff:
     snap_base = snap_base.strip()
 snaps = glob.glob(snap_base + "*hdf5")
 
-cadence = get_cadence()
+cadence = get_cadence(snaps)
 start = int(sys.argv[1])
 end = int(sys.argv[2])
 if end < 0:

@@ -1,9 +1,9 @@
-import os
-import sys
-import subprocess
 import glob
-
 import multiprocessing
+import os
+import subprocess
+import sys
+
 from run_batch_aux import bash_command, get_cadence
 
 
@@ -23,7 +23,7 @@ with open("data_loc", "r") as ff:
 snaps = glob.glob(snap_base + "*hdf5")
 
 os.chdir("halo_masses/")
-cadence = get_cadence()
+cadence = get_cadence(snaps)
 start = int(sys.argv[1])
 end = int(sys.argv[2])
 if end < 0:

@@ -40,7 +40,7 @@ with open("data_loc", "r") as ff:
     snap_base = snap_base.strip()
 snaps = glob.glob(snap_base + "*hdf5")
 
-cadence = get_cadence()
+cadence = get_cadence(snaps)
 start = cfg.start
 end = cfg.end
 if end < 0:
