@@ -141,6 +141,7 @@ def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
         "unit_base": unit_base,
         "partspin": partspin,
         "outflow_frac": outflow_frac,
+        "tsnap_myr": tsnap_myr,
     }
 
 

@@ -49,7 +49,7 @@ def main():
     )
     if not os.path.exists("sinkprop"):
         bash_command(f"mkdir sinkprop")
-    snap_interval = (out2["tage_myr"] - out1["tage_myr"]) * 1e6
+    snap_interval = (out2["tsnap_myr"] - out1["tsnap_myr"]) * 1e6
     print(f"{snap_interval = }")
     with open("sinkprop/snap_interval") as ff:
         ff.write(snap_interval)
