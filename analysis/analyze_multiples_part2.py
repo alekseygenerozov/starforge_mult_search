@@ -62,7 +62,7 @@ def get_bound_snaps(sys1_info, sys2_info):
     return bound_snaps1, bound_snaps2, sys1_info[:, LOOKUP_SNAP]
 
 
-def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
+def get_quasi(bin_ids, lookup_dict, fst, snap_interval, cadence, path_lookup):
     """
     Get info about time each binary pair was bound.
 
@@ -70,6 +70,7 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
     :param lookup_dict: Lookup table (dict) of properties (e.g. system id, multiplicity, sma, etc.), indexed by particle id
     :param fst: Array with the initial snapshot together for each pair
     :param snap_interval: Interval between simulation snapshot (float)
+    :param cadence: Interval between snapshot indices(int)
     :param path_lookup: Lookup table (dict) of properties of positions and masses for each binary pair.
 
     :return: Dictionary containing: persistence filter (True if binary is persistent), final snapshot binary is bound,
@@ -97,8 +98,10 @@ def get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup):
         ##Getting the final snapshot stars are bound to each other--refactor into its own function...
         sys1_info = lookup_dict[bin_list[0]]
         sys2_info = lookup_dict[bin_list[1]]
-        ##Filter to check multiple history prior to the initial snapshot together.
-        age_diff[ii] = np.abs(sys1_info[0, 0] - sys2_info[0, 0]) * snap_interval[0]
+        ##Filter to check multiple history prior to the initial snapshot together. ##TO DO: FIX
+        age_diff[ii] = (
+            np.abs(sys1_info[0, 0] - sys2_info[0, 0]) * snap_interval[0] / cadence
+        )
 
         ##Get snapshots where the two stars are bound together.
         bound_snaps1, bound_snaps2, same_sys_snap = get_bound_snaps(
@@ -256,7 +259,9 @@ def main(params):
         path_lookup = pickle.load(ff)
 
     ##Quasi-persistent filter and other info about time that binaries are bound
-    bound_time_data = get_quasi(bin_ids, lookup_dict, fst, snap_interval, path_lookup)
+    bound_time_data = get_quasi(
+        bin_ids, lookup_dict, fst, snap_interval, cadence, path_lookup
+    )
 
     ##Information about initial state--energies, angles, etc. -- much of this data is not used in the final analysis
     en_data = get_energy(bin_ids, fst, lookup_dict, path_lookup)
