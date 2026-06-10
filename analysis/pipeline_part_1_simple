@@ -1,4 +1,4 @@
-CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
+CODE_BASE="starforge_mult_search/"
 
 echo $CODE_BASE/analysis/analyze_multiples.py 
 python $CODE_BASE/analysis/analyze_multiples.py 
