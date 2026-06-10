@@ -1,0 +1,8 @@
+CODE_BASE="/home/aleksey/code/python/starforge_mult_search/"
+
+echo $CODE_BASE/analysis/analyze_multiples.py 
+python $CODE_BASE/analysis/analyze_multiples.py 
+echo python $CODE_BASE/analysis/analyze_multiples_part2.py 
+python $CODE_BASE/analysis/analyze_multiples_part2.py 
+python $CODE_BASE/analysis/high_multiples_analysis.py  +flat_id=True
+python $CODE_BASE/analysis/high_multiples_analysis.py  
