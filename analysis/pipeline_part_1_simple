@@ -2,6 +2,7 @@ module load hdf5
 module unload impi
 module load python3/3.9.2
 
+export PYTHONPATH=.:$PYTHONPATH
 CODE_BASE="starforge_mult_search/"
 
 echo $CODE_BASE/analysis/analyze_multiples.py 
