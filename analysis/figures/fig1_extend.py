@@ -407,7 +407,7 @@ if halo_lookup:
     halo_lookup = pd.read_parquet(halo_lookup)
 
 star_data = []
-bin_id1_pos = np.zeros(3)
+bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0]]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
@@ -446,8 +446,6 @@ for ii in range(len(partpos_filt)):
 
     if (bin_id1 in (pid1_for_star_plot,)) or (bin_id2 in (pid1_for_star_plot,)):
         group_color_for_star = "red"
-    if int(partids_filt[ii]) == bin_id1:
-        bin_id1_pos = partpos_filt[ii]
 
     size = point_size_function(np.linalg.norm(partpos_filt[ii] - bin_id1_pos), rmax)
     ax.scatter(
@@ -470,64 +468,29 @@ for ii in range(len(partpos_filt)):
             size,
         )
     )
-    # ax.plot(
-    #     center_x,
-    #     center_y,
-    #     "X",
-    #     markeredgecolor="black",  # The outline color
-    #     markeredgewidth=1.0,
-    #     markerfacecolor=group_color_for_star,
-    #     # markersize=ms * np.log(partmasses_filt[ii] / 0.001),
-    #     markersize=point_size_function(
-    #         np.linalg.norm(partpos_filt[ii] - center[:3]), rmax
-    #     ),
-    #     # alpha=ma,
-    # )
-    # # Create the circular patch comparable to the accretion radius...Really this is an upper bound(!)
-    # hl_radius = 2. * sfc.GN * partmasses_filt[ii] / np.linalg.norm(partvel_filt[ii])**2.
-    ##Arbitrary cutoff for gas neighbors...
-    # gas_neighbors = np.linalg.norm(xuniq[sel2_gas] - partpos_filt[ii], axis=1) < 0.01
-    # if len(xuniq[sel2_gas][gas_neighbors]) == 0:
-    #     continue
-    # gas_neighbors_vel = np.mean(vuniq[sel2_gas][gas_neighbors], axis=0)
-    # gas_neighbors_cs = np.mean(u_to_cs(uuniq[sel2_gas][gas_neighbors]))
-    # bhl_radius = (
-    #     2.0
-    #     * sfc.GN
-    #     * partmasses_filt[ii]
-    #     / (
-    #         np.linalg.norm(partvel_filt[ii] - gas_neighbors_vel) ** 2.0
-    #         + gas_neighbors_cs**2.0
-    #     )
-    # )
-    # print(
-    #     gas_neighbors_cs / 1e3,
-    #     gas_neighbors_vel / 1e3,
-    #     np.linalg.norm(partvel_filt[ii] - gas_neighbors_vel) / 1e3,
-    #     np.linalg.norm(partvel_filt[ii]) / 1e3,
-    # )
 
-    # circle = patches.Circle(
-    #     (center_x, center_y),
-    #     bhl_radius,
-    #     color="orange",
-    #     fill=False,
-    #     linewidth=2,
-    #     label="Circle",
-    # )
-    # # Add the circle to the axes
-    # ax.add_patch(circle)
 arr_index1 = np.where(partids_filt.astype(int) == bin_id1)[0]
 arr_index2 = np.where(partids_filt.astype(int) == bin_id2)[0]
-ax.plot(
+size1 = point_size_function(
+    np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
+)
+size2 = point_size_function(
+    np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
+)
+
+ax.scatter(
     partpos_filt[arr_index1, 0] - center[0],
     partpos_filt[arr_index1, 1] - center[1],
-    "ro",
+    color="r",
+    marker="X",
+    s=size1,
 )
 ax.plot(
     partpos_filt[arr_index2, 0] - center[0],
     partpos_filt[arr_index2, 1] - center[1],
-    "ro",
+    color="r",
+    marker="X",
+    s=size1,
 )
 
 
