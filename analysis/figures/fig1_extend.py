@@ -407,8 +407,12 @@ if halo_lookup:
     halo_lookup = pd.read_parquet(halo_lookup)
 
 star_data = []
-bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0]]
-print("ii_special", np.where(partids_filt == bin_id1)[0])
+bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0][0]]
+print(
+    "ii_special",
+    np.where(partids_filt == bin_id1)[0][0],
+    partpos_filt[np.where(partids_filt == bin_id1)[0][0]],
+)
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
@@ -486,6 +490,7 @@ ax.scatter(
     color="r",
     marker="X",
     s=size1**2.0,
+    zorder=11,
 )
 ax.scatter(
     partpos_filt[arr_index2, 0] - center[0],
@@ -493,6 +498,7 @@ ax.scatter(
     color="r",
     marker="X",
     s=size2**2.0,
+    zorder=11,
 )
 
 
