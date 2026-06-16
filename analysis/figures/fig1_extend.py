@@ -408,6 +408,7 @@ if halo_lookup:
 
 star_data = []
 bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0]]
+print("ii_special", np.where(partids_filt == bin_id1)[0])
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
