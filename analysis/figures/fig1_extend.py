@@ -485,7 +485,7 @@ ax.scatter(
     marker="X",
     s=size1,
 )
-ax.plot(
+ax.scatter(
     partpos_filt[arr_index2, 0] - center[0],
     partpos_filt[arr_index2, 1] - center[1],
     color="r",
