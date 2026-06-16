@@ -476,7 +476,7 @@ size1 = point_size_function(
     np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
 )
 size2 = point_size_function(
-    np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
+    np.linalg.norm(partpos_filt[arr_index2] - bin_id1_pos), rmax
 )
 
 ax.scatter(
@@ -491,7 +491,7 @@ ax.scatter(
     partpos_filt[arr_index2, 1] - center[1],
     color="r",
     marker="X",
-    s=size1,
+    s=size2,
 )
 
 
