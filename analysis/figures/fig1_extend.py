@@ -411,9 +411,10 @@ bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0]]
 #####Overlays of star paticles and stars
 for ii in range(len(partpos_filt)):
 
-    center_x, center_y = (
+    center_x, center_y, center_z = (
         partpos_filt[ii, 0] - center[0],
         partpos_filt[ii, 1] - center[1],
+        partpos_filt[ii, 2] - center[2],
     )
 
     pid1_for_star_plot = int(partids_filt[ii])
