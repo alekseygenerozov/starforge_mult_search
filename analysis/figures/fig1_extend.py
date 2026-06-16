@@ -484,14 +484,14 @@ ax.scatter(
     partpos_filt[arr_index1, 1] - center[1],
     color="r",
     marker="X",
-    s=size1,
+    s=size1**2.0,
 )
 ax.scatter(
     partpos_filt[arr_index2, 0] - center[0],
     partpos_filt[arr_index2, 1] - center[1],
     color="r",
     marker="X",
-    s=size2,
+    s=size2**2.0,
 )
 
 
