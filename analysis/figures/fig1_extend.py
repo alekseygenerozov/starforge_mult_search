@@ -553,7 +553,7 @@ if tracer_file:
         v_offset_y = center[4]
         try:
             ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
-            tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
+            # tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
             ax.quiver(
                 tmp_halo_pos[:, 0] - center[0],
                 tmp_halo_pos[:, 1] - center[1],
