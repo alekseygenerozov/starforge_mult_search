@@ -39,8 +39,21 @@ halo_files = sorted(halo_files)
 ##Multiplicity data--TO DO: REMOVE THE HARD-CODING HERE (_FLAT and _SEG). BINARY HALO CALCULATION USED NON-FLAT VERSION. BUT NON-FLAT AND FLAT ARE SAME FOR BINARIES SO SHOULD BE OK(!)
 high_df = pd.read_parquet(f"{sys.argv[3]}/mults_flat.pq")
 high_df_filt = apply_persistence_filter(high_df, "_seg")
-high_df_filt_max = get_maximal_multiples(high_df_filt)
+# high_df_filt_max = get_maximal_multiples(high_df_filt)
 star_map_closest_all = get_star_map_bins(high_df_filt)
+tmp_high_df = pd.read_parquet(f"{sys.argv[3]}/mults.pq")
+tmp_high_df_filt = apply_persistence_filter(tmp_high_df, "_seg")
+tmp_star_map_closest_all = get_star_map_bins(tmp_high_df_filt)
+assert (
+    (
+        tmp_star_map_closest_all.sort_index().astype(str)
+        == star_map_closest_all.sort_index().astype(str)
+    )
+    .all()
+    .all()
+)
+
+
 star_map_idx = star_map_closest_all.index.get_level_values(
     level="mult_ids_list"
 ).unique()
