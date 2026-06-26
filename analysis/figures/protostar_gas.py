@@ -1,12 +1,13 @@
 import argparse
+import pickle
+import subprocess
+import sys
+
+import h5py
 import numpy as np
 import pandas as pd
-import subprocess
 
 from starforge_mult_search.code import find_multiples_new2
-import h5py
-import sys
-import pickle
 
 
 def load_data(file, res_limit=0.0, star_age_key="ProtoStellarAge"):
@@ -141,6 +142,7 @@ def main():
     first_times = acc_data_lookup.index.get_level_values(level="first_time").unique()
 
     star_first_distance = {}
+    star_first_pos = {}
     ##Iterate over all snapshots
     for ss in first_times:
         print(ss)
@@ -168,9 +170,11 @@ def main():
             delta = xfilt - star_pos
             delta = np.linalg.norm(delta, axis=1)
             star_first_distance[star] = delta
+            star_first_pos[star] = xfilt
 
         with open("star_first_distance.p", "wb") as ff:
             pickle.dump(star_first_distance, ff)
+            pickle.dump(star_first_pos, ff)
 
 
 if __name__ == "__main__":
