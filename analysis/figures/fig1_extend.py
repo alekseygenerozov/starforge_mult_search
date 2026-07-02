@@ -3,6 +3,7 @@ import colorsys
 import configparser
 import gc
 import hashlib
+import logging
 import pickle
 import sys
 
@@ -276,6 +277,8 @@ def main():
     arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
     ms = config.getfloat("params", "ms", fallback=1)
     ma = config.getfloat("params", "ma", fallback=1)
+    logging.basicConfig(filename="my_log.log", level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
     v_scale = 100.0 / cgs.pc * cgs.year * v_rescale
     ##snapshot interval in code units.
@@ -412,7 +415,7 @@ def main():
     star_data = []
     bin_id1_select = np.where(partids_filt == bin_id1)[0]
     if len(bin_id1_select) == 0:
-        logger.warning("Warning bin_id1 falls outside of domain! Skipping plot")
+        logger.info("Warning bin_id1 falls outside of domain! Skipping plot")
         return -1
     bin_id1_pos = partpos_filt[bin_id1_select[0]]
 
