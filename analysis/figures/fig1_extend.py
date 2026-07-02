@@ -232,16 +232,6 @@ def main():
 
     sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
     sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
-    mcol = np.where(sink_cols == "m")[0][0]
-    pxcol = np.where(sink_cols == "px")[0][0]
-    pycol = np.where(sink_cols == "py")[0][0]
-    pzcol = np.where(sink_cols == "pz")[0][0]
-    vxcol = np.where(sink_cols == "vx")[0][0]
-    vycol = np.where(sink_cols == "vy")[0][0]
-    vzcol = np.where(sink_cols == "vz")[0][0]
-    hcol = np.where(sink_cols == "h")[0][0]
-    mtotcol = np.where(sink_cols == "mtot")[0][0]
-    scol = np.where(sink_cols == "sys_id")[0][0]
 
     config = configparser.ConfigParser()
     config.read(f"config_{sys.argv[1]}")
@@ -249,7 +239,7 @@ def main():
     snap_idx = config.getint("params", "snap_idx")
     bin_id1 = config.getint("params", "bin1")
     bin_id2 = config.getint("params", "bin2")
-    my_ft = config.get("params", "ft", fallback="1.0")
+    # my_ft = config.get("params", "ft", fallback="1.0")
     seed = config.getint("params", "seed", fallback=42)
     rmax = config.getfloat("params", "rmax", fallback=0.5)
     res = config.getint("params", "res", fallback=800)
@@ -257,9 +247,9 @@ def main():
     vmin = config.getfloat("params", "vmin", fallback=1.0)
     vmax = config.getfloat("params", "vmax", fallback=3e4)
     plimit = config.getfloat("params", "plimit", fallback=-1)
-    ins = config.getfloat("params", "ins", fallback=-1.0)
-    ins_loc = config.get("params", "ins_loc", fallback="upper right")
-    annot = config.get("params", "annot", fallback="")
+    # ins = config.getfloat("params", "ins", fallback=-1.0)
+    # ins_loc = config.get("params", "ins_loc", fallback="upper right")
+    # annot = config.get("params", "annot", fallback="")
     v_rescale = config.getfloat("params", "v_rescale", fallback=2)
     center_file = config.get("params", "center_file", fallback=None)
     center = config.get("params", "center", fallback=None)
@@ -328,7 +318,7 @@ def main():
     uuniq = uuniq.astype(np.float64)
     denuniq = denuniq.astype(np.float64)
     partpos = partpos.astype(np.float64)
-    parvels = partvels.astype(np.float64)
+    # parvels = partvels.astype(np.float64)
     partmasses = partmasses.astype(np.float64)
     partsink = partsink.astype(np.float64)
 
@@ -342,10 +332,10 @@ def main():
         center = np.array(center)
         center[:3] += center[3:] * (snap_idx - center_time)  # * snap_time_code
 
-    blookup = {}
+    # blookup = {}
     if mult_lookup:
         mult_lookup = pd.read_parquet(mult_lookup)
-        blookup = get_blookup(mult_lookup)
+        # blookup = get_blookup(mult_lookup)
         mult_lookup = get_maximal_multiples(mult_lookup)
 
     bin_center = get_com_wrapper(
@@ -380,7 +370,7 @@ def main():
     ax.set_ylabel("y [pc]")
     # ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
-    p = ax.pcolormesh(
+    ax.pcolormesh(
         X,
         Y,
         sigma_gas_msun_pc2,
@@ -405,9 +395,9 @@ def main():
     ##Only include star partciles in the box...
     dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
     partpos_filt = partpos[dist_filter]
-    partvel_filt = partvels[dist_filter]
+    # partvel_filt = partvels[dist_filter]
     partids_filt = partids[dist_filter]
-    partmasses_filt = partmasses[dist_filter]
+    # partmasses_filt = partmasses[dist_filter]
 
     if halo_lookup:
         halo_lookup = pd.read_parquet(halo_lookup)
@@ -516,7 +506,7 @@ def main():
 
     # prop_cycle = plt.rcParams['axes.prop_cycle']
     # colors = prop_cycle.by_key()['color']
-    colors = ["gold", "w"]
+    cols = ["gold", "w"]
     del sel2
     del sel2_gas
     del den
@@ -564,7 +554,7 @@ def main():
             is_accreted = is_accreted[random_selection]
 
             # halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
-            arrow_cols = [colors[row] for row in is_accreted.astype(int)]
+            arrow_cols = [cols[row] for row in is_accreted.astype(int)]
             # v_offset_x = halo_com[3]
             # v_offset_y = halo_com[4]
             # if len(bin_center) > 0:
