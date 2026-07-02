@@ -219,411 +219,412 @@ def point_size_function(sep_pc, rmax):
     return np.clip(interp_size, min_size, max_size)
 
 
-units.registry["au"] = AUnit()
-colorblind_palette = sns.color_palette("colorblind")
-# Set the matplotlib color cycle to the seaborn colorblind palette
-plt.rcParams["axes.prop_cycle"] = plt.cycler(color=colorblind_palette)
-plt.rcParams["lines.linewidth"] = 3
-plt.rcParams["patch.linewidth"] = 3
-col1 = np.array((129, 50, 168)) / 256
-col2 = colorblind_palette[1]
+def main():
+    units.registry["au"] = AUnit()
+    colorblind_palette = sns.color_palette("colorblind")
+    # Set the matplotlib color cycle to the seaborn colorblind palette
+    plt.rcParams["axes.prop_cycle"] = plt.cycler(color=colorblind_palette)
+    plt.rcParams["lines.linewidth"] = 3
+    plt.rcParams["patch.linewidth"] = 3
+    col1 = np.array((129, 50, 168)) / 256
+    col2 = colorblind_palette[1]
 
-sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
-sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
-mcol = np.where(sink_cols == "m")[0][0]
-pxcol = np.where(sink_cols == "px")[0][0]
-pycol = np.where(sink_cols == "py")[0][0]
-pzcol = np.where(sink_cols == "pz")[0][0]
-vxcol = np.where(sink_cols == "vx")[0][0]
-vycol = np.where(sink_cols == "vy")[0][0]
-vzcol = np.where(sink_cols == "vz")[0][0]
-hcol = np.where(sink_cols == "h")[0][0]
-mtotcol = np.where(sink_cols == "mtot")[0][0]
-scol = np.where(sink_cols == "sys_id")[0][0]
+    sink_cols = np.array(("t", "id", "px", "py", "pz", "vx", "vy", "vz", "h", "m"))
+    sink_cols = np.concatenate((sink_cols, ["sys_id", "mtot", "sma", "ecc"]))
+    mcol = np.where(sink_cols == "m")[0][0]
+    pxcol = np.where(sink_cols == "px")[0][0]
+    pycol = np.where(sink_cols == "py")[0][0]
+    pzcol = np.where(sink_cols == "pz")[0][0]
+    vxcol = np.where(sink_cols == "vx")[0][0]
+    vycol = np.where(sink_cols == "vy")[0][0]
+    vzcol = np.where(sink_cols == "vz")[0][0]
+    hcol = np.where(sink_cols == "h")[0][0]
+    mtotcol = np.where(sink_cols == "mtot")[0][0]
+    scol = np.where(sink_cols == "sys_id")[0][0]
 
-config = configparser.ConfigParser()
-config.read(f"config_{sys.argv[1]}")
+    config = configparser.ConfigParser()
+    config.read(f"config_{sys.argv[1]}")
 
-snap_idx = config.getint("params", "snap_idx")
-bin_id1 = config.getint("params", "bin1")
-bin_id2 = config.getint("params", "bin2")
-my_ft = config.get("params", "ft", fallback="1.0")
-seed = config.getint("params", "seed", fallback=42)
-rmax = config.getfloat("params", "rmax", fallback=0.5)
-res = config.getint("params", "res", fallback=800)
-savetype = config.get("params", "savetype", fallback="png")
-vmin = config.getfloat("params", "vmin", fallback=1.0)
-vmax = config.getfloat("params", "vmax", fallback=3e4)
-plimit = config.getfloat("params", "plimit", fallback=-1)
-ins = config.getfloat("params", "ins", fallback=-1.0)
-ins_loc = config.get("params", "ins_loc", fallback="upper right")
-annot = config.get("params", "annot", fallback="")
-v_rescale = config.getfloat("params", "v_rescale", fallback=2)
-center_file = config.get("params", "center_file", fallback=None)
-center = config.get("params", "center", fallback=None)
-center_time = config.getint("params", "center_time", fallback=snap_idx)
-base = config.get(
-    "params",
-    "base",
-    fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
-)
-snap_loc = config.get("params", "snap_loc", fallback=None)
-tracer_file = config.get("params", "tracers", fallback="")
-halo_lookup = config.get("params", "halo_lookup", fallback="")
-mult_lookup = config.get("params", "mult_lookup", fallback="")
-down_sample = config.getint("params", "down_sample", fallback=1)
-arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
-ms = config.getfloat("params", "ms", fallback=1)
-ma = config.getfloat("params", "ma", fallback=1)
+    snap_idx = config.getint("params", "snap_idx")
+    bin_id1 = config.getint("params", "bin1")
+    bin_id2 = config.getint("params", "bin2")
+    my_ft = config.get("params", "ft", fallback="1.0")
+    seed = config.getint("params", "seed", fallback=42)
+    rmax = config.getfloat("params", "rmax", fallback=0.5)
+    res = config.getint("params", "res", fallback=800)
+    savetype = config.get("params", "savetype", fallback="png")
+    vmin = config.getfloat("params", "vmin", fallback=1.0)
+    vmax = config.getfloat("params", "vmax", fallback=3e4)
+    plimit = config.getfloat("params", "plimit", fallback=-1)
+    ins = config.getfloat("params", "ins", fallback=-1.0)
+    ins_loc = config.get("params", "ins_loc", fallback="upper right")
+    annot = config.get("params", "annot", fallback="")
+    v_rescale = config.getfloat("params", "v_rescale", fallback=2)
+    center_file = config.get("params", "center_file", fallback=None)
+    center = config.get("params", "center", fallback=None)
+    center_time = config.getint("params", "center_time", fallback=snap_idx)
+    base = config.get(
+        "params",
+        "base",
+        fallback=f"/home/aleksey/Dropbox/projects/Hagai_projects/star_forge/M2e4_R10/M2e4_R10_S0_T1_B0.1_Res271_n2_sol0.5_",
+    )
+    snap_loc = config.get("params", "snap_loc", fallback=None)
+    tracer_file = config.get("params", "tracers", fallback="")
+    halo_lookup = config.get("params", "halo_lookup", fallback="")
+    mult_lookup = config.get("params", "mult_lookup", fallback="")
+    down_sample = config.getint("params", "down_sample", fallback=1)
+    arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
+    ms = config.getfloat("params", "ms", fallback=1)
+    ma = config.getfloat("params", "ma", fallback=1)
 
+    v_scale = 100.0 / cgs.pc * cgs.year * v_rescale
+    ##snapshot interval in code units.
+    # snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.0)
+    d_cut = rmax
+    base = base + f"{seed}/"
 
-v_scale = 100.0 / cgs.pc * cgs.year * v_rescale
-##snapshot interval in code units.
-# snap_time_code = 2.47e4 * cgs.year / (cgs.pc / 100.0)
-d_cut = rmax
-base = base + f"{seed}/"
+    # r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
+    # aa = "analyze_multiples_output_" + r2 + "/"
+    if snap_loc is None:
+        snap_loc = base
+    snap_file = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
 
-# r2 = f"_TidesFalse_smaoFalse_mult4_ngrid1_hmTrue_ft{my_ft}_coFalse.p".replace(".p", "")
-# aa = "analyze_multiples_output_" + r2 + "/"
-if snap_loc is None:
-    snap_loc = base
-snap_file = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
+    out = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
+    den = out["den"]
+    x = out["x"]
+    m = out["m"]
+    h = out["h"]
+    u = out["u"]
+    v = out["v"]
+    b = out["b"]
+    gas_ids = out["gas_ids"]
 
-out = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
-den = out["den"]
-x = out["x"]
-m = out["m"]
-h = out["h"]
-u = out["u"]
-v = out["v"]
-b = out["b"]
-gas_ids = out["gas_ids"]
+    partpos = out["partpos"]
+    partmasses = out["partmasses"]
+    partvels = out["partvels"]
+    partids = out["partids"]
+    partsink = out["partsink"]
+    tage_myr = out["tage_myr"]
 
-partpos = out["partpos"]
-partmasses = out["partmasses"]
-partvels = out["partvels"]
-partids = out["partids"]
-partsink = out["partsink"]
-tage_myr = out["tage_myr"]
+    ##NOTE THE CHANGE IN INDEXING HERE(!)
+    # xuniq, indx = np.unique(x, return_index=True, axis=0)
+    # 1. Create a boolean mask for rows that are entirely zeros
+    zero_rows_mask = (x == 0).all(axis=1)
+    indx = np.where(~zero_rows_mask)[0]
+    xuniq = x[indx]
+    muniq = m[indx]
+    huniq = h[indx]
+    vuniq = v[indx]
+    uuniq = u[indx]
+    denuniq = den[indx]
+    gas_ids = gas_ids[indx]
+    vuniq = vuniq.astype(np.float64)
+    xuniq = xuniq.astype(np.float64)
+    muniq = muniq.astype(np.float64)
+    huniq = huniq.astype(np.float64)
+    uuniq = uuniq.astype(np.float64)
+    denuniq = denuniq.astype(np.float64)
+    partpos = partpos.astype(np.float64)
+    parvels = partvels.astype(np.float64)
+    partmasses = partmasses.astype(np.float64)
+    partsink = partsink.astype(np.float64)
 
-##NOTE THE CHANGE IN INDEXING HERE(!)
-# xuniq, indx = np.unique(x, return_index=True, axis=0)
-# 1. Create a boolean mask for rows that are entirely zeros
-zero_rows_mask = (x == 0).all(axis=1)
-indx = np.where(~zero_rows_mask)[0]
-xuniq = x[indx]
-muniq = m[indx]
-huniq = h[indx]
-vuniq = v[indx]
-uuniq = u[indx]
-denuniq = den[indx]
-gas_ids = gas_ids[indx]
-vuniq = vuniq.astype(np.float64)
-xuniq = xuniq.astype(np.float64)
-muniq = muniq.astype(np.float64)
-huniq = huniq.astype(np.float64)
-uuniq = uuniq.astype(np.float64)
-denuniq = denuniq.astype(np.float64)
-partpos = partpos.astype(np.float64)
-parvels = partvels.astype(np.float64)
-partmasses = partmasses.astype(np.float64)
-partsink = partsink.astype(np.float64)
+    ##Hack for xz plane--flip y and z...in all the arrays??? For some reason cannot seem to set plane in Meshoid?
+    ##xuniq, vuniq, partpos, partvels
+    if center_file is not None:
+        centers = np.genfromtxt(center_file)
+        center = centers[np.where(centers[:, 0] == snap_idx)[0][0]][1:]
+    elif center is not None:
+        center = ast.literal_eval(center)
+        center = np.array(center)
+        center[:3] += center[3:] * (snap_idx - center_time)  # * snap_time_code
 
-##Hack for xz plane--flip y and z...in all the arrays??? For some reason cannot seem to set plane in Meshoid?
-##xuniq, vuniq, partpos, partvels
-if center_file is not None:
-    centers = np.genfromtxt(center_file)
-    center = centers[np.where(centers[:, 0] == snap_idx)[0][0]][1:]
-elif center is not None:
-    center = ast.literal_eval(center)
+    blookup = {}
+    if mult_lookup:
+        mult_lookup = pd.read_parquet(mult_lookup)
+        blookup = get_blookup(mult_lookup)
+        mult_lookup = get_maximal_multiples(mult_lookup)
+
+    bin_center = get_com_wrapper(
+        snap_idx,
+        bin_id1,
+        bin_id2,
+        mult_lookup,
+        (partpos, partvels, partmasses, partids),
+    )
+    if center is None:
+        center = bin_center
     center = np.array(center)
-    center[:3] += center[3:] * (snap_idx - center_time)  # * snap_time_code
 
+    ##ONLY SELECT GAS IN VOXEL AROUND STARS
+    sel2 = np.abs(xuniq - center[:3])
+    sel2 = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
+    sel2_gas = np.copy(sel2)
 
-blookup = {}
-if mult_lookup:
-    mult_lookup = pd.read_parquet(mult_lookup)
-    blookup = get_blookup(mult_lookup)
-    mult_lookup = get_maximal_multiples(mult_lookup)
+    ##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
+    xuniq_center = xuniq - center[:3]
+    M = Meshoid(xuniq_center[sel2], muniq[sel2], huniq[sel2])
+    X = np.linspace(-rmax, rmax, res)
+    Y = np.linspace(-rmax, rmax, res)
+    X, Y = np.meshgrid(X, Y, indexing="ij")
+    sigma_gas_msun_pc2 = M.SurfaceDensity(
+        M.m, size=2 * rmax, res=res, center=np.array((0, 0, 0))
+    )  # *1e4
+    ############################################################################################################
 
-bin_center = get_com_wrapper(
-    snap_idx, bin_id1, bin_id2, mult_lookup, (partpos, partvels, partmasses, partids)
-)
-if center is None:
-    center = bin_center
-center = np.array(center)
+    fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
+    ax.set_xlabel("x [pc]")
+    ax.set_ylabel("y [pc]")
+    # ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
-##ONLY SELECT GAS IN VOXEL AROUND STARS
-sel2 = np.abs(xuniq - center[:3])
-sel2 = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-sel2_gas = np.copy(sel2)
-
-##GETTING SURFACE DENSITY VIA THE MESHOID PACKAGE
-xuniq_center = xuniq - center[:3]
-M = Meshoid(xuniq_center[sel2], muniq[sel2], huniq[sel2])
-X = np.linspace(-rmax, rmax, res)
-Y = np.linspace(-rmax, rmax, res)
-X, Y = np.meshgrid(X, Y, indexing="ij")
-sigma_gas_msun_pc2 = M.SurfaceDensity(
-    M.m, size=2 * rmax, res=res, center=np.array((0, 0, 0))
-)  # *1e4
-############################################################################################################
-
-fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
-ax.set_xlabel("x [pc]")
-ax.set_ylabel("y [pc]")
-# ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
-
-p = ax.pcolormesh(
-    X,
-    Y,
-    sigma_gas_msun_pc2,
-    norm=colors.LogNorm(vmin=vmin, vmax=vmax),
-    cmap="viridis",
-    linewidth=0,
-    rasterized=True,
-)
-
-if plimit > 0:
-    ax.set_xlim(-plimit, plimit)
-    ax.set_ylim(-plimit, plimit)
-else:
-    ax.set_xlim(-rmax, rmax)
-    ax.set_ylim(-rmax, rmax)
-
-# fig.savefig(f"fig1_{sys.argv[1]}a_{snap_idx}." + savetype, dpi=300)
-############################################################################################################
-# dist_center = partpos - center[:3]
-# dist_center = np.sum(dist_center * dist_center, axis=1)**.5
-sel2 = np.abs(partpos - center[:3])
-##Only include star partciles in the box...
-dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-partpos_filt = partpos[dist_filter]
-partvel_filt = partvels[dist_filter]
-partids_filt = partids[dist_filter]
-partmasses_filt = partmasses[dist_filter]
-
-if halo_lookup:
-    halo_lookup = pd.read_parquet(halo_lookup)
-
-star_data = []
-bin_id1_pos = partpos_filt[np.where(partids_filt == bin_id1)[0][0]]
-print(
-    "ii_special",
-    np.where(partids_filt == bin_id1)[0][0],
-    partpos_filt[np.where(partids_filt == bin_id1)[0][0]],
-)
-#####Overlays of star paticles and stars
-for ii in range(len(partpos_filt)):
-
-    center_x, center_y, center_z = (
-        partpos_filt[ii, 0] - center[0],
-        partpos_filt[ii, 1] - center[1],
-        partpos_filt[ii, 2] - center[2],
+    p = ax.pcolormesh(
+        X,
+        Y,
+        sigma_gas_msun_pc2,
+        norm=colors.LogNorm(vmin=vmin, vmax=vmax),
+        cmap="viridis",
+        linewidth=0,
+        rasterized=True,
     )
 
-    pid1_for_star_plot = int(partids_filt[ii])
-    # pid2_for_star_plot = blookup.get(
-    #     ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
-    # )
-    group_color_for_star = "k"
-    if (len(mult_lookup) > 0) and (
-        (int(snap_idx), pid1_for_star_plot) in mult_lookup.index
-    ):
-        mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
-        mult_row = np.array(mult_row["mult_ids_list_og"]).astype(int).astype(str)
-        mult_center = get_com(
-            mult_row.astype(int), (partpos, partvels, partmasses, partids.astype(int))
+    if plimit > 0:
+        ax.set_xlim(-plimit, plimit)
+        ax.set_ylim(-plimit, plimit)
+    else:
+        ax.set_xlim(-rmax, rmax)
+        ax.set_ylim(-rmax, rmax)
+
+    # fig.savefig(f"fig1_{sys.argv[1]}a_{snap_idx}." + savetype, dpi=300)
+    ############################################################################################################
+    # dist_center = partpos - center[:3]
+    # dist_center = np.sum(dist_center * dist_center, axis=1)**.5
+    sel2 = np.abs(partpos - center[:3])
+    ##Only include star partciles in the box...
+    dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
+    partpos_filt = partpos[dist_filter]
+    partvel_filt = partvels[dist_filter]
+    partids_filt = partids[dist_filter]
+    partmasses_filt = partmasses[dist_filter]
+
+    if halo_lookup:
+        halo_lookup = pd.read_parquet(halo_lookup)
+
+    star_data = []
+    bin_id1_select = np.where(partids_filt == bin_id1)[0]
+    if len(bin_id1_select) == 0:
+        logger.warning("Warning bin_id1 falls outside of domain! Skipping plot")
+        return -1
+    bin_id1_pos = partpos_filt[bin_id1_select[0]]
+
+    #####Overlays of star paticles and stars
+    for ii in range(len(partpos_filt)):
+
+        center_x, center_y, center_z = (
+            partpos_filt[ii, 0] - center[0],
+            partpos_filt[ii, 1] - center[1],
+            partpos_filt[ii, 2] - center[2],
         )
-        center_x, center_y, center_z = mult_center[0], mult_center[1], mult_center[2]
-        center_x -= center[0]
-        center_y -= center[1]
-        center_z -= center[2]
-        if (str(bin_id1) in mult_row) or (str(bin_id2) in mult_row):
-            group_color_for_star = "r"
 
-        # if len(halo_lookup) > 0 and (
-        #     (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
-        #     or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
-        # ):
-        #     group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
-        #     group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
-        #     group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+        pid1_for_star_plot = int(partids_filt[ii])
+        # pid2_for_star_plot = blookup.get(
+        #     ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
+        # )
+        group_color_for_star = "k"
+        if (len(mult_lookup) > 0) and (
+            (int(snap_idx), pid1_for_star_plot) in mult_lookup.index
+        ):
+            mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
+            mult_row = np.array(mult_row["mult_ids_list_og"]).astype(int).astype(str)
+            mult_center = get_com(
+                mult_row.astype(int),
+                (partpos, partvels, partmasses, partids.astype(int)),
+            )
+            center_x, center_y, center_z = (
+                mult_center[0],
+                mult_center[1],
+                mult_center[2],
+            )
+            center_x -= center[0]
+            center_y -= center[1]
+            center_z -= center[2]
+            if (str(bin_id1) in mult_row) or (str(bin_id2) in mult_row):
+                group_color_for_star = "r"
 
-    if (bin_id1 in (pid1_for_star_plot,)) or (bin_id2 in (pid1_for_star_plot,)):
-        group_color_for_star = "red"
+            # if len(halo_lookup) > 0 and (
+            #     (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
+            #     or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
+            # ):
+            #     group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
+            #     group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
+            #     group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
 
-    size = point_size_function(np.linalg.norm(partpos_filt[ii] - bin_id1_pos), rmax)
-    ax.scatter(
-        center_x,
-        center_y,
-        marker="X",
-        c=[group_color_for_star],
-        edgecolors="black",
-        linewidths=1.5,
-        s=size**2,  # Squares your calibrated output (6-20 becomes 36-400)
-        zorder=10,
-    )
-    star_data.append(
-        (
-            partids_filt[ii],
+        if (bin_id1 in (pid1_for_star_plot,)) or (bin_id2 in (pid1_for_star_plot,)):
+            group_color_for_star = "red"
+
+        size = point_size_function(np.linalg.norm(partpos_filt[ii] - bin_id1_pos), rmax)
+        ax.scatter(
             center_x,
             center_y,
-            center_z,
-            group_color_for_star,
-            size,
+            marker="X",
+            c=[group_color_for_star],
+            edgecolors="black",
+            linewidths=1.5,
+            s=size**2,  # Squares your calibrated output (6-20 becomes 36-400)
+            zorder=10,
         )
-    )
-
-arr_index1 = np.where(partids_filt.astype(int) == bin_id1)[0]
-arr_index2 = np.where(partids_filt.astype(int) == bin_id2)[0]
-size1 = point_size_function(
-    np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
-)
-size2 = point_size_function(
-    np.linalg.norm(partpos_filt[arr_index2] - bin_id1_pos), rmax
-)
-
-ax.scatter(
-    partpos_filt[arr_index1, 0] - center[0],
-    partpos_filt[arr_index1, 1] - center[1],
-    color="r",
-    marker="X",
-    s=size1**2.0,
-    zorder=11,
-)
-ax.scatter(
-    partpos_filt[arr_index2, 0] - center[0],
-    partpos_filt[arr_index2, 1] - center[1],
-    color="r",
-    marker="X",
-    s=size2**2.0,
-    zorder=11,
-)
-
-
-# fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
-
-# prop_cycle = plt.rcParams['axes.prop_cycle']
-# colors = prop_cycle.by_key()['color']
-colors = ["gold", "w"]
-del sel2
-del sel2_gas
-del den
-del denuniq
-del uuniq
-del huniq
-# del muniq
-gc.collect()
-tracer_pv = []
-if tracer_file:
-    tracer_data = np.genfromtxt(tracer_file)
-    tracer_ids = tracer_data[:, 0]
-    # is_accreted = tracer_data[:, 1].astype(bool)
-    tracer_filt = np.isin(gas_ids, tracer_ids)
-    ##Getting positions of tracer gas particles
-    tmp_halo_pos = np.hstack(
-        (xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis])
-    )
-    ##Making sure ids are in the same order...
-    tracer_ids = gas_ids[tracer_filt]
-    is_accreted = (
-        pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
-        .set_index("id")
-        .loc[gas_ids[tracer_filt]]
-    )
-    is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
-
-    ##Only include halo particles in the Voxel
-    sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
-    dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-    try:
-        tracer_ids = tracer_ids[dist_filter]
-    except IndexError:
-        breakpoint()
-
-    tmp_halo_pos = tmp_halo_pos[dist_filter]
-    is_accreted = is_accreted[dist_filter]
-    if len(tmp_halo_pos) > 0:
-        random_selection = np.random.choice(
-            range(len(tmp_halo_pos)), len(tmp_halo_pos) // down_sample, replace=False
+        star_data.append(
+            (
+                partids_filt[ii],
+                center_x,
+                center_y,
+                center_z,
+                group_color_for_star,
+                size,
+            )
         )
-        tmp_halo_pos = tmp_halo_pos[random_selection]
-        is_accreted = is_accreted[random_selection]
 
-        # halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
-        arrow_cols = [colors[row] for row in is_accreted.astype(int)]
-        # v_offset_x = halo_com[3]
-        # v_offset_y = halo_com[4]
-        # if len(bin_center) > 0:
-        v_offset_x = center[3]
-        v_offset_y = center[4]
+    arr_index1 = np.where(partids_filt.astype(int) == bin_id1)[0]
+    arr_index2 = np.where(partids_filt.astype(int) == bin_id2)[0]
+    size1 = point_size_function(
+        np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
+    )
+    size2 = point_size_function(
+        np.linalg.norm(partpos_filt[arr_index2] - bin_id1_pos), rmax
+    )
+
+    ax.scatter(
+        partpos_filt[arr_index1, 0] - center[0],
+        partpos_filt[arr_index1, 1] - center[1],
+        color="r",
+        marker="X",
+        s=size1**2.0,
+        zorder=11,
+    )
+    ax.scatter(
+        partpos_filt[arr_index2, 0] - center[0],
+        partpos_filt[arr_index2, 1] - center[1],
+        color="r",
+        marker="X",
+        s=size2**2.0,
+        zorder=11,
+    )
+
+    # fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
+
+    # prop_cycle = plt.rcParams['axes.prop_cycle']
+    # colors = prop_cycle.by_key()['color']
+    colors = ["gold", "w"]
+    del sel2
+    del sel2_gas
+    del den
+    del denuniq
+    del uuniq
+    del huniq
+    # del muniq
+    gc.collect()
+    tracer_pv = []
+    if tracer_file:
+        tracer_data = np.genfromtxt(tracer_file)
+        tracer_ids = tracer_data[:, 0]
+        # is_accreted = tracer_data[:, 1].astype(bool)
+        tracer_filt = np.isin(gas_ids, tracer_ids)
+        ##Getting positions of tracer gas particles
+        tmp_halo_pos = np.hstack(
+            (xuniq[tracer_filt], vuniq[tracer_filt], muniq[tracer_filt, np.newaxis])
+        )
+        ##Making sure ids are in the same order...
+        tracer_ids = gas_ids[tracer_filt]
+        is_accreted = (
+            pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
+            .set_index("id")
+            .loc[gas_ids[tracer_filt]]
+        )
+        is_accreted = is_accreted["acc"].to_numpy()  # .astype(bool)
+
+        ##Only include halo particles in the Voxel
+        sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
+        dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
         try:
-            ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
-            # tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
-            ax.quiver(
-                tmp_halo_pos[:, 0] - center[0],
-                tmp_halo_pos[:, 1] - center[1],
-                (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
-                (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
-                scale=1,
-                scale_units="xy",
-                angles="xy",
-                alpha=arrow_opacity,
-                color=arrow_cols,
-            )  # color=colors[int(partids_filt[ii]) % len(colors)])
+            tracer_ids = tracer_ids[dist_filter]
         except IndexError:
             breakpoint()
 
-        ##Coloring by halo
-        ##MAKE SURE THAT HALO_LOOKUP HERE ONLY INCLUDES UNRELATED STARS(!)
-        if len(halo_lookup) > 0:
-            tmp_tracers_halo = halo_lookup.loc[tracer_ids]
-            tmp_tracers_halo = tmp_tracers_halo.loc[
-                tmp_tracers_halo["snap"] == int(snap_idx)
-            ]
-            tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
+        tmp_halo_pos = tmp_halo_pos[dist_filter]
+        is_accreted = is_accreted[dist_filter]
+        if len(tmp_halo_pos) > 0:
+            random_selection = np.random.choice(
+                range(len(tmp_halo_pos)),
+                len(tmp_halo_pos) // down_sample,
+                replace=False,
+            )
+            tmp_halo_pos = tmp_halo_pos[random_selection]
+            is_accreted = is_accreted[random_selection]
 
-            ##MAKE SURE ACCRETING STAR IS (!)
-            # Iterate through the group name (pid1, pid2) and the actual group dataframe (group_df)
-            for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
-                col = None
-                ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
-
-                # 1. Plot the dataframe coordinates and save the line object
-                # (Added marker='o' and linestyle='' assuming these are discrete points, remove if they are continuous lines)
-                # lines = ax.plot(
-                #     group_df["x"] - center[0],
-                #     group_df["y"] - center[1],
-                #     marker="o",
-                #     linestyle="",
-                #     color=col,
-                # )
-                group_color1 = np.array(get_persistent_color(pid1))
-                group_color2 = np.array(get_persistent_color(pid2))
-                group_color = 0.5 * (group_color1 + group_color2)
-                if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
-                    group_color = "red"
-                print(snap_idx, "gas color", pid1, pid2, group_color)
+            # halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
+            arrow_cols = [colors[row] for row in is_accreted.astype(int)]
+            # v_offset_x = halo_com[3]
+            # v_offset_y = halo_com[4]
+            # if len(bin_center) > 0:
+            v_offset_x = center[3]
+            v_offset_y = center[4]
+            try:
                 ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
+                # tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
                 ax.quiver(
-                    group_df["x"] - center[0],
-                    group_df["y"] - center[1],
-                    (group_df["vx"] - v_offset_x) * v_scale * snap_interval,
-                    (group_df["vy"] - v_offset_y) * v_scale * snap_interval,
+                    tmp_halo_pos[:, 0] - center[0],
+                    tmp_halo_pos[:, 1] - center[1],
+                    (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
                     scale=1,
                     scale_units="xy",
                     angles="xy",
-                    color=group_color,
+                    alpha=arrow_opacity,
+                    color=arrow_cols,
                 )  # color=colors[int(partids_filt[ii]) % len(colors)])
+            except IndexError:
+                breakpoint()
 
-                # Extract the color matplotlib automatically assigned to this group
-                tmp_star_pos1 = partpos[partids == pid1]
-                tmp_star_pos2 = partpos[partids == pid2]
+            ##Coloring by halo
+            ##MAKE SURE THAT HALO_LOOKUP HERE ONLY INCLUDES UNRELATED STARS(!)
+            if len(halo_lookup) > 0:
+                tmp_tracers_halo = halo_lookup.loc[tracer_ids]
+                tmp_tracers_halo = tmp_tracers_halo.loc[
+                    tmp_tracers_halo["snap"] == int(snap_idx)
+                ]
+                tmp_tracers_halo_grouped = tmp_tracers_halo.groupby(["pid1", "pid2"])
 
-np.savez(
-    "fig1_data_" + sys.argv[1] + f"_{snap_idx}.npz",
-    star_data=star_data,
-    tracer_pv=tracer_pv,
-)
-fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
+                for (pid1, pid2), group_df in tmp_tracers_halo_grouped:
+                    col = None
+                    ##IDEA: HAVE MAPPING BETWEEN PARTICLE ID AND COLOR...
+                    group_color1 = np.array(get_persistent_color(pid1))
+                    group_color2 = np.array(get_persistent_color(pid2))
+                    group_color = 0.5 * (group_color1 + group_color2)
+                    if (bin_id1 in (pid1, pid2)) or (bin_id2 in (pid1, pid2)):
+                        group_color = "red"
+                    print(snap_idx, "gas color", pid1, pid2, group_color)
+                    ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
+                    ax.quiver(
+                        group_df["x"] - center[0],
+                        group_df["y"] - center[1],
+                        (group_df["vx"] - v_offset_x) * v_scale * snap_interval,
+                        (group_df["vy"] - v_offset_y) * v_scale * snap_interval,
+                        scale=1,
+                        scale_units="xy",
+                        angles="xy",
+                        color=group_color,
+                    )  # color=colors[int(partids_filt[ii]) % len(colors)])
+
+                    # Extract the color matplotlib automatically assigned to this group
+                    # tmp_star_pos1 = partpos[partids == pid1]
+                    # tmp_star_pos2 = partpos[partids == pid2]
+
+    np.savez(
+        "fig1_data_" + sys.argv[1] + f"_{snap_idx}.npz",
+        star_data=star_data,
+        tracer_pv=tracer_pv,
+    )
+    fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
+
+
+if __name__ == "__main__":
+    main()
