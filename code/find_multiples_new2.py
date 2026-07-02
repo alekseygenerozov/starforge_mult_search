@@ -908,6 +908,10 @@ def main():
     partpos = partpos.astype(np.float64)
     partmasses = partmasses.astype(np.float64)
     partsink = partsink.astype(np.float64)
+    ##SOFTENING LENGTH OF ALL SINK PARTICLES IN STARFORGE IS FIXED TO 18 AU...
+    import cgs_const as cgs
+
+    partsink = np.ones_like(partsink) * 18 * cgs.au / cgs.pc
 
     ##MAKE SURE THIS IS CONSISTENT WITH THE SIMULATION (Theta, tree gravity versus brute force)
     # print("Original acceleration method")
