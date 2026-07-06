@@ -219,6 +219,7 @@ def get_com(ids, part_data):
 
 #     return np.clip(interp_size, min_size, max_size)
 
+
 def point_size_function(sep_pc, rmax):
     min_size = 6.0
     max_size = 20.0
@@ -226,9 +227,9 @@ def point_size_function(sep_pc, rmax):
 
     # Ensure input is at least a 1D array
     sep_pc = np.atleast_1d(sep_pc)
-    
+
     # Mask to avoid log(0)
-    is_zero = (sep_pc == 0)
+    is_zero = sep_pc == 0
     safe_sep = np.where(is_zero, 1.0, sep_pc)
     x = np.log(safe_sep)
 
@@ -326,6 +327,7 @@ def main():
     arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
     ms = config.getfloat("params", "ms", fallback=1)
     ma = config.getfloat("params", "ma", fallback=1)
+    tracers_future = config.getboolean("params", "trace_future", fallback=False)
     logging.basicConfig(filename="my_log.log", level=logging.INFO)
     logger = logging.getLogger(__name__)
 
@@ -340,6 +342,7 @@ def main():
     if snap_loc is None:
         snap_loc = base
     snap_file = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
+    snap_file_next = snap_loc + f"snapshot_{snap_idx:03d}.hdf5"
 
     out = find_multiples_new2.load_data(snap_file, res_limit=1e-3)
     den = out["den"]
@@ -569,6 +572,13 @@ def main():
         )
         ##Making sure ids are in the same order...
         tracer_ids = gas_ids[tracer_filt]
+        np.savez(
+            f"tracers_full_{snap_idx}.npz",
+            tracer_ids=tracer_ids,
+            tracer_pos=tmp_halo_pos[:, :-1],
+            center=center,
+        )
+
         is_accreted = (
             pd.DataFrame(tracer_data, columns=("id", "acc"), dtype=int)
             .set_index("id")
@@ -579,12 +589,9 @@ def main():
         ##Only include halo particles in the Voxel
         sel2 = np.abs(tmp_halo_pos[:, :3] - center[:3])
         dist_filter = (sel2[:, 0] < d_cut) & (sel2[:, 1] < d_cut) & (sel2[:, 2] < d_cut)
-        try:
-            tracer_ids = tracer_ids[dist_filter]
-        except IndexError:
-            breakpoint()
 
         tmp_halo_pos = tmp_halo_pos[dist_filter]
+        tracer_ids = tracer_ids[dist_filter]
         is_accreted = is_accreted[dist_filter]
         if len(tmp_halo_pos) > 0:
             random_selection = np.random.choice(
@@ -593,23 +600,50 @@ def main():
                 replace=False,
             )
             tmp_halo_pos = tmp_halo_pos[random_selection]
+            tracer_ids = tracer_ids[random_selection]
             is_accreted = is_accreted[random_selection]
 
             # halo_com = np.average(tmp_halo_pos[:, :-1], axis=0, weights=tmp_halo_pos[:, -1])
-            arrow_cols = [cols[row] for row in is_accreted.astype(int)]
-            # v_offset_x = halo_com[3]
-            # v_offset_y = halo_com[4]
-            # if len(bin_center) > 0:
+            arrow_cols = np.array([cols[row] for row in is_accreted.astype(int)])
             v_offset_x = center[3]
             v_offset_y = center[4]
+
+            if os.path.exists(f"tracers_full_{snap_idx + 1}.npz") and trace_future:
+                tracers_future = np.load(f"tracers_full_{snap_idx + 1}.npz")
+
+                future_filt = np.isin(tracers_future["tracer_ids"], tracer_ids)
+                future_filt_rev = np.isin(tracer_ids, tracers_future["tracer_ids"])
+                future_pos = (
+                    tracers_future["tracer_pos"][future_filt] - tracers_future["center"]
+                )
+                current_pos = (
+                    tmp_halo_pos[:, 0][future_filt_rev] - center[0],
+                    tmp_halo_pos[:, 1][future_filt_rev] - center[1],
+                )
+                arrow_cols = arrow_cols[future_filt_rev]
+                delta_gas = (
+                    future_pos[:, 0] - current_pos[0],
+                    future_pos[:, 1] - current_pos[1],
+                )
+
+            else:
+                current_pos = (
+                    (tmp_halo_pos[:, 0] - center[0]),
+                    (tmp_halo_pos[:, 1] - center[1]),
+                )
+                delta_gas = (
+                    (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
+                    (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
+                )
+
             try:
                 ##Change the velocity to always be relative to the star(?) Even if center is not in the star frame
                 # tracer_pv.append(np.transpose((tmp_halo_pos[:, :6] - center), is_accreted))
                 ax.quiver(
-                    tmp_halo_pos[:, 0] - center[0],
-                    tmp_halo_pos[:, 1] - center[1],
-                    (tmp_halo_pos[:, 3] - v_offset_x) * v_scale * snap_interval,
-                    (tmp_halo_pos[:, 4] - v_offset_y) * v_scale * snap_interval,
+                    current_pos[0],
+                    current_pos[1],
+                    delta_gas[0],
+                    delta_gas[1],
                     scale=1,
                     scale_units="xy",
                     angles="xy",
