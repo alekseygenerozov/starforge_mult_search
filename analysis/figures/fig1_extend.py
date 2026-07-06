@@ -612,19 +612,23 @@ def main():
             if os.path.exists(f"tracers_full_{snap_idx + 1}.npz") and trace_future:
                 tracers_future = np.load(f"tracers_full_{snap_idx + 1}.npz")
 
-                future_filt = np.isin(tracers_future["tracer_ids"], tracer_ids)
-                future_filt_rev = np.isin(tracer_ids, tracers_future["tracer_ids"])
-                future_pos = (
-                    tracers_future["tracer_pos"][future_filt] - tracers_future["center"]
+                # Find the common IDs and get their exact indices in BOTH arrays.
+                # assume_unique=True speeds this up since particle IDs are unique.
+                common_ids, ind_curr, ind_fut = np.intersect1d(
+                    tracer_ids,
+                    tracers_future["tracer_ids"],
+                    assume_unique=True,
+                    return_indices=True,
                 )
+
                 current_pos = (
-                    tmp_halo_pos[:, 0][future_filt_rev] - center[0],
-                    tmp_halo_pos[:, 1][future_filt_rev] - center[1],
+                    tmp_halo_pos[:, 0][ind_curr] - center[0],
+                    tmp_halo_pos[:, 1][ind_curr] - center[1],
                 )
                 arrow_cols = arrow_cols[future_filt_rev]
                 delta_gas = (
-                    future_pos[:, 0] - current_pos[0],
-                    future_pos[:, 1] - current_pos[1],
+                    future_pos[:, 0][ind_fut] - current_pos[0],
+                    future_pos[:, 1][ind_fut] - current_pos[1],
                 )
 
             else:
