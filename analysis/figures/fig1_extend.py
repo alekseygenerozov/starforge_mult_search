@@ -328,7 +328,7 @@ def main():
     arrow_opacity = config.getfloat("params", "arrow_opacity", fallback=0.8)
     ms = config.getfloat("params", "ms", fallback=1)
     ma = config.getfloat("params", "ma", fallback=1)
-    tracers_future = config.getboolean("params", "trace_future", fallback=False)
+    trace_future = config.getboolean("params", "trace_future", fallback=False)
     logging.basicConfig(filename="my_log.log", level=logging.INFO)
     logger = logging.getLogger(__name__)
 
