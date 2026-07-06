@@ -220,6 +220,34 @@ def point_size_function(sep_pc, rmax):
     return np.clip(interp_size, min_size, max_size)
 
 
+def get_multiple_shift_info(
+    pid1, snap_idx, mult_lookup, target_ids, particle_tuple, center
+):
+    """
+    Checks if a star is part of a multiple system.
+    If so, returns its shifted position (Center of Mass relative to plot center)
+    and a boolean indicating whether a target star is in the system.
+
+    Returns (None, False) if the star is not in a multiple system.
+    GEMINI GENERATED--CHECK
+    """
+    if len(mult_lookup) == 0 or (int(snap_idx), pid1) not in mult_lookup.index:
+        return None, False
+
+    # Extract the list of IDs in this multiple system
+    mult_row = mult_lookup.loc[(int(snap_idx), pid1)]
+    mult_row_list = np.array(mult_row["mult_ids_list_og"]).astype(int)
+
+    # Calculate the Center of Mass for the multiple
+    mult_center = get_com(mult_row_list, particle_tuple)
+    shifted_pos = mult_center - center
+
+    # Check if any target star is inside this multiple system
+    contains_target = any(t_id in mult_row_list for t_id in target_ids if t_id != -999)
+
+    return shifted_pos, contains_target
+
+
 def main():
     units.registry["au"] = AUnit()
     colorblind_palette = sns.color_palette("colorblind")
@@ -239,6 +267,8 @@ def main():
     snap_idx = config.getint("params", "snap_idx")
     bin_id1 = config.getint("params", "bin1")
     bin_id2 = config.getint("params", "bin2")
+    # Read bin3
+    bin_id3 = config.getint("params", "bin3", fallback=-999)
     # my_ft = config.get("params", "ft", fallback="1.0")
     seed = config.getint("params", "seed", fallback=42)
     rmax = config.getfloat("params", "rmax", fallback=0.5)
@@ -379,6 +409,18 @@ def main():
         linewidth=0,
         rasterized=True,
     )
+    # Add to fig1_extend.py after ax.pcolormesh
+    ax.text(
+        0.05,
+        0.95,
+        f"t = {tage_myr:.2f} Myr",
+        transform=ax.transAxes,
+        color="white",
+        fontsize=14,
+        fontweight="bold",
+        va="top",
+        ha="left",
+    )
 
     if plimit > 0:
         ax.set_xlim(-plimit, plimit)
@@ -403,103 +445,74 @@ def main():
         halo_lookup = pd.read_parquet(halo_lookup)
 
     star_data = []
+    # 1. Calculate all distances and sizes simultaneously
     bin_id1_select = np.where(partids_filt == bin_id1)[0]
     if len(bin_id1_select) == 0:
         logger.info("Warning bin_id1 falls outside of domain! Skipping plot")
         return -1
     bin_id1_pos = partpos_filt[bin_id1_select[0]]
+    dists = np.linalg.norm(partpos_filt - bin_id1_pos, axis=1)
+    sizes = point_size_function(dists, rmax) ** 2
 
-    #####Overlays of star paticles and stars
+    # 2. Initialize coordinate and color arrays
+    plot_x = partpos_filt[:, 0] - center[0]
+    plot_y = partpos_filt[:, 1] - center[1]
+    plot_z = partpos_filt[:, 2] - center[2]
+    colors_arr = np.full(len(partpos_filt), "k", dtype=object)
+    target_ids = {bin_id1, bin_id2, bin_id3}
+    particle_tuple = (partpos, partvels, partmasses, partids.astype(int))
+
+    # 3. Handle multiples logic
     for ii in range(len(partpos_filt)):
+        pid1 = int(partids_filt[ii])
+        # Color red if it's the exact target star
+        if pid1 in target_ids:
+            colors_arr[ii] = "r"
 
-        center_x, center_y, center_z = (
-            partpos_filt[ii, 0] - center[0],
-            partpos_filt[ii, 1] - center[1],
-            partpos_filt[ii, 2] - center[2],
+        # Fetch multiple system info if applicable
+        shifted_pos, contains_target = get_multiple_shift_info(
+            pid1, snap_idx, mult_lookup, target_ids, particle_tuple, center
         )
 
-        pid1_for_star_plot = int(partids_filt[ii])
-        # pid2_for_star_plot = blookup.get(
-        #     ((int(snap_idx), int(pid1_for_star_plot))), pid1_for_star_plot
-        # )
-        group_color_for_star = "k"
-        if (len(mult_lookup) > 0) and (
-            (int(snap_idx), pid1_for_star_plot) in mult_lookup.index
-        ):
-            mult_row = mult_lookup.loc[(int(snap_idx), pid1_for_star_plot)]
-            mult_row = np.array(mult_row["mult_ids_list_og"]).astype(int).astype(str)
-            mult_center = get_com(
-                mult_row.astype(int),
-                (partpos, partvels, partmasses, partids.astype(int)),
-            )
-            center_x, center_y, center_z = (
-                mult_center[0],
-                mult_center[1],
-                mult_center[2],
-            )
-            center_x -= center[0]
-            center_y -= center[1]
-            center_z -= center[2]
-            if (str(bin_id1) in mult_row) or (str(bin_id2) in mult_row):
-                group_color_for_star = "r"
+        # Apply the shift and color if the star is in a multiple system
+        if shifted_pos is not None:
+            plot_x[ii], plot_y[ii], plot_z[ii] = shifted_pos
+            if contains_target:
+                colors_arr[ii] = "r"
 
-            # if len(halo_lookup) > 0 and (
-            #     (pid1_for_star_plot in halo_lookup["pid1"].to_numpy())
-            #     or (pid1_for_star_plot in halo_lookup["pid2"].to_numpy())
-            # ):
-            #     group_color1_for_star = np.array(get_persistent_color(pid1_for_star_plot))
-            #     group_color2_for_star = np.array(get_persistent_color(pid2_for_star_plot))
-            #     group_color_for_star = 0.5 * (group_color1_for_star + group_color2_for_star)
+    # 4. Split into target and background arrays to control rendering order (zorder)
+    target_mask = colors_arr == "r"
+    bg_mask = ~target_mask
 
-        if (bin_id1 in (pid1_for_star_plot,)) or (bin_id2 in (pid1_for_star_plot,)):
-            group_color_for_star = "red"
-
-        size = point_size_function(np.linalg.norm(partpos_filt[ii] - bin_id1_pos), rmax)
+    # Plot Background Stars
+    if np.any(bg_mask):
         ax.scatter(
-            center_x,
-            center_y,
+            plot_x[bg_mask],
+            plot_y[bg_mask],
             marker="X",
-            c=[group_color_for_star],
+            c=colors_arr[bg_mask],
             edgecolors="black",
             linewidths=1.5,
-            s=size**2,  # Squares your calibrated output (6-20 becomes 36-400)
+            s=sizes[bg_mask],
             zorder=10,
         )
-        star_data.append(
-            (
-                partids_filt[ii],
-                center_x,
-                center_y,
-                center_z,
-                group_color_for_star,
-                size,
-            )
+
+    # Plot Target Stars (Zorder 11 keeps them on top)
+    if np.any(target_mask):
+        ax.scatter(
+            plot_x[target_mask],
+            plot_y[target_mask],
+            marker="X",
+            c=colors_arr[target_mask],
+            edgecolors="black",
+            linewidths=1.5,
+            s=sizes[target_mask],
+            zorder=11,
         )
 
-    arr_index1 = np.where(partids_filt.astype(int) == bin_id1)[0]
-    arr_index2 = np.where(partids_filt.astype(int) == bin_id2)[0]
-    size1 = point_size_function(
-        np.linalg.norm(partpos_filt[arr_index1] - bin_id1_pos), rmax
-    )
-    size2 = point_size_function(
-        np.linalg.norm(partpos_filt[arr_index2] - bin_id1_pos), rmax
-    )
-
-    ax.scatter(
-        partpos_filt[arr_index1, 0] - center[0],
-        partpos_filt[arr_index1, 1] - center[1],
-        color="r",
-        marker="X",
-        s=size1**2.0,
-        zorder=11,
-    )
-    ax.scatter(
-        partpos_filt[arr_index2, 0] - center[0],
-        partpos_filt[arr_index2, 1] - center[1],
-        color="r",
-        marker="X",
-        s=size2**2.0,
-        zorder=11,
+    # 5. Compile star_data exactly as you had it before
+    star_data = list(
+        zip(partids_filt, plot_x, plot_y, plot_z, colors_arr, np.sqrt(sizes))
     )
 
     # fig.savefig(f"fig1_{sys.argv[1]}b_{snap_idx}." + savetype, dpi=300)
@@ -507,14 +520,13 @@ def main():
     # prop_cycle = plt.rcParams['axes.prop_cycle']
     # colors = prop_cycle.by_key()['color']
     cols = ["gold", "w"]
-    del sel2
-    del sel2_gas
-    del den
-    del denuniq
-    del uuniq
-    del huniq
-    # del muniq
-    gc.collect()
+    sel2 = None
+    sel2_gas = None
+    den = None
+    denuniq = None
+    uuniq = None
+    huniq = None
+
     tracer_pv = []
     if tracer_file:
         tracer_data = np.genfromtxt(tracer_file)
