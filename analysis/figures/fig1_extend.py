@@ -328,6 +328,7 @@ def main():
     partids = out["partids"]
     partsink = out["partsink"]
     tage_myr = out["tage_myr"]
+    tsnap_myr = out["tsnap_myr"]
 
     ##NOTE THE CHANGE IN INDEXING HERE(!)
     # xuniq, indx = np.unique(x, return_index=True, axis=0)
@@ -413,7 +414,7 @@ def main():
     ax.text(
         0.05,
         0.95,
-        f"t = {tage_myr:.2f} Myr",
+        f"t = {tsnap_myr:.2f} Myr",
         transform=ax.transAxes,
         color="white",
         fontsize=14,
