@@ -612,12 +612,14 @@ def main():
             if os.path.exists(f"tracers_full_{snap_idx + 1}.npz") and trace_future:
                 tracers_future = np.load(f"tracers_full_{snap_idx + 1}.npz")
 
+                ##Future tracer positions.
+                future_pos = tracers_future["tracer_pos"] - tracers_future["center"]
                 # Find the common IDs and get their exact indices in BOTH arrays.
                 # assume_unique=True speeds this up since particle IDs are unique.
                 common_ids, ind_curr, ind_fut = np.intersect1d(
                     tracer_ids,
                     tracers_future["tracer_ids"],
-                    assume_unique=True,
+                    # assume_unique=True,
                     return_indices=True,
                 )
 
