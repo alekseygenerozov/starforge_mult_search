@@ -199,13 +199,38 @@ def get_com(ids, part_data):
     return np.average(tmp_pos_vel, axis=0, weights=tmp_mass)
 
 
+# def point_size_function(sep_pc, rmax):
+#     min_size = 6.0
+#     max_size = 20.0
+#     rmax = 0.2
+#     if sep_pc == 0:
+#         return max_size
+#     x = np.log(sep_pc)
+
+#     r0 = 1e3 * cgs.au / cgs.pc
+#     r1 = rmax * 3.0**0.5
+#     x0 = np.log(r0)
+#     x1 = np.log(r1)
+
+#     interp_size = np.exp(
+#         (x - x0) / (x1 - x0) * np.log(min_size)
+#         + (x - x1) / (x0 - x1) * np.log(max_size)
+#     )
+
+#     return np.clip(interp_size, min_size, max_size)
+
 def point_size_function(sep_pc, rmax):
     min_size = 6.0
     max_size = 20.0
-    rmax = 0.2
-    if sep_pc == 0:
-        return max_size
-    x = np.log(sep_pc)
+    # rmax = 0.2  # Un-comment if you strictly want to force 0.2!
+
+    # Ensure input is at least a 1D array
+    sep_pc = np.atleast_1d(sep_pc)
+    
+    # Mask to avoid log(0)
+    is_zero = (sep_pc == 0)
+    safe_sep = np.where(is_zero, 1.0, sep_pc)
+    x = np.log(safe_sep)
 
     r0 = 1e3 * cgs.au / cgs.pc
     r1 = rmax * 3.0**0.5
@@ -217,7 +242,11 @@ def point_size_function(sep_pc, rmax):
         + (x - x1) / (x0 - x1) * np.log(max_size)
     )
 
-    return np.clip(interp_size, min_size, max_size)
+    out_size = np.clip(interp_size, min_size, max_size)
+    out_size[is_zero] = max_size  # Re-apply max size for zero-distance
+
+    # Return scalar if a single float was passed, otherwise array
+    return out_size[0] if out_size.size == 1 else out_size
 
 
 def get_multiple_shift_info(
