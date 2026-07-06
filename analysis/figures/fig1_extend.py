@@ -4,6 +4,7 @@ import configparser
 import gc
 import hashlib
 import logging
+import os
 import pickle
 import sys
 
