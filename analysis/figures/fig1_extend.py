@@ -625,7 +625,7 @@ def main():
                     tmp_halo_pos[:, 0][ind_curr] - center[0],
                     tmp_halo_pos[:, 1][ind_curr] - center[1],
                 )
-                arrow_cols = arrow_cols[future_filt_rev]
+                arrow_cols = arrow_cols[ind_curr]
                 delta_gas = (
                     future_pos[:, 0][ind_fut] - current_pos[0],
                     future_pos[:, 1][ind_fut] - current_pos[1],
