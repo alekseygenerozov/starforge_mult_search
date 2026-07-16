@@ -700,8 +700,10 @@ def main():
         tracer_pv=tracer_pv,
     )
     fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}." + savetype, dpi=300)
+    original_position = ax.get_position()
     ax.set_ylabel("")
     ax.yaxis.set_ticklabels([])
+    ax.set_position(original_position)
     fig.savefig(f"fig1_{sys.argv[1]}d_{snap_idx}_noy." + savetype, dpi=300)
 
 
