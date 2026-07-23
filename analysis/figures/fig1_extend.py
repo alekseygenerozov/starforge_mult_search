@@ -11,6 +11,7 @@ import sys
 import h5py
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import matplotlib.units as units
 import numpy as np
 import pandas as pd
@@ -454,6 +455,8 @@ def main():
     fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
     ax.set_xlabel("x [pc]")
     ax.set_ylabel("y [pc]")
+    ax.tick_params(axis="both", which="both", color="0.5", labelcolor="k")
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(prune="lower"))
     # ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
     ax.pcolormesh(
@@ -472,7 +475,7 @@ def main():
         f"t = {tsnap_myr:.2f} Myr",
         transform=ax.transAxes,
         color="white",
-        fontsize=14,
+        fontsize=10,
         fontweight="bold",
         va="top",
         ha="left",
