@@ -559,7 +559,7 @@ def main():
             marker="X",
             c=colors_arr[bg_mask],
             edgecolors="black",
-            linewidths=1.5,
+            linewidths=0.65,
             s=sizes[bg_mask],
             zorder=10,
         )
@@ -572,7 +572,7 @@ def main():
             marker="X",
             c=colors_arr[target_mask],
             edgecolors="black",
-            linewidths=1.5,
+            linewidths=0.65,
             s=sizes[target_mask],
             zorder=11,
         )
