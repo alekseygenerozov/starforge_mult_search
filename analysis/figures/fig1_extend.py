@@ -589,11 +589,11 @@ def main():
         tracer_data = np.genfromtxt(tracer_file)
         tracer_ids = tracer_data[:, 0]
         ##Deterministic tracer downsampling--commutative with filtering
-        tracer_ids = tracer_ids[
-            deterministic_tracer_sample(
-                tracer_ids, target_fraction=1.0 / down_sample, seed=42
-            )
-        ]
+        # tracer_ids = tracer_ids[
+        #     deterministic_tracer_sample(
+        #         tracer_ids, target_fraction=1.0 / down_sample, seed=42
+        #     )
+        # ]
         # is_accreted = tracer_data[:, 1].astype(bool)
         tracer_filt = np.isin(gas_ids, tracer_ids)
         ##Getting positions of tracer gas particles
@@ -629,8 +629,12 @@ def main():
             #     len(tmp_halo_pos) // down_sample,
             #     replace=False,
             # )
+            tracer_mask = deterministic_tracer_sample(
+                tracer_ids, 1.0 / down_sample, seed=42
+            )
+            random_selection = np.where(tracer_mask)
             ##Dummy code--Since downsampling is already done, we keep all particles.
-            random_selection = np.array(range(len(tmp_halo_pos)))
+            # random_selection = np.array(range(len(tmp_halo_pos)))
             tmp_halo_pos = tmp_halo_pos[random_selection]
             tracer_ids = tracer_ids[random_selection]
             is_accreted = is_accreted[random_selection]
@@ -643,6 +647,7 @@ def main():
             if os.path.exists(f"tracers_full_{snap_idx + 1}.npz") and trace_future:
                 tracers_future = np.load(f"tracers_full_{snap_idx + 1}.npz")
 
+                ##TO DO: POINT TO STAR IF ACCRETED?
                 ##Future tracer positions.
                 future_pos = tracers_future["tracer_pos"] - tracers_future["center"]
                 # Find the common IDs and get their exact indices in BOTH arrays.
