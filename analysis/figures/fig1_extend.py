@@ -589,9 +589,11 @@ def main():
         tracer_data = np.genfromtxt(tracer_file)
         tracer_ids = tracer_data[:, 0]
         ##Deterministic tracer downsampling--commutative with filtering
-        tracer_ids = deterministic_tracer_sample(
-            tracer_ids, target_fraction=1.0 / down_sample, seed=42
-        )
+        tracer_ids = tracer_ids[
+            deterministic_tracer_sample(
+                tracer_ids, target_fraction=1.0 / down_sample, seed=42
+            )
+        ]
         # is_accreted = tracer_data[:, 1].astype(bool)
         tracer_filt = np.isin(gas_ids, tracer_ids)
         ##Getting positions of tracer gas particles
