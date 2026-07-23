@@ -245,8 +245,8 @@ def get_com(ids, part_data):
 
 
 def point_size_function(sep_pc, rmax):
-    min_size = 6.0
-    max_size = 20.0
+    min_size = 6.0 * 0.19
+    max_size = 20.0 * 0.19
     # rmax = 0.2  # Un-comment if you strictly want to force 0.2!
 
     # Ensure input is at least a 1D array
@@ -456,7 +456,14 @@ def main():
     ax.set_xlabel("x [pc]")
     ax.set_ylabel("y [pc]")
     ax.tick_params(axis="both", which="both", color="0.5", labelcolor="k")
-    ax.xaxis.set_major_locator(ticker.MaxNLocator(prune="lower"))
+    # ax.xaxis.set_major_locator(ticker.MaxNLocator(prune="lower"))
+    # Force Matplotlib to draw the figure internally so tick labels exist
+    fig.canvas.draw()
+
+    # Grab the tick labels and hide the first one
+    labels = ax.get_xticklabels()
+    if labels:
+        labels[0].set_visible(False)
     # ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
 
     ax.pcolormesh(
