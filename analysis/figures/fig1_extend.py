@@ -245,8 +245,8 @@ def get_com(ids, part_data):
 
 
 def point_size_function(sep_pc, rmax):
-    min_size = 6.0 * 0.19
-    max_size = 20.0 * 0.19
+    min_size = 6.0 * 0.44
+    max_size = 20.0 * 0.44
     # rmax = 0.2  # Un-comment if you strictly want to force 0.2!
 
     # Ensure input is at least a 1D array
@@ -465,6 +465,7 @@ def main():
     if labels:
         labels[0].set_visible(False)
     # ax.annotate(f"Example {annot}", (0.01, 0.99), xycoords='axes fraction', va="top", ha="left")
+    ax.yaxis.set_ticks(np.arange(-rmax, rmax + 0.01, 0.2))
 
     ax.pcolormesh(
         X,
