@@ -452,7 +452,7 @@ def main():
     )  # *1e4
     ############################################################################################################
 
-    fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
+    fig, ax = plt.subplots()
     ax.set_xlabel("x [pc]")
     ax.set_ylabel("y [pc]")
     ax.tick_params(axis="both", which="both", color="0.5", labelcolor="k")
