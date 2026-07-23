@@ -34,6 +34,28 @@ snap_interval = 2.47e4
 conv = cgs.pc / cgs.au / 1e4
 
 
+def deterministic_tracer_sample(tracer_ids, target_fraction=0.10, seed=42):
+    """
+    Selects a deterministic subset of tracers using an integer hash on tracer IDs.
+
+    GEMINI
+    """
+    ids = np.asarray(tracer_ids, dtype=np.uint64)
+
+    # Simple, fast vectorized bitwise hash (e.g., SplitMix64 style)
+    x = ids ^ np.uint64(seed)
+    x = (x ^ (x >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
+    x = (x ^ (x >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
+    x = x ^ (x >> np.uint64(31))
+
+    # Normalize hashed values to [0.0, 1.0]
+    max_uint64 = float(np.iinfo(np.uint64).max)
+    normalized = x.astype(np.float64) / max_uint64
+
+    # Mask indicating which tracers to keep
+    return normalized < target_fraction
+
+
 # Define a custom unit
 class AUnit(units.ConversionInterface):
     @staticmethod
@@ -563,8 +585,13 @@ def main():
 
     tracer_pv = []
     if tracer_file:
+        ##TO DO: ADJUST SUB-SAMPLING HERE!
         tracer_data = np.genfromtxt(tracer_file)
         tracer_ids = tracer_data[:, 0]
+        ##Deterministic tracer downsampling--commutative with filtering
+        tracer_ids = deterministic_tracer_sample(
+            tracer_ids, target_fraction=1.0 / down_sample, seed=42
+        )
         # is_accreted = tracer_data[:, 1].astype(bool)
         tracer_filt = np.isin(gas_ids, tracer_ids)
         ##Getting positions of tracer gas particles
@@ -595,11 +622,13 @@ def main():
         tracer_ids = tracer_ids[dist_filter]
         is_accreted = is_accreted[dist_filter]
         if len(tmp_halo_pos) > 0:
-            random_selection = np.random.choice(
-                range(len(tmp_halo_pos)),
-                len(tmp_halo_pos) // down_sample,
-                replace=False,
-            )
+            # random_selection = np.random.choice(
+            #     range(len(tmp_halo_pos)),
+            #     len(tmp_halo_pos) // down_sample,
+            #     replace=False,
+            # )
+            ##Dummy code--Since downsampling is already done, we keep all particles.
+            random_selection = np.array(range(len(tmp_halo_pos)))
             tmp_halo_pos = tmp_halo_pos[random_selection]
             tracer_ids = tracer_ids[random_selection]
             is_accreted = is_accreted[random_selection]

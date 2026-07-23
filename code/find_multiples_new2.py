@@ -648,13 +648,14 @@ class cluster(object):
             ens = orb_all[:, 0]
         en_order = np.argsort(ens)
         orb_all = orb_all[en_order]
-        print(orb_all)
         ##Filter out negative smas to save time here
         orb_all = orb_all[orb_all[:, 0] > 0]
 
         for row in orb_all:
             ID1 = int(row[-2])
             ID2 = int(row[-1])
+            # print(self.orb_all[0].shape)
+
             idx1 = np.where(sysIDs == ID1)[0][0]
             idx2 = np.where(sysIDs == ID2)[0][0]
 
@@ -678,8 +679,9 @@ class cluster(object):
                 tidal_crit = tidal_crit_1 and tidal_crit_2
             else:
                 tidal_crit = True
-            print(tidal_crit)
+            # print(tidal_crit)
             # tidal_crit = (tidal_crit) or (not self.tides)
+            # breakpoint()
             ##Check that binary is bound, multiplicity is less than four, and that the binary is tidally stable. Tides can be turned off by setting self.tides to False.
             if row[0] > 0 and (mult_total <= self.mult_max) and tidal_crit:
                 # print("adding {0} {1} {2}".format(mult_total, self.systems[idx1].ids, self.systems[idx2].ids))
